@@ -12574,6 +12574,7 @@ __metadata:
     "@lerna-lite/publish": "npm:^3.0.0"
     "@lerna-lite/version": "npm:^3.0.0"
     husky: "npm:^9.0.0"
+    js-yaml: "npm:^4.1.0"
     lint-staged: "npm:^15.0.0"
   languageName: unknown
   linkType: soft

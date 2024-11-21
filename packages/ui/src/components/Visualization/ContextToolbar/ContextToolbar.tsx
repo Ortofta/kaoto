@@ -9,6 +9,7 @@ import { FlowExportImage } from './FlowExportImage/FlowExportImage';
 import { FlowsMenu } from './Flows/FlowsMenu';
 import { NewEntity } from './NewEntity/NewEntity';
 import { RuntimeSelector } from './RuntimeSelector/RuntimeSelector';
+import { DeployRoute } from './DeployRoute/DeployRoute';
 
 export const ContextToolbar: FunctionComponent = () => {
   const { currentSchemaType } = useContext(EntitiesContext)!;
@@ -41,6 +42,9 @@ export const ContextToolbar: FunctionComponent = () => {
           <ToolbarItem key="toolbar-export-image">
             <FlowExportImage />
           </ToolbarItem>,
+          <ToolbarItem key="toolbar-deploy-route">
+            <DeployRoute />
+          </ToolbarItem>, 
           <RuntimeSelector key="runtime-selector" />,
         ])}
       </ToolbarContent>
