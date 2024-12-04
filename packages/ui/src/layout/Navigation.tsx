@@ -39,6 +39,7 @@ export const Navigation: FunctionComponent<INavigationSidebar> = (props) => {
         hidden: () => !NAVIGATION_ELEMENTS.PipeErrorHandler.includes(currentSchemaType),
       },
       { title: 'Catalog', to: Links.Catalog },
+      { title: 'Management', to: Links.Management , external: true},
     ],
     [currentSchemaType],
   );
@@ -78,6 +79,22 @@ export const Navigation: FunctionComponent<INavigationSidebar> = (props) => {
                       </NavItem>
                     ))}
                   </NavExpandable>
+                );
+              } else if('external' in nav) {
+                return (
+                  <NavItem
+                    id={nav.title}
+                    className={clsx({ 'pf-v5-u-hidden': nav.hidden?.() })}
+                    hidden={nav.hidden?.()}
+                    key={nav.title}
+                    data-testid={nav.title}
+                    itemId={index}
+                    isActive={currentLocation.pathname === nav.to}
+                  >
+                    <a href={nav.to}>
+                      {nav.title}
+                    </a>
+                  </NavItem>
                 );
               }
 
