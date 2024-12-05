@@ -34,6 +34,7 @@ declare global {
       openCatalog(): Chainable<JQuery<Element>>;
       addNewRoute(): Chainable<JQuery<Element>>;
       deleteRoute(index: number): Chainable<JQuery<Element>>;
+      cancelDeleteRoute(index: number): Chainable<JQuery<Element>>;
       toggleFlowsList(): Chainable<JQuery<Element>>;
       toggleRouteVisibility(index: number): Chainable<JQuery<Element>>;
       closeFlowsListIfVisible(): Chainable<JQuery<Element>>;
@@ -42,7 +43,7 @@ declare global {
       hideAllRoutes(): Chainable<JQuery<Element>>;
       showAllRoutes(): Chainable<JQuery<Element>>;
       // design
-      openRootConfigurationTab(step: string): Chainable<JQuery<Element>>;
+      openGroupConfigurationTab(step: string, stepIndex?: number): Chainable<JQuery<Element>>;
       openStepConfigurationTab(step: string, stepIndex?: number): Chainable<JQuery<Element>>;
       toggleExpandGroup(groupName: string): Chainable<JQuery<Element>>;
       fitToScreen(): Chainable<JQuery<Element>>;
