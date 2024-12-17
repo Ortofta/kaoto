@@ -5,6 +5,8 @@ import {
   ActionConfirmationModalContext,
 } from '../../../../providers/action-confirmation-modal.provider';
 import { ItemDeleteGroup } from './ItemDeleteGroup';
+import { NodeInteractionAddonContext } from '../../../registers/interactions/node-interaction-addon.provider';
+import { IInteractionAddonType } from '../../../registers/interactions/node-interaction-addon.model';
 import { EntityType } from '../../../../models/camel/entities';
 import { TestProvidersWrapper } from '../../../../stubs';
 import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
@@ -42,7 +44,7 @@ describe('ItemDeleteGroup', () => {
     fireEvent.click(wrapper.getByText('Delete'));
 
     expect(mockDeleteModalContext.actionConfirmation).toHaveBeenCalledWith({
-      title: "Do you want to delete the 'undefined' test?",
+      title: "Do you want to delete the 'undefined' test-1234?",
       text: 'All steps will be lost.',
     });
   });
@@ -70,6 +72,34 @@ describe('ItemDeleteGroup', () => {
 
     await waitFor(() => {
       expect(removeEntitySpy).toHaveBeenCalledWith(entityId);
+    });
+  });
+
+  it('should process addon when deleting', async () => {
+    const mockDeleteModalContext = {
+      actionConfirmation: () => Promise.resolve(ACTION_ID_CONFIRM),
+    };
+    const mockAddon = jest.fn();
+    const mockNodeInteractionAddonContext = {
+      registerInteractionAddon: jest.fn(),
+      getRegisteredInteractionAddons: (_interaction: IInteractionAddonType, _vizNode: IVisualizationNode) => [
+        { type: IInteractionAddonType.ON_DELETE, activationFn: () => true, callback: mockAddon },
+      ],
+    };
+
+    const wrapper = render(
+      <ActionConfirmationModalContext.Provider value={mockDeleteModalContext}>
+        <NodeInteractionAddonContext.Provider value={mockNodeInteractionAddonContext}>
+          <ItemDeleteGroup vizNode={vizNode} />
+        </NodeInteractionAddonContext.Provider>
+      </ActionConfirmationModalContext.Provider>,
+    );
+    act(() => {
+      fireEvent.click(wrapper.getByText('Delete'));
+    });
+
+    await waitFor(() => {
+      expect(mockAddon).toHaveBeenCalled();
     });
   });
 });

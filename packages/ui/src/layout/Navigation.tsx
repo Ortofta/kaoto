@@ -38,6 +38,11 @@ export const Navigation: FunctionComponent<INavigationSidebar> = (props) => {
         to: Links.PipeErrorHandler,
         hidden: () => !NAVIGATION_ELEMENTS.PipeErrorHandler.includes(currentSchemaType),
       },
+      {
+        title: 'DataMapper',
+        to: Links.DataMapper,
+        hidden: () => !NAVIGATION_ELEMENTS.DataMapper.includes(currentSchemaType),
+      },
       { title: 'Catalog', to: Links.Catalog },
       { title: 'Management', to: Links.Management , external: true},
     ],
@@ -130,4 +135,5 @@ const NAVIGATION_ELEMENTS = {
     SourceSchemaType.Pipe,
   ],
   PipeErrorHandler: [SourceSchemaType.KameletBinding, SourceSchemaType.Pipe],
+  DataMapper: [SourceSchemaType.Route, SourceSchemaType.Kamelet],
 };

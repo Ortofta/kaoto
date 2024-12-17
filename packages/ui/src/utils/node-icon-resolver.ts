@@ -105,6 +105,7 @@ import icon_component_couchdb from '../assets/components/couchdb.svg';
 import icon_component_cql from '../assets/components/cql.svg';
 import icon_component_crypto from '../assets/components/crypto.svg';
 import icon_component_cxf from '../assets/components/cxf.png';
+import icon_component_datamapper from '../assets/components/datamapper.png';
 import icon_component_debezium from '../assets/components/debezium.svg';
 import icon_component_dhis2 from '../assets/components/dhis2.svg';
 import icon_component_direct from '../assets/components/direct.svg';
@@ -190,6 +191,7 @@ import icon_component_opensearch from '../assets/components/opensearch.svg';
 import icon_component_openshift from '../assets/components/openshift.svg';
 import icon_component_openstack from '../assets/components/openstack.svg';
 import icon_component_pinecone from '../assets/components/pinecone.svg';
+import icon_component_platformhttp from '../assets/components/platformhttp.png';
 import icon_component_policy from '../assets/components/policy.png';
 import icon_component_printer from '../assets/components/printer.svg';
 import icon_component_pulsar from '../assets/components/pulsar.svg';
@@ -706,6 +708,7 @@ export class NodeIconResolver {
       case 'pinecone':
         return icon_component_pinecone;
       case 'platform-http':
+        return icon_component_platformhttp;
       case 'plc4x':
         return icon_component_generic;
       case 'pop3':
@@ -902,6 +905,8 @@ export class NodeIconResolver {
       case 'idempotentConsumer':
         return icon_eip_idempotent_consumer;
       // case 'kamelet': handled on top
+      case 'kaoto-datamapper':
+        return icon_component_datamapper;
       case 'loadBalance':
         return icon_eip_load_balance;
       case 'log':
