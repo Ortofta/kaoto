@@ -1,4 +1,3 @@
-import { getCamelRandomId } from '../../camel-utils/camel-random-id';
 import { DefinedComponent } from '../camel-catalog-index';
 import { NodeLabelType } from '../settings/settings.model';
 import {
@@ -15,7 +14,7 @@ export const createVisualizationNode = <T extends IVisualizationNodeData = IVisu
   id: string,
   data: T,
 ): IVisualizationNode<T> => {
-  return new VisualizationNode(getCamelRandomId(id), data);
+  return new VisualizationNode(id, data);
 };
 
 /**
@@ -53,6 +52,18 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
 
   addBaseEntityStep(definition: DefinedComponent, mode: AddStepMode): void {
     this.getBaseEntity()?.addStep({ definedComponent: definition, mode, data: this.data });
+  }
+
+  canDragNode(): boolean {
+    return this.getBaseEntity()?.canDragNode(this.data.path) ?? false;
+  }
+
+  canDropOnNode(): boolean {
+    return this.getBaseEntity()?.canDropOnNode(this.data.path) ?? false;
+  }
+
+  moveNodeTo(path: string): void {
+    this.getBaseEntity()?.moveNodeTo({ draggedNodePath: path, droppedNodePath: this.data.path });
   }
 
   getNodeInteraction(): NodeInteraction {
