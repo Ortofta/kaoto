@@ -106,15 +106,21 @@ const CustomNode: FunctionComponent<CustomNodeProps> = observer(
         }
       },
       end(dropResult, monitor) {
-        const graph = controller.getGraph();
-        // Show all edges after dropping
-        graph.getEdges().forEach((edge) => edge.setVisible(true));
-
         if (monitor.didDrop() && dropResult) {
           const draggedNodePath = element.getData().vizNode.data.path;
           dropResult.getData()?.vizNode?.moveNodeTo(draggedNodePath);
+          // Set an empty model to clear the graph
+          controller.fromModel({
+            nodes: [],
+            edges: [],
+          });
           entitiesContext.updateEntitiesFromCamelResource();
         } else {
+          // Show all edges after dropping
+          controller
+            .getGraph()
+            .getEdges()
+            .forEach((edge) => edge.setVisible(true));
           controller.getGraph().layout();
         }
       },
@@ -185,7 +191,7 @@ const CustomNode: FunctionComponent<CustomNodeProps> = observer(
               })}
             >
               {doesHaveWarnings && (
-                <Icon title={validationText} data-warning={doesHaveWarnings}>
+                <Icon status="danger" title={validationText} data-warning={doesHaveWarnings}>
                   <ExclamationCircleIcon />
                 </Icon>
               )}

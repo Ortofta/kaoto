@@ -110,26 +110,24 @@ const AddNewParameterPlaceholder: FunctionComponent<AddNewParameterPlaceholderPr
       <ActionListGroup>
         <ActionListItem>
           <Button
+            icon={<CheckIcon />}
             onClick={() => submitNewParameter()}
             variant="link"
             isDisabled={newParameterNameValidation !== ParameterNameValidation.OK}
             id="add-new-parameter-submit-btn"
             data-testid="add-new-parameter-submit-btn"
             aria-label="Submit new parameter"
-          >
-            <CheckIcon />
-          </Button>
+          ></Button>
         </ActionListItem>
         <ActionListItem>
           <Button
+            icon={<TimesIcon />}
             onClick={() => cancelNewParameter()}
             variant="plain"
             id="add-new-parameter-cancel-btn"
             data-testid="add-new-parameter-cancel-btn"
             aria-label={'Cancel new parameter'}
-          >
-            <TimesIcon />
-          </Button>
+          />
         </ActionListItem>
       </ActionListGroup>
     </ActionList>
@@ -179,14 +177,13 @@ export const Parameters: FunctionComponent<ParametersProps> = ({ isReadOnly }) =
         {!isReadOnly && (
           <ActionListItem>
             <Button
+              icon={<PlusIcon />}
               variant="plain"
               title="Add parameter"
               aria-label="Add parameter"
               data-testid="add-parameter-button"
               onClick={() => handleAddNewParameter()}
-            >
-              <PlusIcon />
-            </Button>
+            />
           </ActionListItem>
         )}
       </ActionList>

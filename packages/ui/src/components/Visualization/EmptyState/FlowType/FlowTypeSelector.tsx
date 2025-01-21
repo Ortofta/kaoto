@@ -70,21 +70,18 @@ export const FlowTypeSelector: FunctionComponent<ISourceTypeSelector> = (props) 
       onClick={onToggleClick}
       isExpanded={isOpen}
       isFullWidth
-      splitButtonOptions={{
-        variant: 'action',
-        items: [
-          <MenuToggleAction
-            id="dsl-list-btn"
-            key="dsl-list-btn"
-            data-testid="dsl-list-btn"
-            aria-label="DSL list"
-            onClick={onNewSameTypeRoute}
-            isDisabled={!sourceSchemaConfig.config[currentSchemaType].multipleRoute && totalFlowsCount > 0}
-          >
-            {props.children}
-          </MenuToggleAction>,
-        ],
-      }}
+      splitButtonItems={[
+        <MenuToggleAction
+          id="dsl-list-btn"
+          key="dsl-list-btn"
+          data-testid="dsl-list-btn"
+          aria-label="DSL list"
+          onClick={onNewSameTypeRoute}
+          isDisabled={!sourceSchemaConfig.config[currentSchemaType].multipleRoute && totalFlowsCount > 0}
+        >
+          {props.children}
+        </MenuToggleAction>,
+      ]}
     />
   );
 
@@ -116,7 +113,7 @@ export const FlowTypeSelector: FunctionComponent<ISourceTypeSelector> = (props) 
               data-testid={`dsl-${sourceSchema.schema?.name}`}
               itemId={sourceType}
               description={
-                <span className="pf-v5-u-text-break-word" style={{ wordBreak: 'keep-all' }}>
+                <span className="pf-v6-u-text-break-word" style={{ wordBreak: 'keep-all' }}>
                   {getDescriptionForType(sourceType) !== undefined
                     ? getDescriptionForType(sourceType)
                     : ((sourceSchema.schema?.schema as { description: string }).description ?? '')}

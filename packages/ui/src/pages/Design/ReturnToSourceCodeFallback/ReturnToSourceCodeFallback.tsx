@@ -5,8 +5,6 @@ import {
   EmptyStateActions,
   EmptyStateBody,
   EmptyStateFooter,
-  EmptyStateHeader,
-  EmptyStateIcon,
 } from '@patternfly/react-core';
 import { ArrowLeftIcon, EyeSlashIcon } from '@patternfly/react-icons';
 import { Links } from '../../../router/links.models';
@@ -17,12 +15,7 @@ export const ReturnToSourceCodeFallback = () => {
 
   return (
     <Bullseye>
-      <EmptyState>
-        <EmptyStateHeader
-          titleText="The provided source code cannot be shown"
-          headingLevel="h4"
-          icon={<EmptyStateIcon icon={EyeSlashIcon} />}
-        />
+      <EmptyState headingLevel="h4" icon={EyeSlashIcon} titleText="The provided source code cannot be shown">
         <EmptyStateBody>
           <p>It might be that the source code is not available, or that the source code is not valid.</p>
           <br />
