@@ -54,6 +54,16 @@ const config: StorybookConfig = {
           },
         },
       },
+      resolve: {
+        alias: [
+          {
+            find: /^~.+/,
+            replacement: (val) => {
+              return val.replace(/^~/, '');
+            },
+          },
+        ],
+      },
     };
   },
 };

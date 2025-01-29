@@ -25,26 +25,30 @@ describe('Tests for sidebar expression configuration', () => {
     cy.uploadFixture('flows/camelRoute/basic.yaml');
     cy.openDesignPage();
 
-    cy.openStepConfigurationTab('setHeader');
+    cy.openStepConfigurationTabByPath('custom-node__route.from.steps.0.setHeader');
     cy.selectFormTab('All');
     cy.selectExpression('JQ');
     cy.interactWithConfigInputObject('expression', '.id');
     cy.addExpressionResultType('java.lang.String');
     cy.interactWithConfigInputObject('trim');
 
+    // TODO: Closing the configuration panel because adding a new step keep the selection status,
+    // but closes the panel. This will be fixed in https://github.com/KaotoIO/kaoto/issues/1923
+    cy.closeStepConfigurationTab();
+
     cy.selectAppendNode('setHeader');
     cy.chooseFromCatalog('processor', 'setHeader');
 
     cy.checkNodeExist('setHeader', 2);
 
-    cy.openStepConfigurationTab('setHeader', 1);
+    cy.openStepConfigurationTabByPath('custom-node__route.from.steps.1.setHeader');
     cy.selectFormTab('All');
     cy.selectExpression('JQ');
     cy.interactWithConfigInputObject('expression', '.name');
     cy.addExpressionResultType('java.lang.String');
     cy.interactWithConfigInputObject('trim');
 
-    cy.openStepConfigurationTab('setHeader', 0);
+    cy.openStepConfigurationTabByPath('custom-node__route.from.steps.0.setHeader');
 
     // Check the configured fields didn't disappear from the first node
     cy.checkConfigCheckboxObject('trim', true);
@@ -52,7 +56,7 @@ describe('Tests for sidebar expression configuration', () => {
     cy.checkConfigInputObject('expression', '.id');
 
     // Check the configured fields didn't disappear from the second node
-    cy.openStepConfigurationTab('setHeader', 0);
+    cy.openStepConfigurationTabByPath('custom-node__route.from.steps.1.setHeader');
     cy.checkConfigCheckboxObject('trim', true);
     cy.addExpressionResultType('java.lang.String');
     cy.checkConfigInputObject('expression', '.name');
