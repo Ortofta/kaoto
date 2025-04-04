@@ -9,7 +9,6 @@ metadata:
 spec:
   definition:
     title: kamelet-2082
-    description: Produces periodic events about random users!
     type: object
     properties:
       period:
@@ -37,7 +36,6 @@ spec:
               simple: {}
         - marshal:
             id: marshal-1414
-            base64: {}
         - to:
             uri: kamelet:sink
             parameters: {}

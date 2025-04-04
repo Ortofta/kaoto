@@ -1,4 +1,4 @@
-import { FromDefinition, Kamelet, ObjectMeta, BeanFactory } from '@kaoto/camel-catalog/types';
+import { FromDefinition, Kamelet, BeanFactory } from '@kaoto/camel-catalog/types';
 import { SourceSchemaType } from './camel/source-schema-type';
 import { KaotoSchemaDefinition } from './kaoto-schema';
 
@@ -22,7 +22,7 @@ export interface IKameletDefinition extends Omit<Kamelet, 'kind' | 'metadata' | 
   propertiesSchema?: KaotoSchemaDefinition['schema'];
 }
 
-export interface IKameletMetadata extends ObjectMeta {
+export interface IKameletMetadata {
   name: string;
   annotations: IKameletMetadataAnnotations;
   labels: IKameletMetadataLabels;
@@ -50,6 +50,23 @@ export interface IKameletSpec {
     beans?: BeanFactory[];
     from: FromDefinition;
   };
+  dataTypes?: {
+    in?: {
+      default?: string;
+      headers?: Record<string, unknown>;
+      types?: Record<string, IKameletDataShape>;
+    };
+    out?: {
+      default?: string;
+      headers?: Record<string, unknown>;
+      types?: Record<string, IKameletDataShape>;
+    };
+    error?: {
+      default?: string;
+      headers?: Record<string, unknown>;
+      types?: Record<string, IKameletDataShape>;
+    };
+  };
   types?: {
     in?: {
       mediaType: string;
@@ -58,6 +75,15 @@ export interface IKameletSpec {
       mediaType: string;
     };
   };
+}
+
+export interface IKameletDataShape {
+  scheme?: string;
+  format?: string;
+  mediaType?: string;
+  headers?: Record<string, unknown>;
+  dependencies?: string[];
+  schema?: unknown;
 }
 
 export interface IKameletSpecDefinition {

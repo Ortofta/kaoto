@@ -123,7 +123,7 @@ describe('CamelComponentSchemaService', () => {
 
       const result = CamelComponentSchemaService.getVisualComponentSchema(Path, routeDefinition);
 
-      expect(camelCatalogServiceSpy).toHaveBeenCalledWith(CatalogKind.Processor, 'from');
+      expect(camelCatalogServiceSpy).toHaveBeenCalledWith(CatalogKind.Entity, 'from');
       expect(result).toMatchSnapshot();
     });
 
@@ -558,6 +558,13 @@ describe('CamelComponentSchemaService', () => {
       ['doCatch', [{ name: 'steps', type: 'branch' }]],
       ['doFinally', [{ name: 'steps', type: 'branch' }]],
       ['aggregate', [{ name: 'steps', type: 'branch' }]],
+      [
+        'circuitBreaker',
+        [
+          { name: 'steps', type: 'branch' },
+          { name: 'onFallback', type: 'single-clause' },
+        ],
+      ],
       ['onFallback', [{ name: 'steps', type: 'branch' }]],
       ['saga', [{ name: 'steps', type: 'branch' }]],
       [

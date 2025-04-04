@@ -3,9 +3,7 @@ Cypress.Commands.add('openHomePage', () => {
   cy.visit(url!);
   cy.waitSchemasLoading();
 
-  cy.get('[data-testid="visualization-empty-state"]').should('exist');
-  // Wait for the element to become visible
-  cy.get('[data-testid="visualization-empty-state"]').should('be.visible');
+  cy.selectRuntimeVersion('Main');
 });
 
 Cypress.Commands.add('waitSchemasLoading', () => {
@@ -45,7 +43,7 @@ Cypress.Commands.add('openBeans', () => {
 
 Cypress.Commands.add('openMetadata', () => {
   cy.get('[data-testid="Metadata"]').click();
-  cy.get('[data-testid="metadata-editor-form-Metadata"]').should('be.visible');
+  cy.get('[data-testid="metadata-form"]').should('be.visible');
 });
 
 Cypress.Commands.add('openPipeErrorHandler', () => {

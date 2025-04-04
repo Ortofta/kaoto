@@ -1,6 +1,6 @@
 import { CamelYamlDsl, RouteDefinition } from '@kaoto/camel-catalog/types';
 import { TileFilter } from '../../components/Catalog';
-import { YamlCamelResourceSerializer } from '../../serializers';
+import { SerializerType, XmlCamelResourceSerializer, YamlCamelResourceSerializer } from '../../serializers';
 import { CamelResourceSerializer } from '../../serializers/camel-resource-serializer';
 import { createCamelPropertiesSorter, isDefined } from '../../utils';
 import { CatalogKind } from '../catalog-kind';
@@ -43,17 +43,22 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
       { type: EntityType.Rest, group: 'Rest', Entity: CamelRestVisualEntity },
     ];
   static readonly PARAMETERS_ORDER = ['id', 'description', 'uri', 'parameters', 'steps'];
-  private static readonly ERROR_RELATED_ENTITIES = [EntityType.OnException, EntityType.ErrorHandler];
+  private static readonly ENTITIES_ORDER_PRIORITY = [
+    EntityType.OnException,
+    EntityType.ErrorHandler,
+    EntityType.OnCompletion,
+  ];
   readonly sortFn = createCamelPropertiesSorter(CamelRouteResource.PARAMETERS_ORDER) as (
     a: unknown,
     b: unknown,
   ) => number;
   private entities: BaseCamelEntity[] = [];
   private resolvedEntities: BaseVisualCamelEntityDefinition | undefined;
-  private serializer: CamelResourceSerializer;
 
-  constructor(rawEntities?: CamelYamlDsl, serializer?: CamelResourceSerializer) {
-    this.serializer = serializer ?? new YamlCamelResourceSerializer();
+  constructor(
+    rawEntities?: CamelYamlDsl,
+    private serializer: CamelResourceSerializer = new YamlCamelResourceSerializer(),
+  ) {
     if (!rawEntities) return;
 
     const entities = Array.isArray(rawEntities) ? rawEntities : [rawEntities];
@@ -95,13 +100,17 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
     return this.resolvedEntities;
   }
 
-  getSerializer(): CamelResourceSerializer {
-    return this.serializer;
+  getSerializerType() {
+    return this.serializer.getType();
   }
 
-  setSerializer(serializer: CamelResourceSerializer): void {
+  setSerializer(serializerType: SerializerType): void {
     // Preserve comments
+    const serializer = serializerType === 'XML' ? new XmlCamelResourceSerializer() : new YamlCamelResourceSerializer();
+
     serializer.setComments(this.serializer.getComments());
+    serializer.setMetadata(this.serializer.getMetadata());
+
     this.serializer = serializer;
   }
 
@@ -112,7 +121,7 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
         const entity = new supportedEntity.Entity();
 
         /** Error related entities should be added at the beginning of the list */
-        if (CamelRouteResource.ERROR_RELATED_ENTITIES.includes(entityType)) {
+        if (CamelRouteResource.ENTITIES_ORDER_PRIORITY.includes(entityType)) {
           this.entities.unshift(entity);
         } else {
           this.entities.push(entity);

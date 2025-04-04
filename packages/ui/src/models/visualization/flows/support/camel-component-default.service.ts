@@ -37,6 +37,7 @@ export class CamelComponentDefaultService {
       case CatalogKind.Kamelet:
         return this.getDefaultValueFromKamelet(definedComponent.name);
       case CatalogKind.Processor:
+      case CatalogKind.Entity:
         return this.getDefaultValueFromProcessor(definedComponent.name as keyof ProcessorDefinition);
       default:
         return {};
@@ -76,6 +77,28 @@ export class CamelComponentDefaultService {
 
   private static getDefaultValueFromProcessor(processorName: keyof ProcessorDefinition): ProcessorDefinition {
     switch (processorName) {
+      case 'circuitBreaker':
+        return parse(`
+        circuitBreaker:
+          id: ${getCamelRandomId('circuitBreaker')}
+          steps: []
+          onFallback:
+            id: ${getCamelRandomId('onFallback')}
+            steps:
+            - log:
+                id: ${getCamelRandomId('log')}
+                message: "\${body}"
+        `);
+
+      case 'onFallback' as keyof ProcessorDefinition:
+        return parse(`
+        id: ${getCamelRandomId('onFallback')}
+        steps:
+          - log:
+              id: ${getCamelRandomId('log')}
+              message: "\${body}"
+      `);
+
       case 'choice':
         return parse(`
         choice:
@@ -97,16 +120,16 @@ export class CamelComponentDefaultService {
                 message: "\${body}"
         `);
 
-      case 'when':
+      case 'when' as keyof ProcessorDefinition:
         return parse(`
         id: ${getCamelRandomId('when')}
         expression:
           simple:
             expression: "\${header.foo} == 1"
         steps:
-        - log:
-            id: ${getCamelRandomId('log')}
-            message: "\${body}"
+          - log:
+              id: ${getCamelRandomId('log')}
+              message: "\${body}"
       `);
 
       case 'doTry':
@@ -127,7 +150,7 @@ export class CamelComponentDefaultService {
                 message: "\${body}"
         `);
 
-      case 'otherwise':
+      case 'otherwise' as keyof ProcessorDefinition:
       case 'doFinally':
         return parse(`
         id: ${getCamelRandomId(processorName)}

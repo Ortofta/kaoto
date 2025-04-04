@@ -15,8 +15,8 @@ describe('Test for node bean reference and configuration support', () => {
       cy.openStepConfigurationTab('sql');
       cy.selectFormTab('All');
       cy.configureNewBeanReference('parameters.dataSource');
-      cy.get(`input[name="name"]`).clear().type('test');
-      cy.get(`input[name="type"]`).clear().type('org.acme');
+      cy.get(`input[name="#.name"]`).clear().type('test');
+      cy.get(`input[name="#.type"]`).clear().type('org.acme');
 
       cy.addStringProperty('properties', 'test', 'value');
 

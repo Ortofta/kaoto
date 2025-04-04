@@ -1,4 +1,3 @@
-import { Icon } from '@patternfly/react-core';
 import { CatalogIcon } from '@patternfly/react-icons';
 import {
   Model,
@@ -25,13 +24,13 @@ import {
   useMemo,
   useState,
 } from 'react';
-import layoutHorizontalIcon from '../../../assets/layout-horizontal.png';
-import layoutVerticalIcon from '../../../assets/layout-vertical.png';
 import { useLocalStorage } from '../../../hooks';
 import { LocalStorageKeys } from '../../../models';
 import { BaseVisualCamelEntity } from '../../../models/visualization/base-visual-entity';
 import { CatalogModalContext } from '../../../providers/catalog-modal.provider';
 import { VisibleFlowsContext } from '../../../providers/visible-flows.provider';
+import { HorizontalLayoutIcon } from '../../Icons/HorizontalLayout';
+import { VerticalLayoutIcon } from '../../Icons/VerticalLayout';
 import { VisualizationEmptyState } from '../EmptyState';
 import './Canvas.scss';
 import { CanvasSideBar } from './CanvasSideBar';
@@ -45,7 +44,6 @@ interface CanvasProps {
 }
 
 export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ entities, contextToolbar }) => {
-  /** State for @patternfly/react-topology */
   const [initialized, setInitialized] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedNode, setSelectedNode] = useState<CanvasNode | undefined>(undefined);
@@ -69,6 +67,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
   /** Draw graph */
   useEffect(() => {
     setSelectedNode(undefined);
+    setSelectedIds([]);
     const nodes: CanvasNode[] = [];
     const edges: CanvasEdge[] = [];
 
@@ -100,12 +99,10 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
       controller.fromModel(model, true);
       controller.getGraph().layout();
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controller, entities, visibleFlows]);
 
-  const handleSelection = useCallback((selectedIds: string[]) => {
-    setSelectedIds(selectedIds);
-  }, []);
-  useEventListener<SelectionEventListener>(SELECTION_EVENT, handleSelection);
+  useEventListener<SelectionEventListener>(SELECTION_EVENT, setSelectedIds);
 
   /** Set select node and pan it into view */
   useEffect(() => {
@@ -137,11 +134,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
     const customButtons: TopologyControlButton[] = [
       {
         id: 'topology-control-bar-h_layout-button',
-        icon: (
-          <Icon>
-            <img src={layoutHorizontalIcon} alt="Horizontal Layout" />
-          </Icon>
-        ),
+        icon: <HorizontalLayoutIcon />,
         tooltip: 'Horizontal Layout',
         callback: action(() => {
           setActiveLayout(LayoutType.DagreHorizontal);
@@ -151,11 +144,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
       },
       {
         id: 'topology-control-bar-v_layout-button',
-        icon: (
-          <Icon>
-            <img src={layoutVerticalIcon} alt="Vertical Layout" />
-          </Icon>
-        ),
+        icon: <VerticalLayoutIcon />,
         tooltip: 'Vertical Layout',
         callback: action(() => {
           setActiveLayout(LayoutType.DagreVertical);
@@ -208,7 +197,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
     [handleCloseSideBar],
   );
 
-  const isSidebarOpen = useMemo(() => selectedNode !== undefined, [selectedNode]);
+  const isSidebarOpen = useMemo(() => selectedIds.length > 0, [selectedIds.length]);
 
   return (
     <TopologyView
@@ -218,7 +207,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
       onSideBarResize={setSidebarWidth}
       sideBarResizable
       sideBarOpen={isSidebarOpen}
-      sideBar={<CanvasSideBar selectedNode={selectedNode} onClose={handleCloseSideBar} />}
+      sideBar={isSidebarOpen ? <CanvasSideBar selectedNode={selectedNode} onClose={handleCloseSideBar} /> : null}
       contextToolbar={contextToolbar}
       controlBar={<TopologyControlBar controlButtons={controlButtons} />}
       onClick={handleCanvasClick}

@@ -11,6 +11,7 @@ import { EntityType } from './entities';
 import { SourceSchemaType } from './source-schema-type';
 import { CamelResourceFactory } from './camel-resource-factory';
 import { CamelYamlDsl } from '@kaoto/camel-catalog/types';
+import { SerializerType, XMLMetadata } from '../../serializers';
 
 describe('CamelRouteResource', () => {
   it('should create CamelRouteResource', () => {
@@ -93,6 +94,15 @@ describe('CamelRouteResource', () => {
       const resource = new CamelRouteResource();
       resource.addNewEntity();
       const id = resource.addNewEntity(EntityType.ErrorHandler);
+
+      expect(resource.getVisualEntities()).toHaveLength(2);
+      expect(resource.getVisualEntities()[0].id).toEqual(id);
+    });
+
+    it('should add OnCompletion entity at the beginning of the list and return its ID', () => {
+      const resource = new CamelRouteResource();
+      resource.addNewEntity();
+      const id = resource.addNewEntity(EntityType.OnCompletion);
 
       expect(resource.getVisualEntities()).toHaveLength(2);
       expect(resource.getVisualEntities()[0].id).toEqual(id);
@@ -184,6 +194,32 @@ describe('CamelRouteResource', () => {
       resource.removeEntity(camelRouteEntity.id);
 
       expect(resource.getVisualEntities()).toHaveLength(0);
+    });
+
+    it('should preserve comments and metadata when changing serializer', () => {
+      const resource = new CamelRouteResource([camelRouteJson]);
+      resource.setSerializer(SerializerType.XML);
+      resource['serializer'].setComments(['Initial Comment']);
+      resource['serializer'].setMetadata({
+        xmlDeclaration: '<?xml version="1.0" encoding="UTF-8"?>',
+        rootElementDefinitions: [{ name: 'xmlns', value: 'http://camel.apache.org/schema/spring' }],
+      });
+
+      // Change serializer to YAML
+      resource.setSerializer(SerializerType.YAML);
+
+      // Verify that comments and metadata are preserved
+      expect(resource['serializer'].getComments()).toEqual(['Initial Comment']);
+      const metadata = resource['serializer']?.getMetadata() as XMLMetadata;
+      expect(metadata.xmlDeclaration).toBe('<?xml version="1.0" encoding="UTF-8"?>');
+      expect(metadata.rootElementDefinitions[0].value).toBe('http://camel.apache.org/schema/spring');
+
+      // Change serializer back to XML
+      resource.setSerializer(SerializerType.XML);
+
+      // Verify that comments and metadata are still preserved
+      expect(resource['serializer'].getComments()).toEqual(['Initial Comment']);
+      expect(resource['serializer'].getMetadata().xmlDeclaration).toBe('<?xml version="1.0" encoding="UTF-8"?>');
     });
   });
 

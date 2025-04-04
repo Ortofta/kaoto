@@ -72,12 +72,13 @@ declare global {
       chooseFromCatalog(nodeType: string, name: string): Chainable<JQuery<Element>>;
       checkCatalogEntryExists(nodeType: string, name: string): Chainable<JQuery<Element>>;
       checkCatalogEntryNotExists(nodeType: string, name: string): Chainable<JQuery<Element>>;
+      switchCodeToXml(): Chainable<JQuery<Element>>;
+      switchCodeToYaml(): Chainable<JQuery<Element>>;
       // nodeConfiguration
+      interactWithConfigInputObject(inputName: string, value?: string): Chainable<JQuery<Element>>;
       interactWithExpressionInputObject(inputName: string, value?: string, index?: number): Chainable<JQuery<Element>>;
       addExpressionResultType(value: string, index?: number): Chainable<JQuery<Element>>;
       checkExpressionResultType(value: string): Chainable<JQuery<Element>>;
-      interactWithConfigInputObject(inputName: string, value?: string): Chainable<JQuery<Element>>;
-      interactWithDataformatInputObject(inputName: string, value?: string): Chainable<JQuery<Element>>;
       checkConfigCheckboxObject(inputName: string, value: boolean): Chainable<JQuery<Element>>;
       checkConfigInputObject(inputName: string, value: string): Chainable<JQuery<Element>>;
       selectExpression(expression: string, index?: number): Chainable<JQuery<Element>>;
@@ -94,10 +95,22 @@ declare global {
       selectFormTab(tab: string): Chainable<JQuery<Element>>;
       specifiedFormTab(tab: string): Chainable<JQuery<Element>>;
       addStringProperty(selector: string, key: string, value: string): Chainable<JQuery<Element>>;
-      // metadata
       expandWrappedSection(sectionName: string): Chainable<JQuery<Element>>;
       closeWrappedSection(sectionName: string): Chainable<JQuery<Element>>;
       switchWrappedSection(sectionName: string, wrapped: boolean): Chainable<JQuery<Element>>;
+      generateDocumentationPreview(): Chainable<JQuery<Element>>;
+      documentationTableCompare(routeName: string, expectedTableData: string[][]): Chainable<JQuery<Element>>;
+      // metadata
+      expandWrappedMetadataSection(sectionName: string): Chainable<JQuery<Element>>;
+      closeWrappedMetadataSection(sectionName: string): Chainable<JQuery<Element>>;
+      switchWrappedMetadataSection(sectionName: string, wrapped: boolean): Chainable<JQuery<Element>>;
+      addMetadataStringProperty(selector: string, key: string, value: string): Chainable<JQuery<Element>>;
+      addMetadataObjectProperty(
+        selector: string,
+        objectKey: string,
+        key: string,
+        value: string,
+      ): Chainable<JQuery<Element>>;
       forceSelectMetadataRow(rowIndex: number): Chainable<JQuery<Element>>;
       addMetadataField(fieldName: string): Chainable<JQuery<Element>>;
       // sourceCode

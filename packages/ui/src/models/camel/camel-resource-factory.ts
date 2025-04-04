@@ -1,10 +1,10 @@
-import { SourceSchemaType } from './source-schema-type';
-import { CamelResource } from './camel-resource';
-import { CamelResourceSerializer, XmlCamelResourceSerializer, YamlCamelResourceSerializer } from '../../serializers';
-import { CamelRouteResource } from './camel-route-resource';
-import { CamelKResourceFactory } from './camel-k-resource-factory';
 import { CamelYamlDsl, Integration, KameletBinding, Pipe } from '@kaoto/camel-catalog/types';
+import { CamelResourceSerializer, XmlCamelResourceSerializer, YamlCamelResourceSerializer } from '../../serializers';
 import { IKameletDefinition } from '../kamelets-catalog';
+import { CamelKResourceFactory } from './camel-k-resource-factory';
+import { CamelResource } from './camel-resource';
+import { CamelRouteResource } from './camel-route-resource';
+import { getResourceTypeFromPath } from './source-schema-type';
 
 export class CamelResourceFactory {
   /**
@@ -15,18 +15,31 @@ export class CamelResourceFactory {
    * @param type
    * @param source
    */
-  static createCamelResource(source?: string, type?: SourceSchemaType): CamelResource {
-    const serializer: CamelResourceSerializer = XmlCamelResourceSerializer.isApplicable(source)
-      ? new XmlCamelResourceSerializer()
-      : new YamlCamelResourceSerializer();
+  static createCamelResource(source?: string, options: Partial<{ path: string }> = {}): CamelResource {
+    const pathResourceType = getResourceTypeFromPath(options.path);
 
+    const serializer = this.initSerializer(source, options.path);
     const parsedCode = typeof source === 'string' ? serializer.parse(source) : source;
     const resource = CamelKResourceFactory.getCamelKResource(
       parsedCode as Integration | KameletBinding | Pipe | IKameletDefinition,
-      type,
+      pathResourceType,
     );
 
     if (resource) return resource;
     return new CamelRouteResource(parsedCode as CamelYamlDsl, serializer);
+  }
+
+  private static initSerializer(source?: string, path?: string): CamelResourceSerializer {
+    if (!path) {
+      return XmlCamelResourceSerializer.isApplicable(source)
+        ? new XmlCamelResourceSerializer()
+        : new YamlCamelResourceSerializer();
+    }
+
+    if (path.endsWith('.xml')) {
+      return new XmlCamelResourceSerializer();
+    }
+
+    return new YamlCamelResourceSerializer();
   }
 }

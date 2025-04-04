@@ -148,6 +148,7 @@ Cypress.Commands.add('selectRuntimeVersion', (type: string) => {
   cy.waitSchemasLoading();
 
   cy.get('[data-testid="visualization-empty-state"]').should('exist');
+  // Wait for the element to become visible
   cy.get('[data-testid="visualization-empty-state"]').should('be.visible');
 });
 
@@ -166,4 +167,14 @@ Cypress.Commands.add('checkCatalogVersion', (version?: string) => {
     .within(() => {
       cy.get('.pf-v6-c-label__text').should('contain', version);
     });
+});
+
+Cypress.Commands.add('switchCodeToXml', () => {
+  cy.get('[data-testid="serializer-list-dropdown"]').click();
+  cy.get('[data-testid="serializer-yaml"]').contains('XML').click();
+});
+
+Cypress.Commands.add('switchCodeToYaml', () => {
+  cy.get('[data-testid="serializer-list-dropdown"]').click();
+  cy.get('[data-testid="serializer-yaml"]').contains('YAML').click();
 });

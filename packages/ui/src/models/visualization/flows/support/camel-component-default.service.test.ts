@@ -1,9 +1,20 @@
 import { CamelComponentDefaultService } from './camel-component-default.service';
 import { DefinedComponent } from '../../../camel-catalog-index';
-import { DoCatch } from '@kaoto/camel-catalog/types';
+import { DoCatch, OnFallback } from '@kaoto/camel-catalog/types';
 
 describe('CamelComponentDefaultService', () => {
   describe('getDefaultNodeDefinitionValue', () => {
+    it('should return the default circuitBreaker clause', () => {
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
+      const circuitBreakerDefault = CamelComponentDefaultService.getDefaultNodeDefinitionValue({
+        type: 'processor',
+        name: 'circuitBreaker',
+      } as DefinedComponent) as any;
+      expect(circuitBreakerDefault).toBeDefined();
+      expect(circuitBreakerDefault.circuitBreaker.steps).toEqual([]);
+      expect(circuitBreakerDefault.circuitBreaker.onFallback.steps[0].log).toBeDefined();
+    });
+
     it('should return the default choice clause', () => {
       /* eslint-disable  @typescript-eslint/no-explicit-any */
       const choiceDefault = CamelComponentDefaultService.getDefaultNodeDefinitionValue({
@@ -139,6 +150,16 @@ describe('CamelComponentDefaultService', () => {
       expect(filterDefault.filter!.steps).toBeUndefined();
     });
 
+    it('should return the default value for a onFallback', () => {
+      const onFallbackDef = CamelComponentDefaultService.getDefaultNodeDefinitionValue({
+        type: 'processor',
+        name: 'onFallback',
+      } as DefinedComponent) as OnFallback;
+      expect(onFallbackDef).toBeDefined();
+      expect((onFallbackDef.id as string).startsWith('onFallback-')).toBeTruthy();
+      expect(onFallbackDef.steps).toHaveLength(1);
+    });
+
     it('should return the default value for a removeHeaders processor', () => {
       const removeHeadersDefault = CamelComponentDefaultService.getDefaultNodeDefinitionValue({
         type: 'processor',
@@ -148,5 +169,14 @@ describe('CamelComponentDefaultService', () => {
       expect(removeHeadersDefault.removeHeaders.id as string).toMatch(/^removeHeaders-/);
       expect(removeHeadersDefault.removeHeaders.pattern).toEqual('*');
     });
+  });
+
+  it('should return the default value for a intercept entity', () => {
+    const interceptDefault = CamelComponentDefaultService.getDefaultNodeDefinitionValue({
+      type: 'entity',
+      name: 'intercept',
+    } as DefinedComponent) as any;
+    expect(interceptDefault.intercept).toBeDefined();
+    expect(interceptDefault.intercept.id as string).toMatch(/^intercept-/);
   });
 });

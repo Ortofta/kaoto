@@ -1,19 +1,25 @@
 import { Content } from '@patternfly/react-core';
 import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
-import { EntitiesContext } from '../../providers/entities.provider';
-import { PipeErrorHandler as PipeErrorHandlerType } from '@kaoto/camel-catalog/types';
+import { KaotoForm, KaotoFormProps } from '../../components/Visualization/Canvas/FormV2/KaotoForm';
 import { PipeResource, SourceSchemaType } from '../../models/camel';
-import { useSchemasStore } from '../../store';
-import { PipeErrorHandlerEditor } from '../../components/MetadataEditor/PipeErrorHandlerEditor';
+import { CanvasFormTabsContext, CanvasFormTabsContextResult } from '../../providers/canvas-form-tabs.provider';
+import { EntitiesContext } from '../../providers/entities.provider';
+import { CamelCatalogService } from '../../models/visualization/flows/camel-catalog.service';
+import { CatalogKind } from '../../models/catalog-kind';
+import { KaotoSchemaDefinition } from '../../models/kaoto-schema';
 
 export const PipeErrorHandlerPage: FunctionComponent = () => {
-  const schemaMap = useSchemasStore((state) => state.schemas);
+  const formTabsValue: CanvasFormTabsContextResult = useMemo(() => ({ selectedTab: 'All', onTabChange: () => {} }), []);
   const entitiesContext = useContext(EntitiesContext);
   const pipeResource = entitiesContext?.camelResource as PipeResource;
 
-  const errorHandlerSchema = useMemo(() => {
-    return schemaMap['PipeErrorHandler'].schema;
-  }, [schemaMap]);
+  const errorHandlerSchema = (CamelCatalogService.getComponent(CatalogKind.Entity, 'PipeErrorHandler')
+    ?.propertiesSchema || {}) as KaotoSchemaDefinition['schema'];
+
+  if (Array.isArray(errorHandlerSchema.oneOf) && !Array.isArray(errorHandlerSchema.anyOf)) {
+    errorHandlerSchema.anyOf = [{ oneOf: errorHandlerSchema.oneOf }];
+    delete errorHandlerSchema.oneOf;
+  }
 
   const isSupported = useMemo(() => {
     return pipeResource && [SourceSchemaType.Pipe, SourceSchemaType.KameletBinding].includes(pipeResource.getType());
@@ -25,7 +31,7 @@ export const PipeErrorHandlerPage: FunctionComponent = () => {
   }, [pipeResource]);
 
   const onChangeModel = useCallback(
-    (model: PipeErrorHandlerType) => {
+    (model: Record<string, unknown>) => {
       if (Object.keys(model).length > 0) {
         let entity = pipeResource.getErrorHandlerEntity();
         if (!entity) {
@@ -41,13 +47,14 @@ export const PipeErrorHandlerPage: FunctionComponent = () => {
   );
 
   return isSupported ? (
-    <>
-      <PipeErrorHandlerEditor
+    <CanvasFormTabsContext.Provider value={formTabsValue}>
+      <KaotoForm
+        data-testid="pipe-error-handler-form"
         schema={errorHandlerSchema}
         model={getErrorHandlerModel()}
-        onChangeModel={onChangeModel}
+        onChange={onChangeModel as KaotoFormProps['onChange']}
       />
-    </>
+    </CanvasFormTabsContext.Provider>
   ) : (
     <Content>Not applicable</Content>
   );
