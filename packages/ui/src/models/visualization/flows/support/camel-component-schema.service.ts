@@ -16,6 +16,7 @@ import { VisualComponentSchema } from '../../base-visual-entity';
 import { CamelCatalogService } from '../camel-catalog.service';
 import { CamelComponentFilterService } from './camel-component-filter.service';
 import { CamelProcessorStepsProperties, ICamelElementLookupResult } from './camel-component-types';
+import { IClipboardCopyObject } from '../../../../components/Visualization/Custom/hooks/copy-step.hook';
 
 export class CamelComponentSchemaService {
   static DISABLED_SIBLING_STEPS = [
@@ -34,6 +35,24 @@ export class CamelComponentSchemaService {
     ...CamelComponentFilterService.REST_DSL_METHODS,
   ];
   static DISABLED_REMOVE_STEPS = ['from', 'route'] as unknown as (keyof ProcessorDefinition)[];
+  static readonly SPECIAL_CHILD_PROCESSORS = ['onFallback', 'when', 'otherwise', 'doCatch', 'doFinally'];
+  static readonly PROCESSOR_STRING_DEFINITIONS: Record<string, string> = {
+    to: 'uri',
+    toD: 'uri',
+    log: 'message',
+    convertBodyTo: 'type',
+    setExchangePattern: 'pattern',
+    bean: 'ref',
+    customLoadlBadalancer: ' ref',
+    routingSlip: 'expression',
+    routeBuilder: 'ref',
+    removeVariable: 'name',
+    removeProperty: 'name',
+    removeProperties: 'pattern',
+    removeHeader: 'name',
+    removeHeaders: 'pattern',
+    kamelet: 'name',
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getVisualComponentSchema(path: string, definition: any): VisualComponentSchema | undefined {
@@ -352,6 +371,19 @@ export class CamelComponentSchemaService {
     return uriParts[0];
   }
 
+  /**
+   * Get the definition for a given component and property
+   */
+  static getNodeDefinitionValue(clipboardContent: IClipboardCopyObject): ProcessorDefinition {
+    const { name, definition: defaultValue } = clipboardContent;
+
+    if (this.SPECIAL_CHILD_PROCESSORS.includes(name)) {
+      return defaultValue as ProcessorDefinition;
+    } else {
+      return { [name]: defaultValue } as ProcessorDefinition;
+    }
+  }
+
   private static getSchema(camelElementLookup: ICamelElementLookupResult): KaotoSchemaDefinition['schema'] {
     let catalogKind: CatalogKind;
     switch (camelElementLookup.processorName) {
@@ -411,19 +443,10 @@ export class CamelComponentSchemaService {
   private static getUpdatedDefinition(camelElementLookup: ICamelElementLookupResult, definition: any) {
     /** Clone the original definition since we want to preserve the original one, until the form is changed */
     let updatedDefinition = cloneDeep(definition);
-    switch (camelElementLookup.processorName) {
-      case 'to':
-      case 'toD':
-        if (typeof definition === 'string') {
-          updatedDefinition = { uri: definition };
-        }
-        break;
 
-      case 'log':
-        if (typeof definition === 'string') {
-          updatedDefinition = { message: definition };
-        }
-        break;
+    const prop = this.PROCESSOR_STRING_DEFINITIONS[camelElementLookup.processorName];
+    if (prop && typeof definition === 'string') {
+      updatedDefinition = { [prop]: definition };
     }
 
     if (camelElementLookup.componentName !== undefined) {
@@ -500,5 +523,23 @@ export class CamelComponentSchemaService {
     const processorDefinition = CamelCatalogService.getComponent(CatalogKind.Processor, processorName);
 
     return Object.keys(processorDefinition?.properties ?? {}).includes('disabled');
+  }
+
+  static getComponentDefinitionFromUri(uri: string): { uri: string; parameters?: ParsedParameters } {
+    const componentName = CamelComponentSchemaService.getComponentNameFromUri(uri);
+    if (!componentName) return { uri: uri };
+
+    const component = CamelCatalogService.getComponent(CatalogKind.Component, componentName);
+    if (!component) {
+      return { uri: uri };
+    }
+
+    const [path, query] = uri.split('?');
+    const pathParams = CamelUriHelper.getParametersFromPathString(component?.component.syntax, path, {
+      requiredParameters: component?.propertiesSchema.required as [],
+    });
+
+    const queryParams = CamelUriHelper.getParametersFromQueryString(query);
+    return { uri: componentName, parameters: { ...pathParams, ...queryParams } };
   }
 }

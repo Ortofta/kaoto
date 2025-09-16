@@ -1,6 +1,5 @@
 import { Pipe } from '@kaoto/camel-catalog/types';
 import { getCamelRandomId } from '../../../camel-utils/camel-random-id';
-import { SchemaService } from '../../../components/Form/schema.service';
 import {
   getArrayProperty,
   NodeIconResolver,
@@ -28,6 +27,8 @@ import { ModelValidationService } from './support/validators/model-validation.se
 import { KaotoSchemaDefinition } from '../../kaoto-schema';
 import { CamelCatalogService } from './camel-catalog.service';
 import { CatalogKind } from '../../catalog-kind';
+import { IClipboardCopyObject } from '../../../components/Visualization/Custom/hooks/copy-step.hook';
+import { SourceSchemaType } from '../../camel/source-schema-type';
 
 export class PipeVisualEntity implements BaseVisualCamelEntity {
   id: string;
@@ -103,7 +104,7 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
   }
 
   getOmitFormFields(): string[] {
-    return SchemaService.OMIT_FORM_FIELDS;
+    return [];
   }
 
   toJSON() {
@@ -139,8 +140,7 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
     targetProperty?: string;
   }) {
     const newKamelet = options.definedComponent.definition as unknown as Pipe;
-    const path = options.data.path;
-    if (!newKamelet || !path) return;
+    if (!newKamelet) return;
 
     const step: PipeStep = {
       ref: {
@@ -150,22 +150,19 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
       },
     };
 
-    /** Replace an existing Kamelet */
-    if (options.mode === AddStepMode.ReplaceStep) {
-      setValue(this.pipe.spec, path, step);
-      return;
-    }
+    this.addNewStep(step, options.mode, options.data);
+  }
 
-    /** Add a new Kamelet to the Kamelets array */
-    const kameletArray: PipeStep[] = getArrayProperty(this.pipe.spec!, 'steps');
-    const index = Number(path.split('.').pop());
-    if (options.mode === AddStepMode.AppendStep) {
-      kameletArray.splice(index + 1, 0, step);
-    } else if (options.mode === AddStepMode.PrependStep && options.data.path === 'sink') {
-      kameletArray.push(step);
-    } else if (options.mode === AddStepMode.PrependStep) {
-      kameletArray.splice(index, 0, step);
-    }
+  getCopiedContent(path?: string) {
+    if (!path) return;
+
+    const stepModel: PipeStep = getValue(this.pipe.spec, path);
+    return { type: SourceSchemaType.Pipe, name: stepModel?.ref?.name ?? '', definition: stepModel as object };
+  }
+
+  pasteStep(options: { clipboardContent: IClipboardCopyObject; mode: AddStepMode; data: IVisualizationNodeData }) {
+    const step = options.clipboardContent.definition as PipeStep;
+    this.addNewStep(step, options.mode, options.data);
   }
 
   canDragNode(path?: string) {
@@ -176,19 +173,6 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
 
   canDropOnNode(path?: string) {
     return this.canDragNode(path);
-  }
-
-  moveNodeTo(options: { draggedNodePath: string; droppedNodePath?: string }) {
-    if (options.droppedNodePath === undefined) return;
-
-    const step = getValue(this.pipe.spec!, options.draggedNodePath);
-    const kameletArray = getArrayProperty(this.pipe.spec!, 'steps');
-
-    /** Remove the dragged node */
-    this.removeStep(options.draggedNodePath);
-
-    /** Add the dragged node at the target node index */
-    kameletArray.splice(Number(options.droppedNodePath.split('.').pop()), 0, step);
   }
 
   removeStep(path?: string): void {
@@ -276,6 +260,28 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
     }
 
     return pipeGroupNode;
+  }
+
+  private addNewStep(step: PipeStep, mode: AddStepMode, data: IVisualizationNodeData) {
+    const path = data.path;
+    if (!path) return;
+
+    /** Replace an existing Kamelet */
+    if (mode === AddStepMode.ReplaceStep) {
+      setValue(this.pipe.spec, path, step);
+      return;
+    }
+
+    /** Add a new Kamelet to the Kamelets array */
+    const kameletArray: PipeStep[] = getArrayProperty(this.pipe.spec!, 'steps');
+    const index = Number(path.split('.').pop());
+    if (mode === AddStepMode.AppendStep) {
+      kameletArray.splice(index + 1, 0, step);
+    } else if (mode === AddStepMode.PrependStep && data.path === 'sink') {
+      kameletArray.push(step);
+    } else if (mode === AddStepMode.PrependStep) {
+      kameletArray.splice(index, 0, step);
+    }
   }
 
   private getVizNodeFromStep(step: PipeStep, path: string, isRoot = false): IVisualizationNode {

@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ItemMoveStep should not render Move Before ContextMenuItem 1`] = `<div />`;
+
+exports[`ItemMoveStep should render Move Next ContextMenuItem 1`] = `
+<div>
+  <li
+    class="pf-v6-c-menu__list-item"
+    data-ouia-component-id="OUIA-Generated-DropdownItem-1"
+    data-ouia-component-type="PF6/DropdownItem"
+    data-ouia-safe="true"
+    role="none"
+  >
+    <button
+      class="pf-v6-c-menu__item"
+      role="menuitem"
+      tabindex="-1"
+      type="button"
+    >
+      <span
+        class="pf-v6-c-menu__item-main"
+      >
+        <span
+          class="pf-v6-c-menu__item-text"
+        >
+          <svg
+            aria-hidden="true"
+            class="pf-v6-svg"
+            fill="currentColor"
+            height="1em"
+            role="img"
+            viewBox="0 0 320 512"
+            width="1em"
+          >
+            <path
+              d="M143 256.3L7 120.3c-9.4-9.4-9.4-24.6 0-33.9l22.6-22.6c9.4-9.4 24.6-9.4 33.9 0l96.4 96.4 96.4-96.4c9.4-9.4 24.6-9.4 33.9 0L313 86.3c9.4 9.4 9.4 24.6 0 33.9l-136 136c-9.4 9.5-24.6 9.5-34 .1zm34 192l136-136c9.4-9.4 9.4-24.6 0-33.9l-22.6-22.6c-9.4-9.4-24.6-9.4-33.9 0L160 352.1l-96.4-96.4c-9.4-9.4-24.6-9.4-33.9 0L7 278.3c-9.4 9.4-9.4 24.6 0 33.9l136 136c9.4 9.5 24.6 9.5 34 .1z"
+            />
+          </svg>
+           Move Next
+        </span>
+      </span>
+    </button>
+  </li>
+</div>
+`;

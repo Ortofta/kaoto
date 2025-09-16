@@ -6,6 +6,41 @@ Cypress.Commands.add('openHomePage', () => {
   cy.selectRuntimeVersion('Main');
 });
 
+Cypress.Commands.add('openHomePageWithPreExistingRoutes', () => {
+  const url = Cypress.config().baseUrl;
+  const multiRoute = `
+  - route:
+      id: route-1234
+      from:
+        id: from-3362
+        uri: timer:template
+        parameters:
+          period: "1000"
+        steps:
+          - log:
+              id: log-6809
+              message: \${body}
+  - route:
+      id: route-4321
+      from:
+        id: from-3576
+        uri: timer:template
+        parameters:
+          period: "1000"
+        steps:
+          - log:
+              id: log-2966
+              message: \${body}
+  `;
+
+  cy.visit(url!, {
+    onBeforeLoad(win) {
+      win.localStorage.setItem('sourceCode', multiRoute);
+    },
+  });
+  cy.waitSchemasLoading();
+});
+
 Cypress.Commands.add('waitSchemasLoading', () => {
   // Wait for the loading schemas to disappear
   cy.get('[data-testid="loading-schemas"]').should('be.visible');
@@ -72,6 +107,11 @@ Cypress.Commands.add('closeAboutModal', () => {
   });
 });
 
+Cypress.Commands.add('openDataMapper', () => {
+  cy.get('[data-testid="DataMapper"]').click();
+  cy.get('[data-testid="dm-debug-main-menu-button"]').should('be.visible');
+});
+
 Cypress.Commands.add('openCatalog', () => {
   cy.get('[data-testid="Catalog"]').click();
   cy.get('[data-testid="component-catalog-tab"]').should('be.visible');
@@ -82,8 +122,12 @@ Cypress.Commands.add('openCatalog', () => {
  * Possible values are - Integration, camelYamlDsl(Camel Route), Kamelet, KameletBinding
  */
 Cypress.Commands.add('switchIntegrationType', (type: string) => {
-  cy.get('[data-testid="dsl-list-dropdown"]').click({ force: true });
-  cy.get('#dsl-list-select').should('exist').find(`[data-testid="dsl-${type}"]`).should('exist').click();
+  cy.get('[data-testid="integration-type-list-dropdown"]').click({ force: true });
+  cy.get('#integration-type-list-select')
+    .should('exist')
+    .find(`[data-testid="integration-type-${type}"]`)
+    .should('exist')
+    .click();
   cy.get('[data-testid="confirmation-modal-confirm"]').click({ force: true });
 });
 
@@ -97,6 +141,16 @@ Cypress.Commands.add('toggleRouteVisibility', (index) => {
   cy.get('button[data-testid^="toggle-btn-route"]').then((buttons) => {
     cy.wrap(buttons[index]).click();
   });
+  cy.closeFlowsListIfVisible();
+});
+
+Cypress.Commands.add('renameRoute', (oldName: string, newName: string) => {
+  cy.toggleFlowsList();
+  cy.get('button[data-testid="goto-btn-' + oldName + '--edit"]').click();
+  cy.get('[data-testid="goto-btn-' + oldName + '--text-input"]')
+    .clear()
+    .type(newName);
+  cy.get('button[data-testid="goto-btn-' + oldName + '--save"]').click();
   cy.closeFlowsListIfVisible();
 });
 
@@ -162,6 +216,17 @@ Cypress.Commands.add('deleteRoute', (index: number) => {
   cy.closeFlowsListIfVisible();
 });
 
+Cypress.Commands.add('deleteRouteInCanvas', (routeName: string) => {
+  cy.openGroupConfigurationTab(routeName);
+  cy.get('button[data-testid="step-toolbar-button-delete-group"]').click();
+  cy.get('body').then(($body) => {
+    if ($body.find('.pf-m-danger').length) {
+      // Delete Confirmation Modal appeared, click on the confirm button
+      cy.get('.pf-m-danger').click({ force: true });
+    }
+  });
+});
+
 Cypress.Commands.add('cancelDeleteRoute', (index: number) => {
   cy.openFlowsListIfClosed();
   cy.get('button[data-testid^="delete-btn-route"]').then((buttons) => {
@@ -173,4 +238,67 @@ Cypress.Commands.add('cancelDeleteRoute', (index: number) => {
     }
   });
   cy.closeFlowsListIfVisible();
+});
+
+Cypress.Commands.add('allowClipboardAccess', () => {
+  // use the Chrome debugger protocol to grant the current browser window
+  // access to the clipboard from the current origin
+  // https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-grantPermissions
+  // We are using cy.wrap to wait for the promise returned
+  // from the Cypress.automation call, so the test continues
+  // after the clipboard permission has been granted
+  cy.wrap(
+    Cypress.automation('remote:debugger:protocol', {
+      command: 'Browser.grantPermissions',
+      params: {
+        permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'],
+        // make the permission tighter by allowing the current origin only
+        // like "http://localhost:56978"
+        origin: window.location.origin,
+      },
+    }),
+  );
+});
+
+Cypress.Commands.add('assertValueCopiedToClipboard', (value) => {
+  cy.window().then((win) => {
+    if (win.navigator?.clipboard?.read) {
+      win.navigator?.clipboard?.read().then(async (text: ClipboardItems) => {
+        for (const item of text) {
+          if (item.types.includes('web text/kaoto')) {
+            const blob = await item.getType('web text/kaoto');
+            const parsedContent = JSON.parse(await blob.text());
+
+            expect(parsedContent).to.deep.equal(value);
+          }
+
+          if (item.types.includes('text/plain')) {
+            const blob = await item.getType('text/plain');
+            const parsedContent = JSON.parse(await blob.text());
+
+            // Validate the marker to ensure it's Kaoto-specific content
+            if (parsedContent.__kaoto_marker === 'kaoto-node') {
+              delete parsedContent.__kaoto_marker;
+            }
+
+            expect(parsedContent).to.deep.equal(value);
+          }
+        }
+      });
+    } else {
+      // For browsers without clipboard API support, skip the assertion
+      cy.log('Clipboard API not available - skipping clipboard assertion');
+    }
+  });
+});
+
+Cypress.Commands.add('addValueToClipboard', (value) => {
+  cy.window().then(async (win) => {
+    if (win.navigator?.clipboard?.writeText) {
+      await win.navigator?.clipboard?.writeText(JSON.stringify(value));
+    } else {
+      // For browsers without clipboard API support, skip this
+      cy.log('Clipboard API not available - skipping clipboard addition');
+    }
+  });
 });

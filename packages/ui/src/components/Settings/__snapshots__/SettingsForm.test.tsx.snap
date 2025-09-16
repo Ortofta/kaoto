@@ -31,7 +31,6 @@ exports[`SettingsForm should render 1`] = `
           style="display: contents;"
         >
           <span
-            aria-disabled="false"
             aria-label="More info for Camel Catalog URL field"
             class="pf-v6-c-button pf-m-plain pf-m-no-padding"
             data-ouia-component-id="OUIA-Generated-Button-plain-1"
@@ -50,11 +49,11 @@ exports[`SettingsForm should render 1`] = `
                 fill="currentColor"
                 height="1em"
                 role="img"
-                viewBox="0 0 512 512"
+                viewBox="0 0 1024 1024"
                 width="1em"
               >
                 <path
-                  d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                  d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                 />
               </svg>
             </span>
@@ -91,18 +90,17 @@ exports[`SettingsForm should render 1`] = `
           class="pf-v6-c-text-input-group__utilities"
         >
           <button
-            aria-disabled="false"
-            aria-label="Clear catalogUrl field"
-            class="pf-v6-c-button pf-m-plain"
-            data-ouia-component-id="OUIA-Generated-Button-plain-2"
-            data-ouia-component-type="PF6/Button"
+            aria-expanded="false"
+            aria-label="#.catalogUrl__field-actions"
+            class="pf-v6-c-menu-toggle pf-m-plain"
+            data-ouia-component-id="OUIA-Generated-MenuToggle-plain-1"
+            data-ouia-component-type="PF6/MenuToggle"
             data-ouia-safe="true"
-            data-testid="#.catalogUrl__clear"
-            title="Clear catalogUrl field"
+            data-testid="#.catalogUrl__field-actions"
             type="button"
           >
             <span
-              class="pf-v6-c-button__icon"
+              class="pf-v6-c-menu-toggle__icon"
             >
               <svg
                 aria-hidden="true"
@@ -110,11 +108,11 @@ exports[`SettingsForm should render 1`] = `
                 fill="currentColor"
                 height="1em"
                 role="img"
-                viewBox="0 0 352 512"
+                viewBox="0 0 192 512"
                 width="1em"
               >
                 <path
-                  d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                  d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                 />
               </svg>
             </span>
@@ -148,10 +146,9 @@ exports[`SettingsForm should render 1`] = `
           style="display: contents;"
         >
           <span
-            aria-disabled="false"
             aria-label="More info for Node label to display in canvas field"
             class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-            data-ouia-component-id="OUIA-Generated-Button-plain-3"
+            data-ouia-component-id="OUIA-Generated-Button-plain-2"
             data-ouia-component-type="PF6/Button"
             data-ouia-safe="true"
             role="button"
@@ -167,11 +164,11 @@ exports[`SettingsForm should render 1`] = `
                 fill="currentColor"
                 height="1em"
                 role="img"
-                viewBox="0 0 512 512"
+                viewBox="0 0 1024 1024"
                 width="1em"
               >
                 <path
-                  d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                  d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                 />
               </svg>
             </span>
@@ -211,10 +208,9 @@ exports[`SettingsForm should render 1`] = `
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
               aria-label="Clear input value"
               class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-4"
+              data-ouia-component-id="OUIA-Generated-Button-plain-3"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               data-testid="#.nodeLabel__clear"
@@ -300,10 +296,9 @@ exports[`SettingsForm should render 1`] = `
           style="display: contents;"
         >
           <span
-            aria-disabled="false"
             aria-label="More info for Open Node toolbar field"
             class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-            data-ouia-component-id="OUIA-Generated-Button-plain-5"
+            data-ouia-component-id="OUIA-Generated-Button-plain-4"
             data-ouia-component-type="PF6/Button"
             data-ouia-safe="true"
             role="button"
@@ -319,11 +314,11 @@ exports[`SettingsForm should render 1`] = `
                 fill="currentColor"
                 height="1em"
                 role="img"
-                viewBox="0 0 512 512"
+                viewBox="0 0 1024 1024"
                 width="1em"
               >
                 <path
-                  d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                  d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                 />
               </svg>
             </span>
@@ -363,10 +358,9 @@ exports[`SettingsForm should render 1`] = `
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
               aria-label="Clear input value"
               class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-6"
+              data-ouia-component-id="OUIA-Generated-Button-plain-5"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               data-testid="#.nodeToolbarTrigger__clear"
@@ -428,6 +422,156 @@ exports[`SettingsForm should render 1`] = `
     </div>
   </div>
   <div
+    class="pf-v6-c-form__group"
+    data-testid="#.colorScheme__field-wrapper"
+  >
+    <div
+      class="pf-v6-c-form__group-label"
+    >
+      <label
+        class="pf-v6-c-form__label"
+        for="#.colorScheme"
+      >
+        <span
+          class="pf-v6-c-form__label-text"
+        >
+          Color scheme
+        </span>
+      </label>
+        
+      <span
+        class="pf-v6-c-form__group-label-help"
+      >
+        <div
+          style="display: contents;"
+        >
+          <span
+            aria-label="More info for Color scheme field"
+            class="pf-v6-c-button pf-m-plain pf-m-no-padding"
+            data-ouia-component-id="OUIA-Generated-Button-plain-6"
+            data-ouia-component-type="PF6/Button"
+            data-ouia-safe="true"
+            role="button"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="pf-v6-c-button__icon"
+            >
+              <svg
+                aria-hidden="true"
+                class="pf-v6-svg"
+                fill="currentColor"
+                height="1em"
+                role="img"
+                viewBox="0 0 1024 1024"
+                width="1em"
+              >
+                <path
+                  d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
+                />
+              </svg>
+            </span>
+          </span>
+        </div>
+      </span>
+    </div>
+    <div
+      class="pf-v6-c-form__group-control"
+    >
+      <div
+        class="pf-v6-c-menu-toggle pf-m-full-width pf-m-typeahead"
+        id="#.colorScheme"
+      >
+        <div
+          class="pf-v6-c-text-input-group pf-m-plain"
+        >
+          <div
+            autocomplete="off"
+            class="pf-v6-c-text-input-group__main"
+            data-testid="#.colorScheme-typeahead-select-input"
+            id="#.colorScheme-typeahead-select-input"
+          >
+            <span
+              class="pf-v6-c-text-input-group__text"
+            >
+              <input
+                aria-label="Type to filter"
+                class="pf-v6-c-text-input-group__text-input"
+                placeholder="auto"
+                type="text"
+                value="auto"
+              />
+            </span>
+          </div>
+          <div
+            class="pf-v6-c-text-input-group__utilities"
+          >
+            <button
+              aria-label="Clear input value"
+              class="pf-v6-c-button pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-Button-plain-7"
+              data-ouia-component-type="PF6/Button"
+              data-ouia-safe="true"
+              data-testid="#.colorScheme__clear"
+              type="button"
+            >
+              <span
+                class="pf-v6-c-button__icon"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="pf-v6-svg"
+                  fill="currentColor"
+                  height="1em"
+                  role="img"
+                  viewBox="0 0 352 512"
+                  width="1em"
+                >
+                  <path
+                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+        <button
+          aria-expanded="false"
+          aria-label="undefined toggle"
+          class="pf-v6-c-menu-toggle__button"
+          data-ouia-component-id="OUIA-Generated-MenuToggle-typeahead-3"
+          data-ouia-component-type="PF6/MenuToggle"
+          data-ouia-safe="true"
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="pf-v6-c-menu-toggle__controls"
+          >
+            <span
+              class="pf-v6-c-menu-toggle__toggle-icon"
+            >
+              <svg
+                aria-hidden="true"
+                class="pf-v6-svg"
+                fill="currentColor"
+                height="1em"
+                role="img"
+                viewBox="0 0 320 512"
+                width="1em"
+              >
+                <path
+                  d="M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z"
+                />
+              </svg>
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
     class="pf-v6-c-card"
     data-ouia-component-id="OUIA-Generated-Card-2"
     data-ouia-component-type="PF6/Card"
@@ -442,10 +586,9 @@ exports[`SettingsForm should render 1`] = `
         class="pf-v6-c-card__actions"
       >
         <button
-          aria-disabled="false"
           aria-label="Remove object"
           class="pf-v6-c-button pf-m-plain"
-          data-ouia-component-id="OUIA-Generated-Button-plain-7"
+          data-ouia-component-id="OUIA-Generated-Button-plain-8"
           data-ouia-component-type="PF6/Button"
           data-ouia-safe="true"
           data-testid="#.experimentalFeatures__remove"
@@ -486,10 +629,9 @@ exports[`SettingsForm should render 1`] = `
               style="display: contents;"
             >
               <span
-                aria-disabled="false"
                 aria-label="More info for Experimental features field"
                 class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-                data-ouia-component-id="OUIA-Generated-Button-plain-8"
+                data-ouia-component-id="OUIA-Generated-Button-plain-9"
                 data-ouia-component-type="PF6/Button"
                 data-ouia-safe="true"
                 role="button"
@@ -505,11 +647,11 @@ exports[`SettingsForm should render 1`] = `
                     fill="currentColor"
                     height="1em"
                     role="img"
-                    viewBox="0 0 512 512"
+                    viewBox="0 0 1024 1024"
                     width="1em"
                   >
                     <path
-                      d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                      d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                     />
                   </svg>
                 </span>
@@ -548,10 +690,9 @@ exports[`SettingsForm should render 1`] = `
               style="display: contents;"
             >
               <span
-                aria-disabled="false"
                 aria-label="More info for Enable Drag & Drop field"
                 class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-                data-ouia-component-id="OUIA-Generated-Button-plain-9"
+                data-ouia-component-id="OUIA-Generated-Button-plain-10"
                 data-ouia-component-type="PF6/Button"
                 data-ouia-safe="true"
                 role="button"
@@ -567,11 +708,11 @@ exports[`SettingsForm should render 1`] = `
                     fill="currentColor"
                     height="1em"
                     role="img"
-                    viewBox="0 0 512 512"
+                    viewBox="0 0 1024 1024"
                     width="1em"
                   >
                     <path
-                      d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                      d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                     />
                   </svg>
                 </span>
@@ -592,6 +733,7 @@ exports[`SettingsForm should render 1`] = `
             <input
               aria-describedby="#.experimentalFeatures.enableDragAndDrop-popover"
               aria-label="Enable Drag & Drop"
+              checked=""
               class="pf-v6-c-switch__input"
               id="#.experimentalFeatures.enableDragAndDrop"
               name="#.experimentalFeatures.enableDragAndDrop"
@@ -602,7 +744,6 @@ exports[`SettingsForm should render 1`] = `
               class="pf-v6-c-switch__toggle"
             >
               <div
-                aria-hidden="true"
                 class="pf-v6-c-switch__toggle-icon"
               >
                 <svg

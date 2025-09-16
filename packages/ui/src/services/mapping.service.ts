@@ -14,11 +14,9 @@ import {
   ValueType,
   IFunctionDefinition,
 } from '../models/datamapper/mapping';
-import { IDocument, IField, PrimitiveDocument } from '../models/datamapper/document';
+import { DocumentType, IDocument, IField, PrimitiveDocument } from '../models/datamapper/document';
 import { DocumentService } from './document.service';
 import { XPathService } from './xpath/xpath.service';
-import { IMappingLink } from '../models/datamapper/visualization';
-import { DocumentType, Path } from '../models/datamapper/path';
 
 export class MappingService {
   static filterMappingsForField(mappings: MappingItem[], field: IField): MappingItem[] {
@@ -92,10 +90,9 @@ export class MappingService {
 
   private static hasStaleSourceDocument(expression: string, documentType: DocumentType, documentId: string) {
     const stalePath = XPathService.extractFieldPaths(expression).find((xpath) => {
-      const parsedPath = new Path(xpath);
       return (
-        (documentType === DocumentType.SOURCE_BODY && !parsedPath.parameterName) ||
-        (documentType === DocumentType.PARAM && parsedPath.parameterName === documentId)
+        (documentType === DocumentType.SOURCE_BODY && !xpath.documentReferenceName) ||
+        (documentType === DocumentType.PARAM && xpath.documentReferenceName === documentId)
       );
     });
     return !!stalePath;
@@ -158,17 +155,23 @@ export class MappingService {
   }
 
   private static hasStaleSourceField(expressionItem: ExpressionItem, document: IDocument) {
-    const stalePath = XPathService.extractFieldPaths(expressionItem.expression).find((xpath) => {
-      const absPath = MappingService.getAbsolutePath(expressionItem, xpath);
-      const parsedPath = new Path(absPath);
+    const namespaces = expressionItem.mappingTree.namespaceMap;
+    const fieldPaths = XPathService.extractFieldPaths(expressionItem.expression);
+    const stalePath = fieldPaths.find((xpath) => {
+      xpath.contextPath = expressionItem.parent.contextPath;
+      xpath.isRelative = !!xpath.contextPath;
+      const absPath = XPathService.toAbsolutePath(xpath);
       if (
-        (document.documentType === DocumentType.SOURCE_BODY && !parsedPath.parameterName) ||
-        (document.documentType === DocumentType.PARAM && parsedPath.parameterName === document.documentId)
+        (document.documentType === DocumentType.SOURCE_BODY && !absPath.documentReferenceName) ||
+        (document.documentType === DocumentType.PARAM &&
+          absPath.documentReferenceName === document.getReferenceId(namespaces))
       ) {
-        return !DocumentService.getFieldFromPathSegments(
+        const referredField = DocumentService.getFieldFromPathSegments(
+          expressionItem.mappingTree.namespaceMap,
           document,
-          parsedPath.pathSegments.map((seg) => seg.name),
+          absPath.pathSegments,
         );
+        return !referredField;
       }
     });
     return !!stalePath;
@@ -256,26 +259,16 @@ export class MappingService {
 
   static mapToCondition(condition: MappingItem, source: PrimitiveDocument | IField) {
     MappingService.registerNamespaceFromField(condition.mappingTree, source);
-    const absPath = XPathService.toXPath(source, condition.mappingTree.namespaceMap);
-    const relativePath = MappingService.getRelativePath(condition, absPath);
+    const pathExpression = XPathService.toPathExpression(
+      condition.mappingTree.namespaceMap,
+      source,
+      condition.parent.contextPath,
+    );
     if (condition instanceof ForEachItem) {
-      condition.expression = relativePath;
+      condition.expression = XPathService.toXPathString(pathExpression);
     } else if (condition instanceof ExpressionItem) {
-      condition.expression = XPathService.addSource(condition.expression as string, relativePath);
+      condition.expression = XPathService.addSource(condition.expression, pathExpression);
     }
-  }
-
-  private static getRelativePath(condition: MappingItem, absPath: string): string {
-    const parentPath = condition.parent.contextPath?.toAbsolutePathString();
-    if (!parentPath) return absPath;
-    const index = absPath.indexOf(parentPath);
-    return index == -1 ? absPath : absPath.substring(index + parentPath.length + 1);
-  }
-
-  private static getAbsolutePath(condition: MappingItem, xpath: string): string {
-    return condition.contextPath && !xpath.startsWith('$') && !xpath.startsWith('/')
-      ? condition.contextPath + '/' + xpath
-      : xpath;
   }
 
   static mapToDocument(mappingTree: MappingTree, source: PrimitiveDocument | IField) {
@@ -285,7 +278,7 @@ export class MappingService {
       mappingTree.children.push(valueSelector);
     }
     MappingService.registerNamespaceFromField(mappingTree, source);
-    const path = XPathService.toXPath(source, mappingTree.namespaceMap);
+    const path = XPathService.toPathExpression(mappingTree.namespaceMap, source);
     valueSelector.expression = XPathService.addSource(valueSelector.expression, path);
   }
 
@@ -296,8 +289,11 @@ export class MappingService {
       targetFieldItem.children.push(valueSelector);
     }
     MappingService.registerNamespaceFromField(targetFieldItem.mappingTree, source);
-    const absPath = XPathService.toXPath(source, targetFieldItem.mappingTree.namespaceMap);
-    const relativePath = MappingService.getRelativePath(valueSelector, absPath);
+    const relativePath = XPathService.toPathExpression(
+      targetFieldItem.mappingTree.namespaceMap,
+      source,
+      valueSelector.contextPath,
+    );
     valueSelector.expression = XPathService.addSource(valueSelector.expression, relativePath);
   }
 
@@ -373,56 +369,5 @@ export class MappingService {
     if (left instanceof WhenItem) return right instanceof OtherwiseItem ? -1 : 0;
     if (right instanceof WhenItem) return left instanceof OtherwiseItem ? 1 : 0;
     return 0;
-  }
-
-  static extractMappingLinks(
-    item: MappingTree | MappingItem,
-    sourceParameterMap: Map<string, IDocument>,
-    sourceBody: IDocument,
-  ): IMappingLink[] {
-    const answer = [] as IMappingLink[];
-    const targetNodePath = item.nodePath.toString();
-    if (item instanceof ExpressionItem) {
-      answer.push(...MappingService.doExtractMappingLinks(item, targetNodePath, sourceParameterMap, sourceBody));
-    }
-    if ('children' in item) {
-      item.children.forEach((child) => {
-        if (
-          item instanceof FieldItem &&
-          !(item.field.ownerDocument instanceof PrimitiveDocument) &&
-          child instanceof ValueSelector
-        ) {
-          answer.push(...MappingService.doExtractMappingLinks(child, targetNodePath, sourceParameterMap, sourceBody));
-        } else {
-          answer.push(...MappingService.extractMappingLinks(child, sourceParameterMap, sourceBody));
-        }
-      });
-    }
-    return answer;
-  }
-
-  private static doExtractMappingLinks(
-    sourceExpressionItem: ExpressionItem,
-    targetNodePath: string,
-    sourceParameterMap: Map<string, IDocument>,
-    sourceBody: IDocument,
-  ) {
-    const sourceXPath = sourceExpressionItem.expression;
-    const validationResult = XPathService.validate(sourceXPath);
-    if (!validationResult.getCst() || validationResult.dataMapperErrors.length > 0) return [];
-    const fieldPaths = XPathService.extractFieldPaths(sourceXPath);
-    return fieldPaths.reduce((acc, xpath) => {
-      const absolutePath = MappingService.getAbsolutePath(sourceExpressionItem, xpath);
-      const path = new Path(absolutePath);
-      const document = path.parameterName ? sourceParameterMap.get(path.parameterName) : sourceBody;
-      const sourceNodePath =
-        document &&
-        DocumentService.getFieldFromPathSegments(
-          document,
-          path.pathSegments.map((seg) => seg.name),
-        )?.path;
-      sourceNodePath && acc.push({ sourceNodePath: sourceNodePath.toString(), targetNodePath: targetNodePath });
-      return acc;
-    }, [] as IMappingLink[]);
   }
 }

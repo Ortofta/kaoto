@@ -8,6 +8,13 @@ declare global {
   type ActionType =
     | 'append'
     | 'prepend'
+    | 'duplicate'
+    | 'move-before'
+    | 'move-next'
+    | 'copy'
+    | 'paste-as-child'
+    | 'paste-as-special-child'
+    | 'paste-as-next-step'
     | 'replace'
     | 'insert'
     | 'insert-special'
@@ -20,6 +27,7 @@ declare global {
     interface Chainable {
       // default
       openHomePage(): Chainable<JQuery<Element>>;
+      openHomePageWithPreExistingRoutes(): Chainable<JQuery<Element>>;
       waitSchemasLoading(): Chainable<JQuery<Element>>;
       openTopbarKebabMenu(): Chainable<JQuery<Element>>;
       openAboutModal(): Chainable<JQuery<Element>>;
@@ -34,15 +42,21 @@ declare global {
       openCatalog(): Chainable<JQuery<Element>>;
       addNewRoute(): Chainable<JQuery<Element>>;
       deleteRoute(index: number): Chainable<JQuery<Element>>;
+      deleteRouteInCanvas(routeName: string): Chainable<JQuery<Element>>;
       cancelDeleteRoute(index: number): Chainable<JQuery<Element>>;
       toggleFlowsList(): Chainable<JQuery<Element>>;
       toggleRouteVisibility(index: number): Chainable<JQuery<Element>>;
+      renameRoute(oldName: string, newName: string): Chainable<JQuery<Element>>;
       closeFlowsListIfVisible(): Chainable<JQuery<Element>>;
       openFlowsListIfClosed(): Chainable<JQuery<Element>>;
       switchIntegrationType(type: string): Chainable<JQuery<Element>>;
       allignAllRoutesVisibility(switchvisibility: string): Chainable<JQuery<Element>>;
       hideAllRoutes(): Chainable<JQuery<Element>>;
       showAllRoutes(): Chainable<JQuery<Element>>;
+      openDataMapper(): Chainable<JQuery<Element>>;
+      allowClipboardAccess(): Chainable<JQuery<Element>>;
+      addValueToClipboard(value: object): Chainable<JQuery<Element>>;
+      assertValueCopiedToClipboard(expectedValue: object): Chainable<JQuery<Element>>;
       // design
       openGroupConfigurationTab(step: string, stepIndex?: number): Chainable<JQuery<Element>>;
       openStepConfigurationTab(step: string, stepIndex?: number): Chainable<JQuery<Element>>;
@@ -53,6 +67,11 @@ declare global {
       closeCatalogModal(): Chainable<JQuery<Element>>;
       removeNodeByName(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       quickAppend(nodeIndex?: number): Chainable<JQuery<Element>>;
+      selectDuplicateNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
+      selectMoveBeforeNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
+      selectMoveAfterNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
+      selectCopyNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
+      selectPasteNode(inputName: string, pasteType: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       selectReplaceNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       selectAppendNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       selectDisableNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
@@ -72,6 +91,8 @@ declare global {
       chooseFromCatalog(nodeType: string, name: string): Chainable<JQuery<Element>>;
       checkCatalogEntryExists(nodeType: string, name: string): Chainable<JQuery<Element>>;
       checkCatalogEntryNotExists(nodeType: string, name: string): Chainable<JQuery<Element>>;
+      checkLightMode(): Chainable<JQuery<Element>>;
+      checkDarkMode(): Chainable<JQuery<Element>>;
       switchCodeToXml(): Chainable<JQuery<Element>>;
       switchCodeToYaml(): Chainable<JQuery<Element>>;
       // nodeConfiguration
@@ -80,6 +101,7 @@ declare global {
       addExpressionResultType(value: string, index?: number): Chainable<JQuery<Element>>;
       checkExpressionResultType(value: string): Chainable<JQuery<Element>>;
       checkConfigCheckboxObject(inputName: string, value: boolean): Chainable<JQuery<Element>>;
+      checkExpressionConfigInputObject(inputName: string, value: string): Chainable<JQuery<Element>>;
       checkConfigInputObject(inputName: string, value: string): Chainable<JQuery<Element>>;
       selectExpression(expression: string, index?: number): Chainable<JQuery<Element>>;
       selectInTypeaheadField(inputGroup: string, value: string): Chainable<JQuery<Element>>;
@@ -120,10 +142,35 @@ declare global {
       uploadFixture(fixture: string): Chainable<JQuery<Element>>;
       editorDeleteLine(line: number, repeatCount: number): Chainable<JQuery<Element>>;
       checkCodeSpanLine(spanText: string, linesCount?: number): Chainable<JQuery<Element>>;
+      checkMultipleCodeSpanEntry(spanText: string, linesCount: number): Chainable<JQuery<Element>>;
       checkMultiLineContent(text: string[]): Chainable<JQuery<Element>>;
       editorClickUndoXTimes(repeatCount: number): Chainable<JQuery<Element>>;
       editorClickRedoXTimes(repeatCount: number): Chainable<JQuery<Element>>;
       compareFileWithMonacoEditor(filePath: string): Chainable<JQuery<Element>>;
+      // DataMapper
+      attachSourceBodySchema(filePath: string): Chainable<JQuery<Element>>;
+      attachTargetBodySchema(filePath: string): Chainable<JQuery<Element>>;
+      addParameter(name: string): Chainable<JQuery<Element>>;
+      attachParameterSchema(name: string, filePath: string): Chainable<JQuery<Element>>;
+      importMappings(filePath: string): Chainable<JQuery<Element>>;
+      exportMappings(): Chainable<JQuery<Element>>;
+      closeExportMappingsModal(): Chainable<JQuery<Element>>;
+      resetMappings(): Chainable<JQuery<Element>>;
+      checkFieldSelected(
+        type: string,
+        format: string,
+        fieldName: string,
+        selected: boolean,
+      ): Chainable<JQuery<Element>>;
+      checkMappingLineSelected(selected: boolean): Chainable<JQuery<Element>>;
+      countMappingLines(num: number): Chainable<JQuery<Element>>;
+      getDataMapperNode(nodePath: string[]): Chainable<JQuery<HTMLElement>>;
+      engageMapping(sourceNodePath: string[], targetNodePath: string[], testXPath: string): Chainable<JQuery<Element>>;
+      engageForEachMapping(
+        sourceNodePath: string[],
+        targetNodePath: string[],
+        testXPath: string,
+      ): Chainable<JQuery<Element>>;
     }
   }
 }

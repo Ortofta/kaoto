@@ -1,10 +1,12 @@
-import { Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
+import { Button, Toolbar, ToolbarContent, ToolbarItem } from '@patternfly/react-core';
+import { RedoIcon, UndoIcon } from '@patternfly/react-icons';
 import { FunctionComponent, JSX, useContext } from 'react';
+import { useUndoRedo } from '../../../hooks/undo-redo.hook';
 import { sourceSchemaConfig } from '../../../models/camel';
 import { EntitiesContext } from '../../../providers/entities.provider';
 import './ContextToolbar.scss';
-import { FlowClipboard } from './FlowClipboard/FlowClipboard';
 import { ExportDocument } from './ExportDocument/ExportDocument';
+import { FlowClipboard } from './FlowClipboard/FlowClipboard';
 import { FlowExportImage } from './FlowExportImage/FlowExportImage';
 import { FlowsMenu } from './Flows/FlowsMenu';
 import { NewEntity } from './NewEntity/NewEntity';
@@ -14,6 +16,7 @@ import { DeployRoute } from './DeployRoute/DeployRoute';
 export const ContextToolbar: FunctionComponent<{ additionalControls?: JSX.Element[] }> = ({ additionalControls }) => {
   const { currentSchemaType } = useContext(EntitiesContext)!;
   const isMultipleRoutes = sourceSchemaConfig.config[currentSchemaType].multipleRoute;
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   const toolbarItems: JSX.Element[] = [
     <ToolbarItem key="toolbar-flows-list">
@@ -34,9 +37,19 @@ export const ContextToolbar: FunctionComponent<{ additionalControls?: JSX.Elemen
   }
 
   return (
-    <Toolbar>
+    <Toolbar className="context-toolbar">
       <ToolbarContent>
         {toolbarItems.concat([
+          <ToolbarItem key="toolbar-undo">
+            <Button aria-label="Undo" title="Undo" variant="plain" isDisabled={!canUndo} onClick={undo}>
+              <UndoIcon />
+            </Button>
+          </ToolbarItem>,
+          <ToolbarItem key="toolbar-redo">
+            <Button aria-label="Redo" title="Redo" variant="plain" isDisabled={!canRedo} onClick={redo}>
+              <RedoIcon />
+            </Button>
+          </ToolbarItem>,
           <ToolbarItem key="toolbar-clipboard">
             <FlowClipboard />
           </ToolbarItem>,

@@ -9,6 +9,8 @@ import icon_eip_choice from '../assets/eip/choice.png';
 import icon_eip_circuit_breaker from '../assets/eip/circuitBreaker.png';
 import icon_eip_claim_check from '../assets/eip/claimCheck.png';
 import icon_eip_convert_body from '../assets/eip/convertBody.png';
+import icon_eip_convert_header from '../assets/eip/convertHeaderTo.png';
+import icon_eip_convert_variable from '../assets/eip/convertVariableTo.png';
 import icon_eip_delay from '../assets/eip/delay.png';
 import icon_eip_dynamic_router from '../assets/eip/dynamic-router.png';
 import icon_eip_enrich from '../assets/eip/enrich.png';
@@ -16,7 +18,7 @@ import icon_eip_filter from '../assets/eip/filter.png';
 import icon_eip_generic from '../assets/eip/generic.png';
 import icon_eip_idempotent_consumer from '../assets/eip/idempotentConsumer.png';
 import icon_eip_load_balance from '../assets/eip/load-balance.png';
-import icon_eip_log from '../assets/eip/log.png';
+import icon_eip_log from '../assets/eip/log.svg';
 import icon_eip_loop from '../assets/eip/loop.png';
 import icon_eip_multicast from '../assets/eip/multicast.png';
 import icon_eip_otherwise from '../assets/eip/otherwise.png';
@@ -30,6 +32,7 @@ import icon_eip_remove_header from '../assets/eip/removeheader.png';
 import icon_eip_remove_headers from '../assets/eip/removeheaders.png';
 import icon_eip_remove_properties from '../assets/eip/removeproperties.png';
 import icon_eip_remove_property from '../assets/eip/removeproperty.png';
+import icon_eip_remove_variable from '../assets/eip/removeVariable.png';
 import icon_eip_resequence from '../assets/eip/resequence.png';
 import icon_eip_resumable from '../assets/eip/resumable.png';
 import icon_eip_rollback from '../assets/eip/rollback.png';
@@ -40,6 +43,8 @@ import icon_eip_set_body from '../assets/eip/setbody.png';
 import icon_eip_set_header from '../assets/eip/setheader.png';
 import icon_eip_set_headers from '../assets/eip/setheaders.png';
 import icon_eip_set_property from '../assets/eip/setproperty.png';
+import icon_eip_set_variable from '../assets/eip/setvariable.png';
+import icon_eip_set_variables from '../assets/eip/setvariables.png';
 import icon_eip_sort from '../assets/eip/sort.png';
 import icon_eip_split from '../assets/eip/split.png';
 import icon_eip_step from '../assets/eip/step.png';
@@ -888,6 +893,10 @@ export class NodeIconResolver {
         return icon_eip_claim_check;
       case 'convertBodyTo':
         return icon_eip_convert_body;
+      case 'convertHeaderTo':
+        return icon_eip_convert_header;
+      case 'convertVariableTo':
+        return icon_eip_convert_variable;
       case 'customLoadBalancer':
         return icon_eip_load_balance;
       case 'delay':
@@ -942,6 +951,8 @@ export class NodeIconResolver {
         return icon_eip_remove_properties;
       case 'removeProperty':
         return icon_eip_remove_property;
+      case 'removeVariable':
+        return icon_eip_remove_variable;
       case 'resequence':
         return icon_eip_resequence;
       case 'resumable':
@@ -968,6 +979,10 @@ export class NodeIconResolver {
         return icon_eip_set_headers;
       case 'setProperty':
         return icon_eip_set_property;
+      case 'setVariable':
+        return icon_eip_set_variable;
+      case 'setVariables':
+        return icon_eip_set_variables;
       case 'sort':
         return icon_eip_sort;
       case 'split':

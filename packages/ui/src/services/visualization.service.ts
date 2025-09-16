@@ -8,6 +8,8 @@ import {
   TargetNodeData,
   TargetFieldNodeData,
   TargetNodeDataType,
+  FieldItemNodeData,
+  AddMappingNodeData,
 } from '../models/datamapper/visualization';
 import {
   ChooseItem,
@@ -24,6 +26,7 @@ import {
 import { IField, PrimitiveDocument } from '../models/datamapper/document';
 import { MappingService } from './mapping.service';
 import { DocumentService } from './document.service';
+import { DocumentUtilService } from './document-util.service';
 
 type MappingNodePairType = {
   sourceNode?: SourceNodeDataType;
@@ -69,19 +72,17 @@ export class VisualizationService {
           ? new FieldNodeData(parent, field)
           : new TargetFieldNodeData(parent as TargetNodeData, field);
         acc.push(fieldNodeData);
-        return acc;
+      } else {
+        mappingsForField
+          .filter((mapping) => !VisualizationService.isExistingMapping(acc as TargetNodeData[], mapping))
+          .sort((left, right) => MappingService.sortMappingItem(left, right))
+          .forEach((mapping) =>
+            acc.push(VisualizationService.createNodeDataFromMappingItem(parent as TargetNodeData, mapping)),
+          );
+        if (DocumentService.isCollectionField(field)) {
+          acc.push(new AddMappingNodeData(parent as TargetNodeData, field));
+        }
       }
-      mappingsForField
-        .filter((mapping) => !VisualizationService.isExistingMapping(acc as TargetNodeData[], mapping))
-        .sort((left, right) => MappingService.sortMappingItem(left, right))
-        .forEach((mapping) => {
-          if (mapping instanceof FieldItem) {
-            const fieldNodeData = new TargetFieldNodeData(parent as TargetNodeData, field, mapping);
-            acc.push(fieldNodeData);
-          } else {
-            acc.push(new MappingNodeData(parent as TargetNodeData, mapping));
-          }
-        });
       return acc;
     }, answer);
   }
@@ -91,27 +92,25 @@ export class VisualizationService {
   }
 
   static generateNonDocumentNodeDataChildren(parent: NodeData): NodeData[] {
-    if (parent instanceof MappingNodeData) {
+    if (parent instanceof FieldNodeData || parent instanceof FieldItemNodeData) {
+      DocumentUtilService.resolveTypeFragment(parent.field);
+      return VisualizationService.doGenerateNodeDataFromFields(
+        parent,
+        parent.field.fields,
+        'mapping' in parent ? parent.mapping?.children : undefined,
+      );
+    } else if (parent instanceof MappingNodeData) {
       return parent.mapping?.children
         ? parent.mapping.children
             .sort((left, right) => MappingService.sortMappingItem(left, right))
             .map((m) => VisualizationService.createNodeDataFromMappingItem(parent, m))
         : [];
-    } else if (parent instanceof FieldNodeData) {
-      DocumentService.resolveTypeFragment(parent.field);
-      return VisualizationService.doGenerateNodeDataFromFields(
-        parent,
-        parent.field.fields,
-        parent instanceof TargetFieldNodeData ? parent.mapping?.children : undefined,
-      );
     }
     return [];
   }
 
-  private static createNodeDataFromMappingItem(parent: TargetNodeData, item: MappingItem): NodeData {
-    return item instanceof FieldItem
-      ? new TargetFieldNodeData(parent, item.field, item)
-      : new MappingNodeData(parent, item);
+  private static createNodeDataFromMappingItem(parent: TargetNodeData, mapping: MappingItem): MappingNodeData {
+    return mapping instanceof FieldItem ? new FieldItemNodeData(parent, mapping) : new MappingNodeData(parent, mapping);
   }
 
   static testNodePair(fromNode: NodeData, toNode: NodeData): MappingNodePairType {
@@ -132,7 +131,10 @@ export class VisualizationService {
   }
 
   static isCollectionField(nodeData: NodeData) {
-    return nodeData instanceof FieldNodeData && nodeData.field?.maxOccurs && nodeData.field.maxOccurs > 1;
+    return (
+      (nodeData instanceof FieldNodeData || nodeData instanceof FieldItemNodeData) &&
+      DocumentService.isCollectionField(nodeData.field)
+    );
   }
 
   static isAttributeField(nodeData: NodeData) {
@@ -152,6 +154,11 @@ export class VisualizationService {
       if (isPrimitiveDocumentWithConditionItem) return true;
     }
     if (nodeData instanceof FieldNodeData) return DocumentService.hasChildren(nodeData.field);
+    if (nodeData instanceof FieldItemNodeData)
+      return (
+        DocumentService.hasChildren(nodeData.field) ||
+        nodeData.mapping.children.filter((m) => !(m instanceof ValueSelector)).length > 0
+      );
     if (nodeData instanceof MappingNodeData) return nodeData.mapping.children.length > 0;
     return false;
   }
@@ -178,7 +185,11 @@ export class VisualizationService {
   }
 
   static allowForEach(nodeData: TargetNodeData) {
-    return nodeData instanceof TargetFieldNodeData && VisualizationService.isCollectionField(nodeData);
+    return (
+      nodeData instanceof AddMappingNodeData ||
+      ((nodeData instanceof TargetFieldNodeData || nodeData instanceof FieldItemNodeData) &&
+        VisualizationService.isCollectionField(nodeData))
+    );
   }
 
   static isForEachNode(nodeData: TargetNodeData) {
@@ -211,7 +222,11 @@ export class VisualizationService {
   }
 
   static allowConditionMenu(nodeData: TargetNodeData) {
-    if (nodeData instanceof TargetFieldNodeData || nodeData instanceof TargetDocumentNodeData) {
+    if (
+      nodeData instanceof TargetFieldNodeData ||
+      nodeData instanceof TargetDocumentNodeData ||
+      nodeData instanceof FieldItemNodeData
+    ) {
       const isForEachField =
         'parent' in nodeData &&
         nodeData.parent instanceof MappingNodeData &&
@@ -228,6 +243,7 @@ export class VisualizationService {
 
   static allowValueSelector(nodeData: TargetNodeData) {
     return (
+      !(nodeData instanceof AddMappingNodeData) &&
       !VisualizationService.isChooseNode(nodeData) &&
       !VisualizationService.isValueSelectorNode(nodeData) &&
       !VisualizationService.isForEachNode(nodeData)
@@ -308,13 +324,13 @@ export class VisualizationService {
 
   static engageMapping(mappingTree: MappingTree, sourceNode: SourceNodeDataType, targetNode: TargetNodeData) {
     const sourceField = 'document' in sourceNode ? (sourceNode.document as PrimitiveDocument) : sourceNode.field;
-    if (targetNode instanceof MappingNodeData) {
+    if (targetNode instanceof TargetFieldNodeData || targetNode instanceof FieldItemNodeData) {
+      const item = VisualizationService.getOrCreateFieldItem(targetNode);
+      MappingService.mapToField(sourceField, item as MappingItem);
+    } else if (targetNode instanceof MappingNodeData) {
       MappingService.mapToCondition(targetNode.mapping, sourceField);
     } else if (targetNode instanceof TargetDocumentNodeData) {
       MappingService.mapToDocument(mappingTree, sourceField);
-    } else if (targetNode instanceof TargetFieldNodeData) {
-      const item = VisualizationService.getOrCreateFieldItem(targetNode);
-      MappingService.mapToField(sourceField, item as MappingItem);
     }
   }
 
@@ -327,5 +343,10 @@ export class VisualizationService {
 
   static generateDndId(nodeData: NodeData) {
     return nodeData instanceof DocumentNodeData ? nodeData.id : nodeData.path.pathSegments.join('-');
+  }
+
+  static addMapping(nodeData: AddMappingNodeData) {
+    const parentItem = VisualizationService.getOrCreateFieldItem(nodeData.parent);
+    MappingService.createFieldItem(parentItem, nodeData.field);
   }
 }

@@ -32,6 +32,7 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
     }
 
     const vizNode: IVisualizationNode | undefined = element.getData()?.vizNode;
+    const lastUpdate = vizNode?.lastUpdate;
     const settingsAdapter = useContext(SettingsContext);
     const label = vizNode?.getNodeLabel(settingsAdapter.getSettings().nodeLabel);
     const isDisabled = !!vizNode?.getComponentSchema()?.definition?.disabled;
@@ -72,7 +73,7 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
       : boxRef.current.y + boxRef.current.height;
 
     return (
-      <Layer id={GROUPS_LAYER}>
+      <Layer id={GROUPS_LAYER} data-lastupdate={lastUpdate}>
         <g
           ref={gHoverRef}
           className="custom-group"
@@ -99,7 +100,7 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
               </div>
 
               {isDisabled && (
-                <Icon className="disabled-step-icon" title="Step disabled">
+                <Icon className="custom-group__disabled-icon" title="Step disabled">
                   <BanIcon />
                 </Icon>
               )}

@@ -1,4 +1,4 @@
-import { isDefined } from '../../../../utils';
+import { initVisibleFlows, IVisibleFlows } from '../../../../utils/init-visible-flows';
 
 export interface IVisibleFlowsInformation {
   singleFlowId: string | undefined;
@@ -6,8 +6,6 @@ export interface IVisibleFlowsInformation {
   totalFlowsCount: number;
   isCanvasEmpty: boolean;
 }
-
-export type IVisibleFlows = Record<string, boolean>;
 
 export function getVisibleFlowsInformation(visibleFlows: IVisibleFlows): IVisibleFlowsInformation {
   const flowsArray = Object.entries(visibleFlows);
@@ -40,22 +38,13 @@ export type VisibleFlowAction =
       type: 'toggleFlowVisible';
       flowId: string;
     }
-  | { type: 'showAllFlows' }
-  | { type: 'hideAllFlows' }
+  | { type: 'showFlows'; flowIds?: string[] }
+  | { type: 'hideFlows'; flowIds?: string[] }
   | { type: 'clearFlows' }
   | { type: 'initVisibleFlows'; flowsIds: string[] }
   | { type: 'renameFlow'; flowId: string; newName: string };
 
-const ensureAtLeastOneVisibleFlow = (state: IVisibleFlows) => {
-  const entries = Object.keys(state);
-  if (entries.length > 0 && Object.values(state).every((visible) => !visible)) {
-    state[entries[0]] = true;
-  }
-  return state;
-};
-
 export function VisibleFlowsReducer(state: IVisibleFlows, action: VisibleFlowAction) {
-  let visibleFlows: IVisibleFlows;
   switch (action.type) {
     case 'toggleFlowVisible':
       return {
@@ -63,35 +52,32 @@ export function VisibleFlowsReducer(state: IVisibleFlows, action: VisibleFlowAct
         [action.flowId]: !state[action.flowId],
       };
 
-    case 'showAllFlows':
+    case 'showFlows':
       return Object.keys(state).reduce((acc: IVisibleFlows, flowId: string) => {
-        acc[flowId] = true;
+        if (action.flowIds) {
+          acc[flowId] = action.flowIds?.includes(flowId) ? true : state[flowId];
+        } else {
+          acc[flowId] = true;
+        }
         return acc;
       }, {});
 
-    case 'hideAllFlows':
+    case 'hideFlows':
       return Object.keys(state).reduce((acc: IVisibleFlows, flowId: string) => {
-        acc[flowId] = false;
+        if (action.flowIds) {
+          acc[flowId] = action.flowIds?.includes(flowId) ? false : state[flowId];
+        } else {
+          acc[flowId] = false;
+        }
         return acc;
       }, {});
 
     case 'clearFlows':
       return {};
 
-    case 'initVisibleFlows':
-      if (
-        action.flowsIds.length === Object.keys(state).length &&
-        action.flowsIds.every((flowId) => isDefined(state[flowId]))
-      ) {
-        return ensureAtLeastOneVisibleFlow(state);
-      }
-
-      visibleFlows = action.flowsIds.reduce((acc, flowId) => {
-        acc[flowId] = state[flowId] ?? false;
-        return acc;
-      }, {} as IVisibleFlows);
-
-      return ensureAtLeastOneVisibleFlow(visibleFlows);
+    case 'initVisibleFlows': {
+      return initVisibleFlows(action.flowsIds, state);
+    }
 
     case 'renameFlow':
       // eslint-disable-next-line no-case-declarations
@@ -116,12 +102,12 @@ export class VisualFlowsApi {
     this.dispatch({ type: 'toggleFlowVisible', flowId });
   }
 
-  showAllFlows() {
-    this.dispatch({ type: 'showAllFlows' });
+  showFlows(flowIds?: string[]) {
+    this.dispatch({ type: 'showFlows', flowIds });
   }
 
-  hideAllFlows() {
-    this.dispatch({ type: 'hideAllFlows' });
+  hideFlows(flowIds?: string[]) {
+    this.dispatch({ type: 'hideFlows', flowIds });
   }
 
   clearFlows() {

@@ -1,5 +1,5 @@
 import { CatalogDefinitionEntry } from '@kaoto/camel-catalog/types';
-import { KaotoSchemaDefinition } from '../models';
+import { KaotoSchemaDefinition } from '../models/kaoto-schema';
 
 export class CatalogSchemaLoader {
   /** The `.` is required to support relative routes in GitHub pages */
@@ -8,7 +8,13 @@ export class CatalogSchemaLoader {
 
   static async fetchFile<T>(file: string): Promise<{ body: T; uri: string }> {
     const response = await fetch(file);
-    const body = await response.json();
+
+    let body: T;
+    if (file.includes('.xsd')) {
+      body = (await response.text()) as T;
+    } else {
+      body = await response.json();
+    }
 
     return { body, uri: response.url };
   }

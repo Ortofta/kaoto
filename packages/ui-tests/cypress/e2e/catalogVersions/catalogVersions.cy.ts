@@ -1,24 +1,22 @@
+import catalogLibrary from '@kaoto/camel-catalog/index.json';
+
 describe('Test for catalog versions', () => {
   beforeEach(() => {
     cy.openHomePage();
   });
 
-  const testData = [
-    { type: 'Main', version: 'Camel Main 4.11.0' },
-    { type: 'Main', version: 'Camel Main 4.10.2' },
-    { type: 'Main', version: 'Camel Main 4.4.0.redhat-00046' },
-    { type: 'Main', version: 'Camel Main 4.8.3.redhat-00004' },
-    { type: 'Main', version: 'Camel Main 4.8.5' },
-    { type: 'Quarkus', version: 'Camel Quarkus 3.19.0' },
-    { type: 'Quarkus', version: 'Camel Quarkus 3.15.3' },
-    { type: 'Quarkus', version: 'Camel Quarkus 3.15.0.redhat-00010' },
-    { type: 'Quarkus', version: 'Camel Quarkus 3.8.0.redhat-00018' },
-    { type: 'Spring Boot', version: 'Camel Spring Boot 4.4.0.redhat-00039' },
-    { type: 'Spring Boot', version: 'Camel Spring Boot 4.8.3.redhat-00009' },
-    { type: 'Spring Boot', version: 'Camel Spring Boot 4.8.5' },
-    { type: 'Spring Boot', version: 'Camel Spring Boot 4.10.2' },
-    { type: 'Spring Boot', version: 'Camel Spring Boot 4.11.0' },
-  ];
+  const testData: { version: string; type: string }[] = [];
+
+  catalogLibrary.definitions.forEach((library) => {
+    const catalogVersion = library.version;
+    const catalogType = library.runtime;
+
+    testData.push({
+      version: `Camel ${catalogType} ${catalogVersion}`,
+      type: catalogType,
+    });
+  });
+
   testData.forEach((data) => {
     it(`Catalog version test for ${data.version}`, { tags: ['weekly'] }, () => {
       cy.uploadFixture('flows/camelRoute/catalogConfig.yaml');
@@ -45,8 +43,8 @@ describe('Test for catalog versions', () => {
       cy.openStepConfigurationTab('setHeader', 0);
       cy.selectFormTab('All');
       // Check the configured fields didn't change in the node
-      cy.checkConfigInputObject('expression', 'testExpression');
-      cy.checkConfigInputObject('id', 'testId');
+      cy.checkExpressionConfigInputObject('simple.expression', 'testExpression');
+      cy.checkExpressionConfigInputObject('simple.id', 'testId');
       cy.checkConfigInputObject('name', 'testName');
 
       cy.openStepConfigurationTab('log', 0);
@@ -54,7 +52,7 @@ describe('Test for catalog versions', () => {
       // Check the configured fields didn't change in the node
       cy.checkConfigInputObject('description', 'log');
       cy.checkConfigInputObject('logName', 'testLoggerName');
-      cy.contains('button', 'Processor advanced properties').click();
+      cy.expandWrappedSection('#-Advanced');
       cy.checkConfigInputObject('marker', 'testMarker');
 
       cy.selectPrependNode('log');

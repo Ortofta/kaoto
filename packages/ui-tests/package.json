@@ -1,7 +1,7 @@
 {
   "name": "@kaoto/kaoto-tests",
   "private": true,
-  "version": "2.5.0-dev",
+  "version": "2.8.0-dev",
   "type": "module",
   "description": "Kaoto UI tests and storybook",
   "repository": "https://github.com/KaotoIO/kaoto",
@@ -25,7 +25,6 @@
   "devDependencies": {
     "@cypress/grep": "^4.1.0",
     "@eslint/js": "^9.10.0",
-    "@kaoto/kaoto": "workspace:*",
     "@storybook/addon-essentials": "^8.2.8",
     "@storybook/addon-interactions": "^8.2.8",
     "@storybook/addon-links": "^8.2.8",
@@ -41,7 +40,7 @@
     "@storybook/theming": "^8.2.8",
     "@types/eslint__js": "^8.42.3",
     "chromatic": "^11.0.0",
-    "cypress": "^13.11.0",
+    "cypress": "^14.3.3",
     "cypress-file-upload": "^5.0.8",
     "eslint": "^9.10.0",
     "eslint-config-prettier": "^9.1.0",
@@ -62,6 +61,15 @@
     "vite": "^5.4.0"
   },
   "dependencies": {
+    "@kaoto/camel-catalog": "^0.2.2",
+    "@kaoto/forms": "^1.4.3",
+    "@kaoto/kaoto": "workspace:*",
+    "@patternfly/patternfly": "^6.3.0",
+    "@patternfly/react-code-editor": "^6.3.0",
+    "@patternfly/react-core": "6.3.1-prerelease.13",
+    "@patternfly/react-icons": "^6.3.0",
+    "@patternfly/react-table": "^6.3.0",
+    "@patternfly/react-topology": "^6.3.0",
     "storybook": "^8.2.8"
   },
   "eslintConfig": {

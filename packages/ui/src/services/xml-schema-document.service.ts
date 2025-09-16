@@ -29,36 +29,51 @@ import {
   XmlSchemaType,
   XmlSchemaUse,
 } from '../xml-schema-ts';
-import { BaseDocument, BaseField, ITypeFragment } from '../models/datamapper/document';
+import {
+  BaseDocument,
+  BaseField,
+  DocumentType,
+  DocumentDefinitionType,
+  IField,
+  ITypeFragment,
+  IParentType,
+  RootElementOption,
+} from '../models/datamapper/document';
 import { Types } from '../models/datamapper/types';
-import { DocumentType } from '../models/datamapper/path';
-import { DocumentService } from './document.service';
+import { getCamelRandomId } from '../camel-utils/camel-random-id';
+import { NodePath } from '../models/datamapper/nodepath';
+import { DocumentUtilService } from './document-util.service';
+import { QName } from '../xml-schema-ts/QName';
 
 export interface XmlSchemaTypeFragment extends ITypeFragment {
   fields: XmlSchemaField[];
 }
 
 export class XmlSchemaDocument extends BaseDocument {
-  rootElement: XmlSchemaElement;
   fields: XmlSchemaField[] = [];
   namedTypeFragments: Record<string, XmlSchemaTypeFragment> = {};
   totalFieldCount = 0;
   isNamespaceAware = true;
+  definitionType: DocumentDefinitionType;
 
   constructor(
     public xmlSchema: XmlSchema,
     documentType: DocumentType,
     documentId: string,
+    public rootElement?: XmlSchemaElement,
   ) {
     super(documentType, documentId);
     this.name = documentId;
     if (this.xmlSchema.getElements().size == 0) {
       throw Error("There's no top level Element in the schema");
     }
-    // TODO let user choose the root element from top level elements if there're multiple
-    this.rootElement = XmlSchemaDocumentService.getFirstElement(this.xmlSchema);
+
+    if (!this.rootElement) {
+      this.rootElement = XmlSchemaDocumentService.getFirstElement(this.xmlSchema);
+    }
+
     XmlSchemaDocumentService.populateElement(this, this.fields, this.rootElement);
-    this.schemaType = 'XML';
+    this.definitionType = DocumentDefinitionType.XML_SCHEMA;
   }
 }
 
@@ -74,22 +89,76 @@ export class XmlSchemaField extends BaseField {
     public name: string,
     public isAttribute: boolean,
   ) {
-    super(parent, DocumentService.getOwnerDocument<XmlSchemaDocument>(parent), name);
+    const ownerDocument = ('ownerDocument' in parent ? parent.ownerDocument : parent) as XmlSchemaDocument;
+    super(parent, ownerDocument, name);
+    this.id = getCamelRandomId(`fx-${this.name}`, 4);
+    this.path = NodePath.childOf(parent.path, this.id);
+  }
+
+  adopt(parent: IField) {
+    if (!(parent instanceof XmlSchemaField)) return super.adopt(parent);
+
+    const adopted = new XmlSchemaField(parent, this.name, this.isAttribute);
+    adopted.type = this.type;
+    adopted.minOccurs = this.minOccurs;
+    adopted.maxOccurs = this.maxOccurs;
+    adopted.defaultValue = this.defaultValue;
+    adopted.namespacePrefix = this.namespacePrefix;
+    adopted.namespaceURI = this.namespaceURI;
+    adopted.namedTypeFragmentRefs = this.namedTypeFragmentRefs;
+    adopted.fields = this.fields.map((child) => child.adopt(adopted) as XmlSchemaField);
+    parent.fields.push(adopted);
+    return adopted;
+  }
+
+  getExpression(namespaceMap: { [p: string]: string }): string {
+    const nsPrefix = Object.keys(namespaceMap).find((key) => namespaceMap[key] === this.namespaceURI);
+    const prefix = nsPrefix ? `${nsPrefix}:` : '';
+    const name = this.isAttribute ? `@${this.name}` : this.name;
+    return prefix + name;
   }
 }
 
+/**
+ * The collection of XML schema handling logic. {@link createXmlSchemaDocument} consumes XML schema
+ * file and generate a {@link XmlSchemaDocument} object.
+ */
 export class XmlSchemaDocumentService {
   static parseXmlSchema(content: string): XmlSchema {
     const collection = new XmlSchemaCollection();
     return collection.read(content, () => {});
   }
 
-  static createXmlSchemaDocument(documentType: DocumentType, documentId: string, content: string) {
+  static createXmlSchemaDocument(
+    documentType: DocumentType,
+    documentId: string,
+    content: string,
+    rootElementChoice?: RootElementOption,
+  ) {
     const schema = XmlSchemaDocumentService.parseXmlSchema(content);
-    return new XmlSchemaDocument(schema, documentType, documentId);
+    let rootElement: XmlSchemaElement | undefined;
+
+    if (rootElementChoice) {
+      const qName = new QName(rootElementChoice.namespaceUri, rootElementChoice.name);
+      rootElement = schema.getElements().get(qName);
+    }
+
+    return new XmlSchemaDocument(schema, documentType, documentId, rootElement);
   }
 
-  static getFirstElement(xmlSchema: XmlSchema) {
+  /**
+   * Recreates {@link XmlSchemaDocument} object with a new root element. Other part including {@link XmlSchema} object
+   * is reused from passed in {@link XmlSchemaDocument} object.
+   * @param document
+   * @param rootElementOption
+   */
+  static updateRootElement(document: XmlSchemaDocument, rootElementOption: RootElementOption): XmlSchemaDocument {
+    const newRootQName = new QName(rootElementOption.namespaceUri, rootElementOption.name);
+    const newRootElement = document.xmlSchema.getElements().get(newRootQName);
+    return new XmlSchemaDocument(document.xmlSchema, document.documentType, document.documentId, newRootElement);
+  }
+
+  static getFirstElement(xmlSchema: XmlSchema): XmlSchemaElement {
     return xmlSchema.getElements().values().next().value;
   }
 
@@ -107,11 +176,12 @@ export class XmlSchemaDocumentService {
     field.namespaceURI = resolvedElement.getWireName()!.getNamespaceURI();
     field.namespacePrefix = resolvedElement.getWireName()!.getPrefix();
     field.defaultValue = resolvedElement.defaultValue || resolvedElement.fixedValue;
-    field.minOccurs = resolvedElement.getMinOccurs();
-    field.maxOccurs = resolvedElement.getMaxOccurs();
+    // The occurrences must be taken from the referrer as opposed to the other attributes
+    field.minOccurs = element.getMinOccurs();
+    field.maxOccurs = element.getMaxOccurs();
     fields.push(field);
 
-    const ownerDoc = DocumentService.getOwnerDocument<XmlSchemaDocument>(parent);
+    const ownerDoc = ('ownerDocument' in parent ? parent.ownerDocument : parent) as XmlSchemaDocument;
     const cachedTypeFragments = ownerDoc.namedTypeFragments;
     ownerDoc.totalFieldCount++;
     XmlSchemaDocumentService.populateSchemaType(cachedTypeFragments, field, resolvedElement.getSchemaType());
@@ -187,7 +257,7 @@ export class XmlSchemaDocumentService {
     field.defaultValue = attr.getDefaultValue() || attr.getFixedValue();
     fields.push(field);
 
-    const ownerDoc = DocumentService.getOwnerDocument<XmlSchemaDocument>(parent);
+    const ownerDoc = ('ownerDocument' in parent ? parent.ownerDocument : parent) as XmlSchemaDocument;
     ownerDoc.totalFieldCount++;
 
     const use = attr.getUse();
@@ -393,7 +463,7 @@ export class XmlSchemaDocumentService {
     parentTypeFragment?: XmlSchemaTypeFragment,
   ) {
     const baseTypeName = extension.getBaseTypeName();
-    const doc = DocumentService.getOwnerDocument<XmlSchemaDocument>(parent);
+    const doc = ('ownerDocument' in parent ? parent.ownerDocument : parent) as XmlSchemaDocument;
     const baseType = baseTypeName ? doc.xmlSchema.getSchemaTypes().get(baseTypeName) : undefined;
     if (baseType) {
       XmlSchemaDocumentService.populateSchemaType(cachedTypeFragments, parent, baseType, parentTypeFragment);
@@ -411,5 +481,12 @@ export class XmlSchemaDocumentService {
     _restriction: XmlSchemaComplexContentRestriction,
   ) {
     // TODO restriction support
+  }
+
+  static getChildField(parent: IParentType, name: string, namespaceURI?: string | null): IField | undefined {
+    const resolvedParent = 'parent' in parent ? DocumentUtilService.resolveTypeFragment(parent) : parent;
+    return resolvedParent.fields.find((f) => {
+      return f.name === name && ((!namespaceURI && !f.namespaceURI) || f.namespaceURI === namespaceURI);
+    });
   }
 }

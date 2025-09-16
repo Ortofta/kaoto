@@ -1,5 +1,5 @@
+import { CanvasFormTabsContext, SuggestionRegistryProvider } from '@kaoto/forms';
 import {
-  CanvasFormTabsContext,
   CanvasNode,
   CanvasSideBar,
   IVisualizationNode,
@@ -485,6 +485,13 @@ const selectedNode: CanvasNode = {
 export default {
   title: 'Canvas/SetHeader',
   component: CanvasSideBar,
+  decorators: [
+    (Story: StoryFn) => (
+      <SuggestionRegistryProvider>
+        <Story />
+      </SuggestionRegistryProvider>
+    ),
+  ],
 } as Meta<typeof CanvasSideBar>;
 
 const Template: StoryFn<typeof CanvasSideBar> = (args) => {
@@ -492,7 +499,7 @@ const Template: StoryFn<typeof CanvasSideBar> = (args) => {
     <CanvasFormTabsContext.Provider
       value={{
         selectedTab: 'All',
-        onTabChange: () => {},
+        setSelectedTab: () => {},
       }}
     >
       <VisibleFlowsProvider>

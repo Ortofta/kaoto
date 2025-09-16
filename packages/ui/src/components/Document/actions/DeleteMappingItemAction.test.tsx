@@ -2,11 +2,10 @@ import { DeleteMappingItemAction } from './DeleteMappingItemAction';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MappingNodeData, TargetDocumentNodeData } from '../../../models/datamapper/visualization';
 import { MappingTree, ValueSelector } from '../../../models/datamapper/mapping';
-import { DocumentType } from '../../../models/datamapper/path';
-import { BODY_DOCUMENT_ID } from '../../../models/datamapper/document';
+import { BODY_DOCUMENT_ID, DocumentType } from '../../../models/datamapper/document';
 import { DataMapperCanvasProvider } from '../../../providers/datamapper-canvas.provider';
 import { DataMapperProvider } from '../../../providers/datamapper.provider';
-import { TestUtil } from '../../../stubs/data-mapper';
+import { TestUtil } from '../../../stubs/datamapper/data-mapper';
 
 describe('DeleteMappingItemAction', () => {
   it('should invoke onDelete()', async () => {

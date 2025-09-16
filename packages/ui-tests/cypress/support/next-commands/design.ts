@@ -44,8 +44,34 @@ Cypress.Commands.add('quickAppend', (nodeIndex?: number) => {
   cy.get('[data-testid="quick-append-step"]').eq(nodeIndex).click({ force: true });
 });
 
+Cypress.Commands.add('selectDuplicateNode', (nodeName: string, nodeIndex?: number) => {
+  cy.performNodeAction(nodeName, 'duplicate', nodeIndex);
+});
+
+Cypress.Commands.add('selectMoveBeforeNode', (nodeName: string, nodeIndex?: number) => {
+  cy.performNodeAction(nodeName, 'move-before', nodeIndex);
+});
+
+Cypress.Commands.add('selectMoveAfterNode', (nodeName: string, nodeIndex?: number) => {
+  cy.performNodeAction(nodeName, 'move-next', nodeIndex);
+});
+
 Cypress.Commands.add('selectReplaceNode', (nodeName: string, nodeIndex?: number) => {
   cy.performNodeAction(nodeName, 'replace', nodeIndex);
+});
+
+Cypress.Commands.add('selectCopyNode', (nodeName: string, nodeIndex?: number) => {
+  cy.performNodeAction(nodeName, 'copy', nodeIndex);
+});
+
+Cypress.Commands.add('selectPasteNode', (nodeName: string, pasteType: string, nodeIndex?: number) => {
+  if (pasteType === 'paste-as-child') {
+    cy.performNodeAction(nodeName, `paste-as-child`, nodeIndex);
+  } else if (pasteType === 'paste-as-special-child') {
+    cy.performNodeAction(nodeName, `paste-as-special-child`, nodeIndex);
+  } else if (pasteType === 'paste-as-next-step') {
+    cy.performNodeAction(nodeName, `paste-as-next-step`, nodeIndex);
+  }
 });
 
 Cypress.Commands.add('selectAppendNode', (nodeName: string, nodeIndex?: number) => {
@@ -177,4 +203,12 @@ Cypress.Commands.add('switchCodeToXml', () => {
 Cypress.Commands.add('switchCodeToYaml', () => {
   cy.get('[data-testid="serializer-list-dropdown"]').click();
   cy.get('[data-testid="serializer-yaml"]').contains('YAML').click();
+});
+
+Cypress.Commands.add('checkDarkMode', () => {
+  cy.get('html').should('have.class', 'pf-v6-theme-dark');
+});
+
+Cypress.Commands.add('checkLightMode', () => {
+  cy.get('html').should('not.have.class', 'pf-v6-theme-dark');
 });

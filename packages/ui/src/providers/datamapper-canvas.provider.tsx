@@ -3,21 +3,18 @@ import {
   FunctionComponent,
   MutableRefObject,
   PropsWithChildren,
-  RefObject,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import { DnDHandler } from './dnd/DnDHandler';
-import { DocumentType, NodePath } from '../models/datamapper/path';
+import { DocumentType } from '../models/datamapper/document';
+import { NodePath } from '../models/datamapper/nodepath';
 import { DatamapperDndProvider } from './datamapper-dnd.provider';
 import { useDataMapper } from '../hooks/useDataMapper';
-
-export interface NodeReference {
-  headerRef: HTMLDivElement | null;
-  containerRef: HTMLDivElement | null;
-}
+import { MappingLinksProvider } from './data-mapping-links.provider';
+import { NodeReference } from '../models/datamapper';
 
 export interface ICanvasContext {
   setNodeReference: (path: string, ref: MutableRefObject<NodeReference>) => void;
@@ -29,8 +26,6 @@ export interface ICanvasContext {
   setDefaultHandler: (handler: DnDHandler | undefined) => void;
   getActiveHandler: () => DnDHandler | undefined;
   setActiveHandler: (handler: DnDHandler | undefined) => void;
-  mappingLinkCanvasRef: RefObject<HTMLDivElement> | null;
-  setMappingLinkCanvasRef: (ref: RefObject<HTMLDivElement>) => void;
 }
 
 export const CanvasContext = createContext<ICanvasContext | undefined>(undefined);
@@ -39,7 +34,6 @@ export const DataMapperCanvasProvider: FunctionComponent<PropsWithChildren> = (p
   const { mappingTree } = useDataMapper();
   const [defaultHandler, setDefaultHandler] = useState<DnDHandler | undefined>();
   const [activeHandler, setActiveHandler] = useState<DnDHandler | undefined>();
-  const [mappingLinkCanvasRef, setMappingLinkCanvasRef] = useState<RefObject<HTMLDivElement> | null>(null);
 
   const [nodeReferenceMap, setNodeReferenceMap] = useState<Map<string, MutableRefObject<NodeReference>>>(
     new Map<string, MutableRefObject<NodeReference>>(),
@@ -117,8 +111,6 @@ export const DataMapperCanvasProvider: FunctionComponent<PropsWithChildren> = (p
       setDefaultHandler: handleSetDefaultHandler,
       getActiveHandler: () => activeHandler,
       setActiveHandler: handleSetActiveHandler,
-      mappingLinkCanvasRef,
-      setMappingLinkCanvasRef: (ref) => setMappingLinkCanvasRef(ref),
     };
   }, [
     setNodeReference,
@@ -130,12 +122,13 @@ export const DataMapperCanvasProvider: FunctionComponent<PropsWithChildren> = (p
     handleSetDefaultHandler,
     handleSetActiveHandler,
     activeHandler,
-    mappingLinkCanvasRef,
   ]);
 
   return (
     <CanvasContext.Provider value={value}>
-      <DatamapperDndProvider handler={activeHandler}>{props.children}</DatamapperDndProvider>
+      <DatamapperDndProvider handler={activeHandler}>
+        <MappingLinksProvider>{props.children}</MappingLinksProvider>
+      </DatamapperDndProvider>
     </CanvasContext.Provider>
   );
 };

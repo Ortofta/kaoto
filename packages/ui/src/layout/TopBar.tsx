@@ -5,12 +5,12 @@ import {
   DropdownItem,
   Icon,
   Masthead,
-  MastheadLogo,
+  MastheadBrand,
   MastheadContent,
+  MastheadLogo,
   MastheadMain,
   MastheadProps,
   MastheadToggle,
-  MastheadBrand,
   MenuToggle,
   MenuToggleElement,
   ToolbarItem,
@@ -22,8 +22,10 @@ import { Link } from 'react-router-dom';
 import camelLogo from '../assets/camel-logo.svg';
 import logo from '../assets/logo-kaoto.png';
 import { useComponentLink } from '../hooks/ComponentLink';
+import { DEFAULT_POPPER_PROPS } from '../models/popper-default';
 import { Links } from '../router/links.models';
 import { KaotoAboutModal } from './KaotoAboutModal';
+import './TopBar.scss';
 
 interface ITopBar {
   navToggle: () => void;
@@ -32,11 +34,6 @@ interface ITopBar {
 const displayObject: MastheadProps['display'] = {
   default: 'inline',
 };
-
-const DEFAULT_POPPER_PROPS = {
-  position: 'end',
-  preventOverflow: true,
-} as const;
 
 export const TopBar: FunctionComponent<ITopBar> = (props) => {
   const logoLink = useComponentLink(Links.Home);
@@ -64,7 +61,7 @@ export const TopBar: FunctionComponent<ITopBar> = (props) => {
             <Button icon={<BarsIcon />} variant="plain" onClick={props.navToggle} aria-label="Global navigation" />
           </MastheadToggle>
           <MastheadBrand data-codemods>
-            <MastheadLogo data-codemods component={logoLink}>
+            <MastheadLogo data-codemods component={logoLink} className="masthead-logo">
               <img className="shell__logo" src={logo} alt="Kaoto Logo" />
             </MastheadLogo>
           </MastheadBrand>

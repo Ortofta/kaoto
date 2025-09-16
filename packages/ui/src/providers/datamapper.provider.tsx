@@ -21,15 +21,16 @@ import {
   BODY_DOCUMENT_ID,
   DocumentDefinition,
   DocumentInitializationModel,
+  DocumentType,
   IDocument,
   PrimitiveDocument,
 } from '../models/datamapper/document';
 import { CanvasView } from '../models/datamapper/view';
-import { DocumentType } from '../models/datamapper/path';
 import { MappingSerializerService } from '../services/mapping-serializer.service';
 import { MappingService } from '../services/mapping.service';
 import { DocumentService } from '../services/document.service';
 import { Alert, AlertActionCloseButton, AlertGroup, AlertProps, AlertVariant } from '@patternfly/react-core';
+import { SendAlertProps } from '../models/datamapper';
 
 export interface IDataMapperContext {
   isLoading: boolean;
@@ -50,17 +51,19 @@ export interface IDataMapperContext {
   setSourceBodyDocument: (doc: IDocument) => void;
   targetBodyDocument: IDocument;
   setTargetBodyDocument: (doc: IDocument) => void;
-  updateDocumentDefinition: (definition: DocumentDefinition) => void;
+  setNewDocument: (documentType: DocumentType, documentId: string, document: IDocument) => void;
+  updateDocument: (document: IDocument, definition: DocumentDefinition) => void;
 
   isSourceParametersExpanded: boolean;
   setSourceParametersExpanded: (expanded: boolean) => void;
 
   mappingTree: MappingTree;
   refreshMappingTree(): void;
+  resetMappingTree(): void;
   setMappingTree(mappings: MappingTree): void;
 
-  alerts: Partial<AlertProps>[];
-  addAlert: (alert: Partial<AlertProps>) => void;
+  alerts: SendAlertProps[];
+  sendAlert: (alert: SendAlertProps) => void;
 
   debug: boolean;
   setDebug(debug: boolean): void;
@@ -105,10 +108,10 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
     new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID),
   );
   const [mappingTree, setMappingTree] = useState<MappingTree>(
-    new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID),
+    new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, targetBodyDocument.definitionType),
   );
 
-  const [alerts, setAlerts] = useState<Partial<AlertProps>[]>([]);
+  const [alerts, setAlerts] = useState<SendAlertProps[]>([]);
 
   useEffect(() => {
     const documents = DocumentService.createInitialDocuments(documentInitializationModel);
@@ -123,6 +126,8 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
         latestTargetBodyDocument = documents.targetBodyDocument;
       }
     }
+    mappingTree.documentDefinitionType = latestTargetBodyDocument.definitionType;
+
     if (initialXsltFile) {
       const loaded = MappingSerializerService.deserialize(
         initialXsltFile,
@@ -150,15 +155,21 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
   );
 
   const refreshMappingTree = useCallback(() => {
-    const newMapping = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+    const newMapping = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, targetBodyDocument.definitionType);
     newMapping.children = mappingTree.children.map((child) => {
       child.parent = newMapping;
       return child;
     });
     newMapping.namespaceMap = mappingTree.namespaceMap;
     setMappingTree(newMapping);
-    onUpdateMappings && onUpdateMappings(MappingSerializerService.serialize(mappingTree, sourceParameterMap!));
-  }, [mappingTree, onUpdateMappings, sourceParameterMap]);
+    onUpdateMappings?.(MappingSerializerService.serialize(mappingTree, sourceParameterMap));
+  }, [mappingTree, onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
+
+  const resetMappingTree = useCallback(() => {
+    const newMapping = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, targetBodyDocument.definitionType);
+    setMappingTree(newMapping);
+    onUpdateMappings?.(MappingSerializerService.serialize(mappingTree, sourceParameterMap));
+  }, [mappingTree, onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
 
   const removeStaleMappings = useCallback(
     (documentType: DocumentType, documentId: string, newDocument: IDocument) => {
@@ -191,6 +202,7 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
           break;
         case DocumentType.TARGET_BODY:
           setTargetBodyDocument(newDocument);
+          mappingTree.documentDefinitionType = newDocument.definitionType;
           break;
         case DocumentType.PARAM:
           sourceParameterMap!.set(documentId, newDocument);
@@ -198,13 +210,11 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
           break;
       }
     },
-    [refreshSourceParameters, sourceParameterMap],
+    [mappingTree, refreshSourceParameters, sourceParameterMap],
   );
 
-  const updateDocumentDefinition = useCallback(
-    (definition: DocumentDefinition) => {
-      const document = DocumentService.createDocument(definition);
-      if (!document) return;
+  const updateDocument = useCallback(
+    (document: IDocument, definition: DocumentDefinition) => {
       removeStaleMappings(document.documentType, document.documentId, document);
       setNewDocument(document.documentType, document.documentId, document);
       onUpdateDocument && onUpdateDocument(definition);
@@ -212,8 +222,8 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
     [onUpdateDocument, removeStaleMappings, setNewDocument],
   );
 
-  const addAlert = useCallback(
-    (option: Partial<AlertProps>) => {
+  const sendAlert = useCallback(
+    (option: SendAlertProps) => {
       alerts.push(option);
       setAlerts([...alerts]);
     },
@@ -250,12 +260,14 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
       setSourceBodyDocument,
       targetBodyDocument,
       setTargetBodyDocument,
-      updateDocumentDefinition,
+      setNewDocument,
+      updateDocument,
       mappingTree,
       refreshMappingTree,
+      resetMappingTree,
       setMappingTree,
       alerts,
-      addAlert,
+      sendAlert,
       debug,
       setDebug,
     };
@@ -270,11 +282,13 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
     deleteSourceParameter,
     sourceBodyDocument,
     targetBodyDocument,
-    updateDocumentDefinition,
+    setNewDocument,
+    updateDocument,
     mappingTree,
     refreshMappingTree,
+    resetMappingTree,
     alerts,
-    addAlert,
+    sendAlert,
     debug,
   ]);
 
@@ -293,7 +307,9 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
                 timeout={option.timeout ?? true}
                 onTimeout={() => closeAlert(option)}
                 actionClose={<AlertActionCloseButton onClose={() => closeAlert(option)} />}
-              ></Alert>
+              >
+                {option.description && <>option.description</>}
+              </Alert>
             ))}
           </AlertGroup>
           {children}

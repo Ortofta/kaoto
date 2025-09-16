@@ -15,10 +15,12 @@ export interface ICamelProcessorModel {
   description?: string;
   deprecated: boolean;
   label: string;
+  supportLevel?: string;
   javaType?: string;
   abstract?: boolean;
   input?: boolean;
   output?: boolean;
+  provider?: string;
 }
 
 export interface ICamelProcessorProperty extends CamelPropertyCommon {

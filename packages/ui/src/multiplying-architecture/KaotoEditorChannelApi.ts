@@ -1,4 +1,11 @@
+import { Suggestion, SuggestionRequestContext } from '@kaoto/forms';
 import { KogitoEditorChannelApi } from '@kie-tools-core/editor/dist/api';
+import { CatalogKind, StepUpdateAction } from '../models';
+import {
+  CamelMainMavenInformation,
+  CamelQuarkusMavenInformation,
+  CamelSpringBootMavenInformation,
+} from '../models/runtime-maven-information';
 import { ISettingsModel } from '../models/settings';
 
 export interface KaotoEditorChannelApi extends KogitoEditorChannelApi {
@@ -57,4 +64,30 @@ export interface KaotoEditorChannelApi extends KogitoEditorChannelApi {
     exclude?: string,
     options?: Record<string, unknown>,
   ): Promise<string[] | string | undefined>;
+
+  /**
+   * Query the host application for suggestions
+   * @param topic The topic for which suggestions are being requested (e.g., "properties", "kubernetes", "beans", etc.)
+   * @param word The current word or input value for which suggestions are being requested
+   * @param context Additional context for the suggestions, such as the property name and current input value.
+   * @returns A promise that resolves to an array of suggestions, each containing a value, optional description, and optional group.
+   */
+  getSuggestions(topic: string, word: string, context: SuggestionRequestContext): Promise<Suggestion[]>;
+
+  /**
+   * @returns the runtime information if the opened file is part of a Maven project.
+   * The returned Object is a direct parsing of the json string coming from Camel JBang.
+   * In case it is not a Maven project or a problem occured, undefined is returned.
+   */
+  getRuntimeInfoFromMavenContext(): Promise<
+    CamelMainMavenInformation | CamelQuarkusMavenInformation | CamelSpringBootMavenInformation | undefined
+  >;
+
+  /**
+   * Notifies the host application that a step was added.
+   * @param action The action performed on the step ('add', 'replace', 'remove').
+   * @param stepType The type of the step that was added (e.g., "component", "processor", "entity").
+   * @param stepName The name of the step that was added.
+   */
+  onStepUpdated(action: StepUpdateAction, stepType: CatalogKind, stepName: string): Promise<void>;
 }

@@ -3,6 +3,7 @@ import { createSyntaxDiagramsCode } from 'chevrotain';
 import * as fs from 'fs';
 import { IFunctionDefinition } from '../../models/datamapper/mapping';
 import { FunctionGroup } from './xpath-parser';
+import { PathExpression } from '../../models/datamapper';
 
 describe('XPathService', () => {
   it('Generate Syntax Diagram', () => {
@@ -38,6 +39,84 @@ describe('XPathService', () => {
       expect(result.parseErrors.length).toEqual(0);
       expect(result.cst).toBeDefined();
     });
+
+    it('should parse numeric literal', () => {
+      let result = XPathService.parse('128');
+      expect(result.lexErrors.length).toEqual(0);
+      expect(result.parseErrors.length).toEqual(0);
+      expect(result.cst).toBeDefined();
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
+      let literalNode = XPathService.getSingleNode(result.cst, [
+        'ExprSingle',
+        'OrExpr',
+        'AndExpr',
+        'ComparisonExpr',
+        'RangeExpr',
+        'AdditiveExpr',
+        'MultiplicativeExpr',
+        'UnionExpr',
+        'IntersectExceptExpr',
+        'InstanceofExpr',
+        'PathExpr',
+        'RelativePathExpr',
+        'StepExpr',
+        'FilterExpr',
+        'Literal',
+        'NumericLiteral',
+        'IntegerLiteral',
+      ]) as any;
+      expect(literalNode.image).toEqual('128');
+
+      result = XPathService.parse('0.1');
+      expect(result.lexErrors.length).toEqual(0);
+      expect(result.parseErrors.length).toEqual(0);
+      expect(result.cst).toBeDefined();
+      literalNode = XPathService.getSingleNode(result.cst, [
+        'ExprSingle',
+        'OrExpr',
+        'AndExpr',
+        'ComparisonExpr',
+        'RangeExpr',
+        'AdditiveExpr',
+        'MultiplicativeExpr',
+        'UnionExpr',
+        'IntersectExceptExpr',
+        'InstanceofExpr',
+        'PathExpr',
+        'RelativePathExpr',
+        'StepExpr',
+        'FilterExpr',
+        'Literal',
+        'NumericLiteral',
+        'DecimalLiteral',
+      ]) as any;
+      expect(literalNode.image).toEqual('0.1');
+
+      result = XPathService.parse('4268.22752E11');
+      expect(result.lexErrors.length).toEqual(0);
+      expect(result.parseErrors.length).toEqual(0);
+      expect(result.cst).toBeDefined();
+      literalNode = XPathService.getSingleNode(result.cst, [
+        'ExprSingle',
+        'OrExpr',
+        'AndExpr',
+        'ComparisonExpr',
+        'RangeExpr',
+        'AdditiveExpr',
+        'MultiplicativeExpr',
+        'UnionExpr',
+        'IntersectExceptExpr',
+        'InstanceofExpr',
+        'PathExpr',
+        'RelativePathExpr',
+        'StepExpr',
+        'FilterExpr',
+        'Literal',
+        'NumericLiteral',
+        'DoubleLiteral',
+      ]) as any;
+      expect(literalNode.image).toEqual('4268.22752E11');
+    });
   });
 
   describe('validate()', () => {
@@ -48,8 +127,7 @@ describe('XPathService', () => {
 
     it('should validate with empty string literal', () => {
       const result = XPathService.validate("/ns0:ShipOrder/ns0:OrderPerson != ''");
-      // TODO parser error says it's redundant, possibly a bug in the parser
-      expect(result.hasErrors()).toBeTruthy();
+      expect(result.hasErrors()).toBeFalsy();
       expect(result.getCst()).toBeDefined();
     });
 
@@ -77,13 +155,23 @@ describe('XPathService', () => {
     it('extract field', () => {
       const paths = XPathService.extractFieldPaths('/aaa/bbb/ccc');
       expect(paths.length).toEqual(1);
-      expect(paths[0]).toEqual('/aaa/bbb/ccc');
+      expect(paths[0].isRelative).toBeFalsy();
+      expect(paths[0].documentReferenceName).toBeUndefined();
+      expect(paths[0].pathSegments.length).toEqual(3);
+      expect(paths[0].pathSegments[0].name).toEqual('aaa');
+      expect(paths[0].pathSegments[1].name).toEqual('bbb');
+      expect(paths[0].pathSegments[2].name).toEqual('ccc');
     });
 
     it('extract param field', () => {
       const paths = XPathService.extractFieldPaths('$param1/aaa/bbb/ccc');
       expect(paths.length).toEqual(1);
-      expect(paths[0]).toEqual('$param1/aaa/bbb/ccc');
+      expect(paths[0].isRelative).toBeFalsy();
+      expect(paths[0].documentReferenceName).toEqual('param1');
+      expect(paths[0].pathSegments.length).toEqual(3);
+      expect(paths[0].pathSegments[0].name).toEqual('aaa');
+      expect(paths[0].pathSegments[1].name).toEqual('bbb');
+      expect(paths[0].pathSegments[2].name).toEqual('ccc');
     });
 
     it('extract fields from function calls', () => {
@@ -91,15 +179,68 @@ describe('XPathService', () => {
         'concatenate(/aaa/bbb/ccc, upper-case(aaa/bbb/ddd), lower-case($param1/eee/fff))',
       );
       expect(paths.length).toEqual(3);
-      expect(paths[0]).toEqual('/aaa/bbb/ccc');
-      expect(paths[1]).toEqual('aaa/bbb/ddd');
-      expect(paths[2]).toEqual('$param1/eee/fff');
+      expect(paths[0].isRelative).toBeFalsy();
+      expect(paths[0].documentReferenceName).toBeUndefined();
+      expect(paths[0].pathSegments.length).toEqual(3);
+      expect(paths[0].pathSegments[0].name).toEqual('aaa');
+      expect(paths[0].pathSegments[1].name).toEqual('bbb');
+      expect(paths[0].pathSegments[2].name).toEqual('ccc');
+
+      expect(paths[1].isRelative).toBeTruthy();
+      expect(paths[1].documentReferenceName).toBeUndefined();
+      expect(paths[1].pathSegments.length).toEqual(3);
+      expect(paths[1].pathSegments[0].name).toEqual('aaa');
+      expect(paths[1].pathSegments[1].name).toEqual('bbb');
+      expect(paths[1].pathSegments[2].name).toEqual('ddd');
+
+      expect(paths[2].isRelative).toBeFalsy();
+      expect(paths[2].documentReferenceName).toEqual('param1');
+      expect(paths[2].pathSegments.length).toEqual(2);
+      expect(paths[2].pathSegments[0].name).toEqual('eee');
+      expect(paths[2].pathSegments[1].name).toEqual('fff');
     });
 
     it('extract primitive source body', () => {
       const paths = XPathService.extractFieldPaths('.');
       expect(paths.length).toEqual(1);
-      expect(paths[0]).toEqual('/');
+      expect(paths[0].isRelative).toBeFalsy();
+      expect(paths[0].documentReferenceName).toBeUndefined();
+      expect(paths[0].pathSegments.length).toEqual(0);
+    });
+
+    it('extract from number formula', () => {
+      const paths = XPathService.extractFieldPaths(
+        'round(100*(PO1/PO1-04 * PO1/PO1-02 * .10 + (PO1/PO1-04 * PO1/PO1-02))) div 100',
+      );
+      expect(paths.length).toEqual(2);
+      expect(paths[0].isRelative).toBeTruthy();
+      expect(paths[0].documentReferenceName).toBeUndefined();
+      expect(paths[0].pathSegments.length).toEqual(2);
+      expect(paths[0].pathSegments[0].name).toEqual('PO1');
+      expect(paths[0].pathSegments[1].name).toEqual('PO1-04');
+
+      expect(paths[1].isRelative).toBeTruthy();
+      expect(paths[1].documentReferenceName).toBeUndefined();
+      expect(paths[1].pathSegments.length).toEqual(2);
+      expect(paths[1].pathSegments[0].name).toEqual('PO1');
+      expect(paths[1].pathSegments[1].name).toEqual('PO1-02');
+    });
+
+    it('extract indexed collection', () => {
+      const paths = XPathService.extractFieldPaths('/ns0:ShipOrder/Item[0]/Title');
+      expect(paths.length).toEqual(1);
+      expect(paths[0].isRelative).toBeFalsy();
+    });
+
+    it('extract field paths from current() function in predicate', () => {
+      // This test reproduces the reported issue - should not throw error
+      const paths = XPathService.extractFieldPaths('Sub[current()/Sub/Typ="5032"]');
+      expect(paths.length).toBeGreaterThan(0);
+
+      // Should extract at least the main element path 'Sub' and the path from current() argument
+      const mainPath = paths.find((p) => p.pathSegments.length === 1 && p.pathSegments[0].name === 'Sub');
+      expect(mainPath).toBeDefined();
+      expect(mainPath?.pathSegments[0].predicates.length).toEqual(1);
     });
   });
 
@@ -121,5 +262,18 @@ describe('XPathService', () => {
   it('getMonacoXPathLanguageMetadata()', () => {
     const metadata = XPathService.getMonacoXPathLanguageMetadata();
     expect(metadata.id).toEqual('xpath');
+  });
+
+  it('getAllTokens()', () => {
+    const tokens = XPathService.getAllTokens();
+    expect(tokens.length).toEqual(86);
+    ['If', 'Then', 'Else'].forEach((targetTokenName) => tokens.find((token) => token.name === targetTokenName));
+  });
+
+  it('toXPathString()', () => {
+    const pe = new PathExpression();
+    pe.documentReferenceName = 'Account-x';
+    const xpath = XPathService.toXPathString(pe);
+    expect(xpath).toEqual('$Account-x');
   });
 });

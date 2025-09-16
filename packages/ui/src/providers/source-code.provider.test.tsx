@@ -1,5 +1,6 @@
-import { act, render } from '@testing-library/react';
-import { PropsWithChildren, useContext, useEffect } from 'react';
+import { act, fireEvent, render } from '@testing-library/react';
+import { useContext, useRef } from 'react';
+import { useSourceCodeStore } from '../store';
 import { camelRouteYaml } from '../stubs/camel-route';
 import { EventNotifier } from '../utils';
 import { SourceCodeApiContext, SourceCodeContext, SourceCodeProvider } from './source-code.provider';
@@ -20,8 +21,8 @@ describe('SourceCodeProvider', () => {
 
   it('should set the source code', () => {
     const wrapper = render(
-      <SourceCodeProvider>
-        <TestProvider initialSourceCode={camelRouteYaml} />
+      <SourceCodeProvider initialSourceCode={camelRouteYaml}>
+        <TestProvider />
       </SourceCodeProvider>,
     );
 
@@ -41,25 +42,76 @@ describe('SourceCodeProvider', () => {
     const eventNotifier = EventNotifier.getInstance();
     const notifierSpy = jest.spyOn(eventNotifier, 'next');
 
+    const input = wrapper.getByPlaceholderText('sourcecode') as HTMLInputElement;
+    const button = wrapper.getByText('Update sourcecode');
     act(() => {
-      wrapper.rerender(
-        <SourceCodeProvider>
-          <TestProvider initialSourceCode={camelRouteYaml} />
-        </SourceCodeProvider>,
-      );
+      fireEvent.change(input, { target: { value: camelRouteYaml } });
+      fireEvent.click(button);
     });
 
     expect(notifierSpy).toHaveBeenCalledWith('code:updated', { code: camelRouteYaml, path: undefined });
   });
+
+  it('should clear pastState when loading the store for the first time', () => {
+    const clearSpy = jest.spyOn(useSourceCodeStore.temporal.getState(), 'clear');
+
+    render(
+      <SourceCodeProvider>
+        <TestProvider />
+      </SourceCodeProvider>,
+    );
+
+    expect(clearSpy).toHaveBeenCalled();
+  });
+
+  it('should call `setSourceCode` upon receiving a `entities:updated` notification', () => {
+    const eventNotifier = EventNotifier.getInstance();
+    const originalSetSourceCode = useSourceCodeStore.getState().setSourceCode;
+    const setSourceCodeSpy = jest.fn();
+
+    act(() => {
+      useSourceCodeStore.setState({ setSourceCode: setSourceCodeSpy });
+    });
+
+    render(
+      <SourceCodeProvider>
+        <TestProvider />
+      </SourceCodeProvider>,
+    );
+
+    act(() => {
+      eventNotifier.next('entities:updated', camelRouteYaml);
+    });
+    act(() => {
+      useSourceCodeStore.setState({ setSourceCode: originalSetSourceCode });
+    });
+
+    expect(setSourceCodeSpy).toHaveBeenCalledWith(camelRouteYaml);
+  });
 });
 
-function TestProvider(props: PropsWithChildren<{ initialSourceCode?: string }>) {
+function TestProvider() {
   const sourceCodeContext = useContext(SourceCodeContext);
   const sourceCodeApiContext = useContext(SourceCodeApiContext);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    sourceCodeApiContext.setCodeAndNotify(props.initialSourceCode ?? sourceCodeContext);
-  }, [props.initialSourceCode, sourceCodeApiContext, sourceCodeContext]);
+  const onClick = () => {
+    const value = inputRef.current?.value;
+    if (!value) {
+      throw new Error('Input value is empty');
+    }
 
-  return <span data-testid="source-code">{sourceCodeContext}</span>;
+    sourceCodeApiContext.setCodeAndNotify(value);
+  };
+
+  return (
+    <>
+      <span data-testid="source-code">{sourceCodeContext}</span>
+
+      <textarea placeholder="sourcecode" name="sourcecode" ref={inputRef} />
+      <button type="button" onClick={onClick}>
+        Update sourcecode
+      </button>
+    </>
+  );
 }

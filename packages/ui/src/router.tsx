@@ -2,11 +2,16 @@ import { createHashRouter } from 'react-router-dom';
 import App from './App';
 import { ErrorPage } from './pages/ErrorPage';
 import { Links } from './router/links.models';
+import { ReloadProvider } from './providers';
 
 export const router = createHashRouter([
   {
     path: Links.Home,
-    element: <App />,
+    element: (
+      <ReloadProvider>
+        <App />
+      </ReloadProvider>
+    ),
     errorElement: <ErrorPage />,
     children: [
       {
@@ -39,7 +44,13 @@ export const router = createHashRouter([
       },
       {
         path: Links.DataMapper,
-        lazy: async () => import('./pages/DataMapperNotYetInBrowser'),
+        lazy: async () => {
+          if (import.meta.env.VITE_ENABLE_DATAMAPPER_DEBUGGER === 'true') {
+            return import('./components/DataMapper/debug/page');
+          } else {
+            return import('./pages/DataMapperNotYetInBrowser');
+          }
+        },
       },
       {
         path: `${Links.DataMapper}/:id`,

@@ -1,3 +1,4 @@
+import { action, makeObservable, observable } from 'mobx';
 import { DefinedComponent } from '../camel-catalog-index';
 import { NodeLabelType } from '../settings/settings.model';
 import {
@@ -9,6 +10,7 @@ import {
   NodeInteraction,
   VisualComponentSchema,
 } from './base-visual-entity';
+import { IClipboardCopyObject } from '../../components/Visualization/Custom/hooks/copy-step.hook';
 
 export const createVisualizationNode = <T extends IVisualizationNodeData = IVisualizationNodeData>(
   id: string,
@@ -23,6 +25,7 @@ export const createVisualizationNode = <T extends IVisualizationNodeData = IVisu
  * It shouldn't be used directly, but rather through the IVisualizationNode interface.
  */
 class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeData> implements IVisualizationNode<T> {
+  lastUpdate: number = 0;
   private parentNode: IVisualizationNode | undefined = undefined;
   private previousNode: IVisualizationNode | undefined = undefined;
   private nextNode: IVisualizationNode | undefined = undefined;
@@ -32,7 +35,12 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
   constructor(
     public readonly id: string,
     public data: T,
-  ) {}
+  ) {
+    makeObservable(this, {
+      lastUpdate: observable,
+      updateModel: action,
+    });
+  }
 
   getId(): string | undefined {
     return this.getBaseEntity()?.getId();
@@ -54,16 +62,20 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
     this.getBaseEntity()?.addStep({ definedComponent: definition, mode, data: this.data });
   }
 
+  getCopiedContent(): IClipboardCopyObject | undefined {
+    return this.getBaseEntity()?.getCopiedContent(this.data.path);
+  }
+
+  pasteBaseEntityStep(definition: IClipboardCopyObject, mode: AddStepMode): void {
+    this.getBaseEntity()?.pasteStep({ clipboardContent: definition, mode, data: this.data });
+  }
+
   canDragNode(): boolean {
     return this.getBaseEntity()?.canDragNode(this.data.path) ?? false;
   }
 
   canDropOnNode(): boolean {
     return this.getBaseEntity()?.canDropOnNode(this.data.path) ?? false;
-  }
-
-  moveNodeTo(path: string): void {
-    this.getBaseEntity()?.moveNodeTo({ draggedNodePath: path, droppedNodePath: this.data.path });
   }
 
   getNodeInteraction(): NodeInteraction {
@@ -80,6 +92,7 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
 
   updateModel(value: unknown): void {
     this.getBaseEntity()?.updateModel(this.data.path, value);
+    this.lastUpdate = Date.now();
   }
 
   getParentNode(): IVisualizationNode | undefined {

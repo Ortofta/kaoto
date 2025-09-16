@@ -53,7 +53,6 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for [object Object] field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
               data-ouia-component-id="OUIA-Generated-Button-plain-1"
@@ -72,11 +71,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -104,7 +103,6 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-l-split__item"
           >
             <button
-              aria-disabled="false"
               aria-label="Add a new property"
               class="pf-v6-c-button pf-m-plain"
               data-ouia-component-id="OUIA-Generated-Button-plain-2"
@@ -168,7 +166,6 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for creationTimestamp field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
               data-ouia-component-id="OUIA-Generated-Button-plain-3"
@@ -187,11 +184,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -227,18 +224,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear creationTimestamp field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-4"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.creationTimestamp__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-1"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.creationTimestamp__clear"
-              title="Clear creationTimestamp field"
+              data-testid="#.creationTimestamp__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -246,11 +242,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -284,10 +280,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for deletionGracePeriodSeconds field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-5"
+              data-ouia-component-id="OUIA-Generated-Button-plain-4"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -303,11 +298,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -343,18 +338,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear deletionGracePeriodSeconds field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-6"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.deletionGracePeriodSeconds__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-2"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.deletionGracePeriodSeconds__clear"
-              title="Clear deletionGracePeriodSeconds field"
+              data-testid="#.deletionGracePeriodSeconds__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -362,11 +356,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -400,10 +394,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for deletionTimestamp field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-7"
+              data-ouia-component-id="OUIA-Generated-Button-plain-5"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -419,11 +412,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -459,18 +452,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear deletionTimestamp field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-8"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.deletionTimestamp__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-3"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.deletionTimestamp__clear"
-              title="Clear deletionTimestamp field"
+              data-testid="#.deletionTimestamp__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -478,11 +470,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -506,10 +498,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
           class="pf-v6-c-card__actions"
         >
           <button
-            aria-disabled="false"
             aria-label="Add new item"
             class="pf-v6-c-button pf-m-plain"
-            data-ouia-component-id="OUIA-Generated-Button-plain-9"
+            data-ouia-component-id="OUIA-Generated-Button-plain-6"
             data-ouia-component-type="PF6/Button"
             data-ouia-safe="true"
             data-testid="#.finalizers__add"
@@ -550,10 +541,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                 style="display: contents;"
               >
                 <span
-                  aria-disabled="false"
                   aria-label="More info for finalizers field"
                   class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-                  data-ouia-component-id="OUIA-Generated-Button-plain-10"
+                  data-ouia-component-id="OUIA-Generated-Button-plain-7"
                   data-ouia-component-type="PF6/Button"
                   data-ouia-safe="true"
                   role="button"
@@ -569,11 +559,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                       fill="currentColor"
                       height="1em"
                       role="img"
-                      viewBox="0 0 512 512"
+                      viewBox="0 0 1024 1024"
                       width="1em"
                     >
                       <path
-                        d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                        d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                       />
                     </svg>
                   </span>
@@ -609,10 +599,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for generateName field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-11"
+              data-ouia-component-id="OUIA-Generated-Button-plain-8"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -628,11 +617,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -668,18 +657,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear generateName field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-12"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.generateName__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-4"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.generateName__clear"
-              title="Clear generateName field"
+              data-testid="#.generateName__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -687,11 +675,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -725,10 +713,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for generation field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-13"
+              data-ouia-component-id="OUIA-Generated-Button-plain-9"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -744,11 +731,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -784,18 +771,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear generation field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-14"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.generation__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-5"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.generation__clear"
-              title="Clear generation field"
+              data-testid="#.generation__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -803,11 +789,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -848,10 +834,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for [object Object] field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-15"
+              data-ouia-component-id="OUIA-Generated-Button-plain-10"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -867,11 +852,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -899,10 +884,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-l-split__item"
           >
             <button
-              aria-disabled="false"
               aria-label="Add a new property"
               class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-16"
+              data-ouia-component-id="OUIA-Generated-Button-plain-11"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               data-testid="#.labels__add"
@@ -953,10 +937,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
           class="pf-v6-c-card__actions"
         >
           <button
-            aria-disabled="false"
             aria-label="Add new item"
             class="pf-v6-c-button pf-m-plain"
-            data-ouia-component-id="OUIA-Generated-Button-plain-17"
+            data-ouia-component-id="OUIA-Generated-Button-plain-12"
             data-ouia-component-type="PF6/Button"
             data-ouia-safe="true"
             data-testid="#.managedFields__add"
@@ -997,10 +980,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                 style="display: contents;"
               >
                 <span
-                  aria-disabled="false"
                   aria-label="More info for managedFields field"
                   class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-                  data-ouia-component-id="OUIA-Generated-Button-plain-18"
+                  data-ouia-component-id="OUIA-Generated-Button-plain-13"
                   data-ouia-component-type="PF6/Button"
                   data-ouia-safe="true"
                   role="button"
@@ -1016,11 +998,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                       fill="currentColor"
                       height="1em"
                       role="img"
-                      viewBox="0 0 512 512"
+                      viewBox="0 0 1024 1024"
                       width="1em"
                     >
                       <path
-                        d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                        d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                       />
                     </svg>
                   </span>
@@ -1056,10 +1038,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for name field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-19"
+              data-ouia-component-id="OUIA-Generated-Button-plain-14"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -1075,11 +1056,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -1115,18 +1096,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear name field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-20"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.name__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-6"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.name__clear"
-              title="Clear name field"
+              data-testid="#.name__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -1134,11 +1114,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -1172,10 +1152,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for namespace field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-21"
+              data-ouia-component-id="OUIA-Generated-Button-plain-15"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -1191,11 +1170,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -1231,18 +1210,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear namespace field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-22"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.namespace__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-7"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.namespace__clear"
-              title="Clear namespace field"
+              data-testid="#.namespace__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -1250,11 +1228,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -1278,10 +1256,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
           class="pf-v6-c-card__actions"
         >
           <button
-            aria-disabled="false"
             aria-label="Add new item"
             class="pf-v6-c-button pf-m-plain"
-            data-ouia-component-id="OUIA-Generated-Button-plain-23"
+            data-ouia-component-id="OUIA-Generated-Button-plain-16"
             data-ouia-component-type="PF6/Button"
             data-ouia-safe="true"
             data-testid="#.ownerReferences__add"
@@ -1322,10 +1299,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                 style="display: contents;"
               >
                 <span
-                  aria-disabled="false"
                   aria-label="More info for ownerReferences field"
                   class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-                  data-ouia-component-id="OUIA-Generated-Button-plain-24"
+                  data-ouia-component-id="OUIA-Generated-Button-plain-17"
                   data-ouia-component-type="PF6/Button"
                   data-ouia-safe="true"
                   role="button"
@@ -1341,11 +1317,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                       fill="currentColor"
                       height="1em"
                       role="img"
-                      viewBox="0 0 512 512"
+                      viewBox="0 0 1024 1024"
                       width="1em"
                     >
                       <path
-                        d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                        d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                       />
                     </svg>
                   </span>
@@ -1381,10 +1357,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for resourceVersion field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-25"
+              data-ouia-component-id="OUIA-Generated-Button-plain-18"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -1400,11 +1375,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -1440,18 +1415,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear resourceVersion field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-26"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.resourceVersion__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-8"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.resourceVersion__clear"
-              title="Clear resourceVersion field"
+              data-testid="#.resourceVersion__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -1459,11 +1433,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -1497,10 +1471,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for selfLink field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-27"
+              data-ouia-component-id="OUIA-Generated-Button-plain-19"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -1516,11 +1489,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -1556,18 +1529,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear selfLink field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-28"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.selfLink__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-9"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.selfLink__clear"
-              title="Clear selfLink field"
+              data-testid="#.selfLink__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -1575,11 +1547,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -1613,10 +1585,9 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             style="display: contents;"
           >
             <span
-              aria-disabled="false"
               aria-label="More info for uid field"
               class="pf-v6-c-button pf-m-plain pf-m-no-padding"
-              data-ouia-component-id="OUIA-Generated-Button-plain-29"
+              data-ouia-component-id="OUIA-Generated-Button-plain-20"
               data-ouia-component-type="PF6/Button"
               data-ouia-safe="true"
               role="button"
@@ -1632,11 +1603,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 512 512"
+                  viewBox="0 0 1024 1024"
                   width="1em"
                 >
                   <path
-                    d="M504 256c0 136.997-111.043 248-248 248S8 392.997 8 256C8 119.083 119.043 8 256 8s248 111.083 248 248zM262.655 90c-54.497 0-89.255 22.957-116.549 63.758-3.536 5.286-2.353 12.415 2.715 16.258l34.699 26.31c5.205 3.947 12.621 3.008 16.665-2.122 17.864-22.658 30.113-35.797 57.303-35.797 20.429 0 45.698 13.148 45.698 32.958 0 14.976-12.363 22.667-32.534 33.976C247.128 238.528 216 254.941 216 296v4c0 6.627 5.373 12 12 12h56c6.627 0 12-5.373 12-12v-1.333c0-28.462 83.186-29.647 83.186-106.667 0-58.002-60.165-102-116.531-102zM256 338c-25.365 0-46 20.635-46 46 0 25.364 20.635 46 46 46s46-20.636 46-46c0-25.365-20.635-46-46-46z"
+                    d="M521.3,576 C627.5,576 713.7,502 713.7,413.7 C713.7,325.4 627.6,253.6 521.3,253.6 C366,253.6 334.5,337.7 329.2,407.2 C329.2,414.3 335.2,416 343.5,416 L445,416 C450.5,416 458,415.5 460.8,406.5 C460.8,362.6 582.9,357.1 582.9,413.6 C582.9,441.9 556.2,470.9 521.3,473 C486.4,475.1 447.3,479.8 447.3,521.7 L447.3,553.8 C447.3,570.8 456.1,576 472,576 C487.9,576 521.3,576 521.3,576 M575.3,751.3 L575.3,655.3 C575.313862,651.055109 573.620137,646.982962 570.6,644 C567.638831,640.947672 563.552355,639.247987 559.3,639.29884 L463.3,639.29884 C459.055109,639.286138 454.982962,640.979863 452,644 C448.947672,646.961169 447.247987,651.047645 447.29884,655.3 L447.29884,751.3 C447.286138,755.544891 448.979863,759.617038 452,762.6 C454.961169,765.652328 459.047645,767.352013 463.3,767.30116 L559.3,767.30116 C563.544891,767.313862 567.617038,765.620137 570.6,762.6 C573.659349,759.643612 575.360354,755.553963 575.3,751.3 M512,896 C300.2,896 128,723.9 128,512 C128,300.3 300.2,128 512,128 C723.8,128 896,300.2 896,512 C896,723.8 723.7,896 512,896 M512.1,0 C229.7,0 0,229.8 0,512 C0,794.2 229.8,1024 512.1,1024 C794.4,1024 1024,794.3 1024,512 C1024,229.7 794.4,0 512.1,0"
                   />
                 </svg>
               </span>
@@ -1672,18 +1643,17 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
             class="pf-v6-c-text-input-group__utilities"
           >
             <button
-              aria-disabled="false"
-              aria-label="Clear uid field"
-              class="pf-v6-c-button pf-m-plain"
-              data-ouia-component-id="OUIA-Generated-Button-plain-30"
-              data-ouia-component-type="PF6/Button"
+              aria-expanded="false"
+              aria-label="#.uid__field-actions"
+              class="pf-v6-c-menu-toggle pf-m-plain"
+              data-ouia-component-id="OUIA-Generated-MenuToggle-plain-10"
+              data-ouia-component-type="PF6/MenuToggle"
               data-ouia-safe="true"
-              data-testid="#.uid__clear"
-              title="Clear uid field"
+              data-testid="#.uid__field-actions"
               type="button"
             >
               <span
-                class="pf-v6-c-button__icon"
+                class="pf-v6-c-menu-toggle__icon"
               >
                 <svg
                   aria-hidden="true"
@@ -1691,11 +1661,11 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
                   fill="currentColor"
                   height="1em"
                   role="img"
-                  viewBox="0 0 352 512"
+                  viewBox="0 0 192 512"
                   width="1em"
                 >
                   <path
-                    d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"
+                    d="M96 184c39.8 0 72 32.2 72 72s-32.2 72-72 72-72-32.2-72-72 32.2-72 72-72zM24 80c0 39.8 32.2 72 72 72s72-32.2 72-72S135.8 8 96 8 24 40.2 24 80zm0 352c0 39.8 32.2 72 72 72s72-32.2 72-72-32.2-72-72-72-72 32.2-72 72z"
                   />
                 </svg>
               </span>
@@ -1755,12 +1725,10 @@ exports[`MetadataPage renders the KaotoForm when the resource type is supported 
           No field found matching this criteria. Please switch to the
            
           <button
-            aria-disabled="false"
             class="pf-v6-c-button pf-m-link pf-m-inline"
             data-ouia-component-id="OUIA-Generated-Button-link-1"
             data-ouia-component-type="PF6/Button"
             data-ouia-safe="true"
-            id="All"
             type="button"
           >
             <span

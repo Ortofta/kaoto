@@ -11,8 +11,8 @@ import {
   RuntimeProvider,
   SchemasLoaderProvider,
   SourceCodeProvider,
-  VisibleFLowsContextResult,
   VisibleFlowsContext,
+  VisibleFlowsContextResult,
   kameletJson,
   pipeJson,
 } from '@kaoto/kaoto/testing';
@@ -20,6 +20,7 @@ import { VisualizationProvider } from '@patternfly/react-topology';
 import { Meta, StoryFn } from '@storybook/react';
 import { useMemo } from 'react';
 import complexRouteMock from '../../cypress/fixtures/complexRouteMock.json';
+import iconsRouteMock from '../../cypress/fixtures/iconsRouteMock.json';
 
 const emptyPipeJson = {
   apiVersion: 'camel.apache.org/v1',
@@ -48,6 +49,7 @@ const emptyCamelRouteEntity = new CamelRouteVisualEntity(emptyCamelRouteJson);
 const pipeEntity = new PipeVisualEntity(pipeJson);
 const kameletEntity = new KameletVisualEntity(kameletJson);
 const emptyPipeEntity = new PipeVisualEntity(emptyPipeJson);
+const iconsRoute = new CamelRouteVisualEntity(iconsRouteMock);
 
 const ContextDecorator = (Story: StoryFn) => {
   const controller = useMemo(() => ControllerService.createController(), []);
@@ -82,7 +84,7 @@ const Template: StoryFn<typeof Canvas> = (args) => {
   const firstVisibleEntity: unknown = { visibleFlows: { [visibleId]: true } };
 
   return (
-    <VisibleFlowsContext.Provider value={firstVisibleEntity as VisibleFLowsContextResult}>
+    <VisibleFlowsContext.Provider value={firstVisibleEntity as VisibleFlowsContextResult}>
       <Canvas {...args} />
     </VisibleFlowsContext.Provider>
   );
@@ -111,4 +113,10 @@ EmptyPipeVisualization.args = {
 export const EmptyCamelRouteVisualization = Template.bind({});
 EmptyCamelRouteVisualization.args = {
   entities: [emptyCamelRouteEntity],
+};
+
+// reproducer for https://github.com/KaotoIO/kaoto/issues/2215
+export const IconsRouteVisualization = Template.bind({});
+IconsRouteVisualization.args = {
+  entities: [iconsRoute],
 };

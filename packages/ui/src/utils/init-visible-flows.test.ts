@@ -1,5 +1,4 @@
-import { IVisibleFlows } from '../models/visualization/flows/support/flows-visibility';
-import { initVisibleFlows } from './init-visible-flows';
+import { initVisibleFlows, IVisibleFlows } from './init-visible-flows';
 
 describe('initVisibleFlows', () => {
   it('should return an empty object when given an empty array', () => {
@@ -7,12 +6,12 @@ describe('initVisibleFlows', () => {
     expect(result).toEqual({});
   });
 
-  it('should set the first flow to visible (true) and others to not visible (false)', () => {
+  it('should set all the flows to visible (true)', () => {
     const flowIds = ['flow1', 'flow2', 'flow3'];
     const expected: IVisibleFlows = {
       flow1: true,
-      flow2: false,
-      flow3: false,
+      flow2: true,
+      flow3: true,
     };
     const result = initVisibleFlows(flowIds);
     expect(result).toEqual(expected);
@@ -22,16 +21,6 @@ describe('initVisibleFlows', () => {
     const flowIds = ['flow1'];
     const expected: IVisibleFlows = {
       flow1: true,
-    };
-    const result = initVisibleFlows(flowIds);
-    expect(result).toEqual(expected);
-  });
-
-  it('should keep at least one flow visible', () => {
-    const flowIds = ['flow1', 'flow2'];
-    const expected: IVisibleFlows = {
-      flow1: true,
-      flow2: false,
     };
     const result = initVisibleFlows(flowIds);
     expect(result).toEqual(expected);

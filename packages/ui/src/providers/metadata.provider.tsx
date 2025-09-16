@@ -1,4 +1,7 @@
+import { Suggestion, SuggestionRequestContext } from '@kaoto/forms';
 import { FunctionComponent, PropsWithChildren, createContext } from 'react';
+import { StepUpdateAction } from '../models';
+import { CatalogKind } from '../models/catalog-kind';
 
 export interface IMetadataApi {
   /**
@@ -46,6 +49,14 @@ export interface IMetadataApi {
   ): Promise<string[] | string | undefined>;
 
   /**
+   * Get suggestions from the channel API.
+   * @param topic The topic to get suggestions for
+   * @param word The word to get suggestions for
+   * @param context The context in which the suggestions are requested
+   */
+  getSuggestions(topic: string, word: string, context?: SuggestionRequestContext): Promise<Suggestion[]>;
+
+  /**
    * A flag indicates that if the schema file needs to be saved or not. If it's running inside the VS Code,
    * the schema file is supposed to be read from existing workspace file, therefore it should not save it and overwrite.
    * On the other hand, if it's running in the browser, the schema file is uploaded directly from the browser, therefore
@@ -54,6 +65,14 @@ export interface IMetadataApi {
    *      in VS Code, i.e. expecting schema files already in some store and just pick from there, we can remove this.
    */
   shouldSaveSchema: boolean;
+
+  /**
+   * Notify the VS Code host that a new step was added to the flow.
+   * @param action The action performed on the step ('add', 'replace', 'remove').
+   * @param stepType The type of the step that was added (e.g., "component", "processor", "entity").
+   * @param stepName The name of the step that was added.
+   */
+  onStepUpdated(action: StepUpdateAction, stepType: CatalogKind, stepName: string): Promise<void>;
 }
 
 export const MetadataContext = createContext<IMetadataApi | undefined>(undefined);

@@ -1,8 +1,6 @@
 import { ProcessorDefinition, RestConfiguration } from '@kaoto/camel-catalog/types';
-import Ajv, { ValidateFunction } from 'ajv';
-import addFormats from 'ajv-formats';
+import { getValidator } from '@kaoto/forms';
 import { getCamelRandomId } from '../../../camel-utils/camel-random-id';
-import { SchemaService } from '../../../components/Form/schema.service';
 import { NodeIconResolver, NodeIconType, isDefined, setValue } from '../../../utils';
 import { EntityType } from '../../camel/entities/base-entity';
 import { CatalogKind } from '../../catalog-kind';
@@ -15,12 +13,14 @@ import {
 } from '../base-visual-entity';
 import { CamelCatalogService } from './camel-catalog.service';
 import { NodeMapperService } from './nodes/node-mapper.service';
+import { IClipboardCopyObject } from '../../../components/Visualization/Custom/hooks/copy-step.hook';
+import { SourceSchemaType } from '../../camel/source-schema-type';
 
 export class CamelRestConfigurationVisualEntity implements BaseVisualCamelEntity {
   id: string;
   readonly type = EntityType.RestConfiguration;
   static readonly ROOT_PATH = 'restConfiguration';
-  private schemaValidator: ValidateFunction<RestConfiguration> | undefined;
+  private schemaValidator: ReturnType<typeof getValidator>;
 
   constructor(public restConfigurationDef: { restConfiguration: RestConfiguration } = { restConfiguration: {} }) {
     const id = getCamelRandomId('restConfiguration');
@@ -73,16 +73,24 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualCamelEntity
     return;
   }
 
+  getCopiedContent(): IClipboardCopyObject | undefined {
+    return {
+      type: SourceSchemaType.Route,
+      name: CamelRestConfigurationVisualEntity.ROOT_PATH,
+      definition: this.restConfigurationDef.restConfiguration,
+    };
+  }
+
+  pasteStep(): void {
+    return;
+  }
+
   canDragNode(_path?: string) {
     return false;
   }
 
   canDropOnNode(_path?: string) {
     return false;
-  }
-
-  moveNodeTo(_options: { draggedNodePath: string; droppedNodePath?: string }) {
-    return;
   }
 
   removeStep(): void {
@@ -99,7 +107,7 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualCamelEntity
   }
 
   getOmitFormFields(): string[] {
-    return SchemaService.OMIT_FORM_FIELDS;
+    return [];
   }
 
   updateModel(path: string | undefined, value: unknown): void {
@@ -130,7 +138,7 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualCamelEntity
     if (!componentVisualSchema) return undefined;
 
     if (!this.schemaValidator) {
-      this.schemaValidator = this.getValidatorFunction(componentVisualSchema);
+      this.schemaValidator = getValidator<RestConfiguration>(componentVisualSchema.schema, { useDefaults: 'empty' });
     }
 
     this.schemaValidator?.({ ...this.restConfigurationDef.restConfiguration });
@@ -153,25 +161,5 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualCamelEntity
 
   toJSON(): { restConfiguration: RestConfiguration } {
     return { restConfiguration: this.restConfigurationDef.restConfiguration };
-  }
-
-  private getValidatorFunction(
-    componentVisualSchema: VisualComponentSchema,
-  ): ValidateFunction<RestConfiguration> | undefined {
-    const ajv = new Ajv({
-      strict: false,
-      allErrors: true,
-      useDefaults: 'empty',
-    });
-    addFormats(ajv);
-
-    let schemaValidator: ValidateFunction<RestConfiguration> | undefined;
-    try {
-      schemaValidator = ajv.compile<RestConfiguration>(componentVisualSchema.schema);
-    } catch (error) {
-      console.error('Could not compile schema', error);
-    }
-
-    return schemaValidator;
   }
 }

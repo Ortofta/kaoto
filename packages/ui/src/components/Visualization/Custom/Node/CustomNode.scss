@@ -1,4 +1,5 @@
 @use '../custom';
+@use '../../../../styles/dnd';
 
 .custom-node {
   @include custom.highligth {
@@ -13,6 +14,18 @@
         @include custom.drop-target;
       }
 
+      &__possibleDropTargets {
+        @include custom.possible-drop-targets;
+      }
+
+      &__draggable {
+        @include dnd.cursor-grab;
+      }
+
+      &__nonDraggable {
+        @include custom.non-draggable;
+      }
+
       &__image {
         position: relative;
         display: flex;
@@ -20,7 +33,7 @@
         align-items: center;
         border: 1px solid var(--custom-node-BorderColor);
         border-radius: var(--custom-node-BorderRadius);
-        background-color: var(--custom-node-BackgroundColor);
+        background-color: var(--pf-t--color--white);
         align-self: center;
         padding: var(--pf-t--global--spacer--sm);
         height: 60px;
@@ -28,18 +41,21 @@
 
         img {
           max-width: 100%;
-          max-height: 100%;
+          height: 100%;
         }
       }
 
       &:hover &__image,
+      &:hover .step-icon,
       [data-toolbar-open='true'] & &__image,
+      [data-toolbar-open='true'] & .step-icon,
       [data-selected='true'] & &__image {
         border-color: var(--custom-node-BorderColor-hover);
         box-shadow: var(--custom-node-Shadow);
       }
 
-      [data-selected='true'] & &__image {
+      [data-selected='true'] & &__image,
+      [data-selected='true'] & .step-icon {
         @include custom.selected;
       }
 

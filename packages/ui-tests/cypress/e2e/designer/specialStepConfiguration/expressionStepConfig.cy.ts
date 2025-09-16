@@ -54,14 +54,14 @@ describe('Tests for sidebar expression configuration', () => {
 
     // Check the configured fields didn't disappear from the first node
     cy.expandWrappedSection('jq-Advanced');
-    cy.get(`input[name="jq.trim"]`).should(`be.checked`);
+    cy.get(`input[name="jq.trim"]`).should(`not.be.checked`);
     cy.interactWithExpressionInputObject('jq.resultType', 'java.lang.String');
     cy.interactWithExpressionInputObject('jq.expression', '.id');
 
     // Check the configured fields didn't disappear from the second node
     cy.openStepConfigurationTabByPath('custom-node__route.from.steps.1.setHeader');
     cy.expandWrappedSection('jq-Advanced');
-    cy.get(`input[name="jq.trim"]`).should(`be.checked`);
+    cy.get(`input[name="jq.trim"]`).should(`not.be.checked`);
     cy.interactWithExpressionInputObject('jq.resultType', 'java.lang.String');
     cy.interactWithExpressionInputObject('jq.expression', '.name');
 
@@ -82,11 +82,11 @@ describe('Tests for sidebar expression configuration', () => {
     cy.interactWithExpressionInputObject('simple.expression', `{{}{{}header.baz}}`);
     cy.get('textarea[name="simple.expression"]').should('have.value', '{{header.baz}}');
     cy.selectExpression('Constant');
-    cy.get('textarea[name="constant.expression"]').should('not.have.value', '{{header.baz}}');
+    cy.get('textarea[name="constant.expression"]').should('have.value', '{{header.baz}}');
 
     // CHECK they are reflected in the code editor
     cy.openSourceCode();
-    cy.checkCodeSpanLine('expression: "{{header.baz}}"', 0);
+    cy.checkCodeSpanLine('expression: "{{header.baz}}"', 1);
   });
 
   it('Design - sidebar expression configuration in Kamelet', () => {

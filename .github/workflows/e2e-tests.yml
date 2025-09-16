@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: cypress/browsers:node-20.13.1-chrome-125.0.6422.60-1-ff-126.0-edge-125.0.2535.51-1
+      image: cypress/browsers:node-22.15.0-chrome-136.0.7103.92-1-ff-138.0.1-edge-136.0.3240.50-1
       options: --user 1001
 
     steps:
@@ -27,25 +27,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'maven'
-
       # Install dependencies
       - run: yarn install --immutable
 
-      # Build packages excluding @kaoto/camel-catalog since it was build during installing dependencies
+
       - name: Build packages
-        run: yarn workspaces foreach --verbose --all --topological-dev --exclude @kaoto/camel-catalog run build
+        run: yarn workspaces foreach --verbose --all --topological-dev run build:dev
 
       # Build lib
       - name: Build @kaoto/kaoto package in lib mode
@@ -58,29 +45,17 @@ jobs:
           if-no-files-found: error
           path: packages/ui/dist
 
-      - name: 💾 Save catalog build folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: catalog-dist
-          if-no-files-found: error
-          path: packages/catalog-generator/dist/camel-catalog
 
   test-on-firefox:
     needs: install
     runs-on: ubuntu-latest
     container:
-      image: cypress/browsers:node-20.13.1-chrome-125.0.6422.60-1-ff-126.0-edge-125.0.2535.51-1
+      image: cypress/browsers:node-22.15.0-chrome-136.0.7103.92-1-ff-138.0.1-edge-136.0.3240.50-1
       options: --user 1001
 
     steps:
       - name: 👷‍♀️ Checkout
         uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'maven'
 
       - name: 🗄️ Download the UI build folder
         uses: actions/download-artifact@v4
@@ -88,14 +63,8 @@ jobs:
           name: ui-dist
           path: packages/ui/dist
 
-      - name: 🗄️ Download the catalog build folder
-        uses: actions/download-artifact@v4
-        with:
-          name: catalog-dist
-          path: packages/camel-catalog/dist
-
       - name: 🔨 Cypress run
-        uses: cypress-io/github-action@v6.7.16
+        uses: cypress-io/github-action@v6.10.2
         with:
           browser: firefox
           # we have already installed all dependencies above
@@ -129,18 +98,12 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     container:
-      image: cypress/browsers:node-20.13.1-chrome-125.0.6422.60-1-ff-126.0-edge-125.0.2535.51-1
+      image: cypress/browsers:node-22.15.0-chrome-136.0.7103.92-1-ff-138.0.1-edge-136.0.3240.50-1
       options: --user 1001
 
     steps:
       - name: 👷‍♀️ Checkout
         uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'maven'
 
       - name: 🗄️ Download the UI build folder
         uses: actions/download-artifact@v4
@@ -148,14 +111,8 @@ jobs:
           name: ui-dist
           path: packages/ui/dist
 
-      - name: 🗄️ Download the catalog build folder
-        uses: actions/download-artifact@v4
-        with:
-          name: catalog-dist
-          path: packages/camel-catalog/dist
-
       - name: 🔨 Cypress run
-        uses: cypress-io/github-action@v6.7.16
+        uses: cypress-io/github-action@v6.10.2
         with:
           browser: chrome
           # we have already installed all dependencies above
@@ -189,18 +146,12 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     container:
-      image: cypress/browsers:node-20.13.1-chrome-125.0.6422.60-1-ff-126.0-edge-125.0.2535.51-1
+      image: cypress/browsers:node-22.15.0-chrome-136.0.7103.92-1-ff-138.0.1-edge-136.0.3240.50-1
       options: --user 1001
 
     steps:
       - name: 👷‍♀️ Checkout
         uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'maven'
 
       - name: 🗄️ Download the UI build folder
         uses: actions/download-artifact@v4
@@ -208,14 +159,8 @@ jobs:
           name: ui-dist
           path: packages/ui/dist
 
-      - name: 🗄️ Download the catalog build folder
-        uses: actions/download-artifact@v4
-        with:
-          name: catalog-dist
-          path: packages/camel-catalog/dist
-
       - name: 🔨 Cypress run
-        uses: cypress-io/github-action@v6.7.16
+        uses: cypress-io/github-action@v6.10.2
         with:
           browser: edge
           # we have already installed all dependencies above

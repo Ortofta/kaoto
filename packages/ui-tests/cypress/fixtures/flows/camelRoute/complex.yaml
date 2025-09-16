@@ -8,14 +8,16 @@
               steps:
                 - marshal: {}
             when:
-              - steps:
+              - description: when-setHeader
+                steps:
                   - setHeader:
                       name: setHeader
                       simple:
                         expression: foo
                 simple:
                   expression: ${header.foo} == 1
-              - steps:
+              - description: when-log
+                steps:
                   - log:
                       message: ${body}
                 simple:

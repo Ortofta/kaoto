@@ -4,8 +4,18 @@ import { CustomEdge } from '../Custom/Edge/CustomEdge';
 import { CanvasDefaults } from './canvas.defaults';
 import { LayoutType } from './canvas.models';
 import { ControllerService } from './controller.service';
+import { PlaceholderNode } from '../Custom/Node/PlaceholderNode';
 
 describe('ControllerService', () => {
+  it('should not enable setFitToScreenOnLayout when creating the controller', () => {
+    const setFitToScreenOnLayoutSpy = jest.spyOn(Visualization.prototype, 'setFitToScreenOnLayout');
+
+    const controller = ControllerService.createController();
+
+    expect(controller).toBeInstanceOf(Visualization);
+    expect(setFitToScreenOnLayoutSpy).not.toHaveBeenCalled();
+  });
+
   it('should allow consumers to create a new controller and register its factories', () => {
     const layoutFactorySpy = jest.spyOn(Visualization.prototype, 'registerLayoutFactory');
     const componentFactorySpy = jest.spyOn(Visualization.prototype, 'registerComponentFactory');
@@ -44,6 +54,12 @@ describe('ControllerService', () => {
       const component = ControllerService.baselineComponentFactory(ModelKind.graph, 'graph');
 
       expect(component).toBeDefined();
+    });
+
+    it('should return the correct component for a node-placeholder', () => {
+      const component = ControllerService.baselineComponentFactory({} as ModelKind, 'node-placeholder');
+
+      expect(component).toBe(PlaceholderNode);
     });
 
     it('should return the correct component for a node', () => {

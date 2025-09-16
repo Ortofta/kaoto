@@ -3,10 +3,10 @@ import { CatalogDefinition, CatalogLibrary } from '@kaoto/camel-catalog/types';
 import { act, render, screen } from '@testing-library/react';
 import { CamelCatalogService, CatalogKind } from '../models';
 import { TestRuntimeProviderWrapper } from '../stubs';
+import { getFirstCatalogMap } from '../stubs/test-load-catalog';
 import { CatalogSchemaLoader } from '../utils/catalog-schema-loader';
 import { CatalogLoaderProvider } from './catalog.provider';
-import { getFirstCatalogMap } from '../stubs/test-load-catalog';
-import { ReloadContext } from './reload.context';
+import { ReloadContext } from './reload.provider';
 
 describe('CatalogLoaderProvider', () => {
   let fetchMock: jest.SpyInstance;
@@ -155,6 +155,11 @@ describe('CatalogLoaderProvider', () => {
     expect(fetchFileMock).toHaveBeenCalledWith(
       expect.stringContaining(`${CatalogSchemaLoader.DEFAULT_CATALOG_PATH}/${catalogPath}/kamelet-boundaries`),
     );
+    expect(fetchFileMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `${CatalogSchemaLoader.DEFAULT_CATALOG_PATH}/${catalogPath}/camel-catalog-aggregate-functions`,
+      ),
+    );
   });
 
   it('should set loading to false after fetching the catalogs', async () => {
@@ -209,7 +214,6 @@ describe('CatalogLoaderProvider', () => {
       ) {
         expect(call[0]).toEqual(CatalogKind.Processor);
         expect(Object.values(call[1])[0]).toEqual('dummy-data');
-        expect(Object.values(call[1])[1]).toMatchSnapshot();
         count++;
       } else if (
         Object.keys(call[1])[0].includes(
@@ -218,7 +222,6 @@ describe('CatalogLoaderProvider', () => {
       ) {
         expect(call[0]).toEqual(CatalogKind.Pattern);
         expect(Object.values(call[1])[0]).toEqual('dummy-data');
-        expect(Object.values(call[1])[1]).toMatchSnapshot();
         count++;
       } else if (
         Object.keys(call[1])[0].includes(
@@ -263,6 +266,14 @@ describe('CatalogLoaderProvider', () => {
           `${CatalogSchemaLoader.DEFAULT_CATALOG_PATH}/${catalogPath}/kamelets-aggregate`,
         );
         expect(Object.values(call[1])[1]).toEqual('dummy-data');
+        count++;
+      } else if (
+        Object.keys(call[1])[0].includes(
+          `${CatalogSchemaLoader.DEFAULT_CATALOG_PATH}/${catalogPath}/camel-catalog-aggregate-functions`,
+        )
+      ) {
+        expect(call[0]).toEqual(CatalogKind.Function);
+        expect(Object.values(call[1])[0]).toEqual('dummy-data');
         count++;
       } else {
         throw new Error(call);

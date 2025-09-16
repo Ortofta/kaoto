@@ -1,12 +1,5 @@
-import {
-  FunctionComponent,
-  PropsWithChildren,
-  createContext,
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { FunctionComponent, PropsWithChildren, createContext, useCallback, useLayoutEffect, useMemo } from 'react';
+import { useSourceCodeStore } from '../store';
 import { EventNotifier } from '../utils';
 
 interface ISourceCodeApi {
@@ -14,25 +7,40 @@ interface ISourceCodeApi {
   setCodeAndNotify: (sourceCode: string, path?: string) => void;
 }
 
+interface SourceCodeProviderProps extends PropsWithChildren {
+  /** The initial source code */
+  initialSourceCode?: string;
+}
+
 export const SourceCodeContext = createContext<string>('');
 export const SourceCodeApiContext = createContext<ISourceCodeApi>({ setCodeAndNotify: () => {} });
 
-export const SourceCodeProvider: FunctionComponent<PropsWithChildren> = (props) => {
+export const SourceCodeProvider: FunctionComponent<SourceCodeProviderProps> = ({
+  initialSourceCode = '',
+  children,
+}) => {
   const eventNotifier = EventNotifier.getInstance();
-  const [sourceCode, setSourceCode] = useState<string>('');
+  const { sourceCode, setSourceCode, setPath } = useSourceCodeStore();
+
+  useLayoutEffect(() => {
+    setSourceCode(initialSourceCode);
+    useSourceCodeStore.temporal.getState().clear();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useLayoutEffect(() => {
     return eventNotifier.subscribe('entities:updated', (code) => {
       setSourceCode(code);
     });
-  }, [eventNotifier]);
+  }, [eventNotifier, setSourceCode]);
 
   const setCodeAndNotify = useCallback(
     (code: string, path?: string) => {
       setSourceCode(code);
+      setPath(path);
       eventNotifier.next('code:updated', { code, path });
     },
-    [eventNotifier],
+    [eventNotifier, setPath, setSourceCode],
   );
 
   const sourceCodeApi: ISourceCodeApi = useMemo(
@@ -44,7 +52,7 @@ export const SourceCodeProvider: FunctionComponent<PropsWithChildren> = (props) 
 
   return (
     <SourceCodeApiContext.Provider value={sourceCodeApi}>
-      <SourceCodeContext.Provider value={sourceCode}>{props.children}</SourceCodeContext.Provider>
+      <SourceCodeContext.Provider value={sourceCode}>{children}</SourceCodeContext.Provider>
     </SourceCodeApiContext.Provider>
   );
 };

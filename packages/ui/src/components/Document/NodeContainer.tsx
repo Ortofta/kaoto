@@ -1,7 +1,7 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import clsx from 'clsx';
 import { forwardRef, FunctionComponent, PropsWithChildren } from 'react';
-import { DocumentNodeData, NodeData } from '../../models/datamapper/visualization';
+import { AddMappingNodeData, DocumentNodeData, NodeData } from '../../models/datamapper/visualization';
 import { isDefined } from '../../utils';
 import './NodeContainer.scss';
 import { VisualizationService } from '../../services/visualization.service';
@@ -27,6 +27,7 @@ export const DroppableContainer: FunctionComponent<BaseContainerProps> = ({ clas
       id={`droppable-${id}`}
       ref={setDroppableNodeRef}
       className={clsx(className, { 'droppable-container': isOver }, 'pf-v6-c-droppable')}
+      data-dnd-droppable={isOver ? `${id}` : undefined}
     >
       {children}
     </div>
@@ -35,6 +36,7 @@ export const DroppableContainer: FunctionComponent<BaseContainerProps> = ({ clas
 
 export const DraggableContainer: FunctionComponent<BaseContainerProps> = ({ id, nodeData, children }) => {
   const {
+    isDragging,
     attributes,
     listeners,
     setNodeRef: setDraggableNodeRef,
@@ -49,6 +51,7 @@ export const DraggableContainer: FunctionComponent<BaseContainerProps> = ({ id, 
       id={`draggable-${id}`}
       ref={setDraggableNodeRef}
       className={clsx({ 'draggable-container': isDefined(transform) }, 'pf-v6-c-draggable')}
+      data-dnd-draggable={isDragging ? `${id}` : undefined}
       {...listeners}
       {...attributes}
     >
@@ -69,15 +72,22 @@ const DnDContainer: FunctionComponent<DnDContainerProps> = ({ nodeData, children
 };
 
 type NodeContainerProps = PropsWithChildren & {
+  className?: string;
   nodeData?: NodeData;
 };
 
-export const NodeContainer = forwardRef<HTMLDivElement, NodeContainerProps>(({ children, nodeData }, forwardedRef) => {
-  return nodeData && !(nodeData instanceof DocumentNodeData && !nodeData.isPrimitive) ? (
-    <div ref={forwardedRef}>
-      <DnDContainer nodeData={nodeData}>{children}</DnDContainer>
-    </div>
-  ) : (
-    <div ref={forwardedRef}>{children}</div>
-  );
-});
+export const NodeContainer = forwardRef<HTMLDivElement, NodeContainerProps>(
+  ({ children, className, nodeData }, forwardedRef) => {
+    return nodeData &&
+      !(nodeData instanceof DocumentNodeData && !nodeData.isPrimitive) &&
+      !(nodeData instanceof AddMappingNodeData) ? (
+      <div ref={forwardedRef} className={className}>
+        <DnDContainer nodeData={nodeData}>{children}</DnDContainer>
+      </div>
+    ) : (
+      <div ref={forwardedRef} className={className}>
+        {children}
+      </div>
+    );
+  },
+);

@@ -1,6 +1,12 @@
 import { ChangeEvent, createRef, FunctionComponent, PropsWithChildren, useCallback, useRef } from 'react';
-import { readFileAsString } from './read-file-as-string';
+import {
+  SCHEMA_FILE_ACCEPT_PATTERN,
+  SCHEMA_FILE_ACCEPT_PATTERN_SOURCE_BODY,
+  SCHEMA_FILE_NAME_PATTERN,
+  SCHEMA_FILE_NAME_PATTERN_SOURCE_BODY,
+} from '../models/datamapper';
 import { IMetadataApi, MetadataContext } from '../providers';
+import { readFileAsString } from './read-file-as-string';
 
 export const BrowserFilePickerMetadataProvider: FunctionComponent<PropsWithChildren> = (props) => {
   const fileInputRef = createRef<HTMLInputElement>();
@@ -12,11 +18,19 @@ export const BrowserFilePickerMetadataProvider: FunctionComponent<PropsWithChild
 
   const askUserForFileSelection = useCallback(
     (
-      _include: string,
+      include: string,
       _exclude?: string,
       _options?: Record<string, unknown>,
     ): Promise<string[] | string | undefined> => {
-      fileInputRef.current?.click();
+      if (!fileInputRef.current) return Promise.resolve(undefined);
+
+      if (include === SCHEMA_FILE_NAME_PATTERN_SOURCE_BODY) {
+        fileInputRef.current.accept = SCHEMA_FILE_ACCEPT_PATTERN_SOURCE_BODY;
+      } else if (include === SCHEMA_FILE_NAME_PATTERN) {
+        fileInputRef.current.accept = SCHEMA_FILE_ACCEPT_PATTERN;
+      }
+
+      fileInputRef.current.click();
       return new Promise<Record<string, string>>((resolve, reject) => {
         fileSelectionRef.current = { resolve, reject };
       }).then((files) => {
@@ -55,6 +69,8 @@ export const BrowserFilePickerMetadataProvider: FunctionComponent<PropsWithChild
     setMetadata: () => Promise.resolve(),
     deleteResource: () => Promise.resolve(true),
     saveResourceContent: () => Promise.resolve(),
+    getSuggestions: () => Promise.resolve([]),
+    onStepUpdated: () => Promise.resolve(),
   };
 
   return (
@@ -65,7 +81,6 @@ export const BrowserFilePickerMetadataProvider: FunctionComponent<PropsWithChild
         style={{ display: 'none' }}
         data-testid={`attach-schema-file-input`}
         onChange={onImport}
-        accept=".xml, .xsd"
         ref={fileInputRef}
       />
     </MetadataContext.Provider>

@@ -101,6 +101,19 @@ describe('camelProcessorToTile', () => {
     expect(tile.description).toEqual('My Processor Description');
   });
 
+  it('should populate the headerTags', () => {
+    const processorDef = {
+      model: {
+        supportLevel: 'Preview',
+        label: 'label1,label2',
+      },
+    } as ICamelProcessorDefinition;
+
+    const tile = camelProcessorToTile(processorDef);
+
+    expect(tile.headerTags).toEqual(['Processor', 'Preview']);
+  });
+
   it('should populate the tags', () => {
     const processorDef = {
       model: {
@@ -111,6 +124,22 @@ describe('camelProcessorToTile', () => {
     const tile = camelProcessorToTile(processorDef);
 
     expect(tile.tags).toEqual(['label1', 'label2']);
+  });
+
+  it('should populate the provider', () => {
+    const processorDef = {
+      model: {
+        name: 'my-processor',
+        title: 'My Processor',
+        description: 'My Processor Description',
+        label: 'label1,label2',
+        provider: 'my-provider',
+      },
+    } as ICamelProcessorDefinition;
+
+    const tile = camelProcessorToTile(processorDef);
+
+    expect(tile.provider).toEqual('my-provider');
   });
 });
 

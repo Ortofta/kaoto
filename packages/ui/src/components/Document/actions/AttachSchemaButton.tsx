@@ -13,14 +13,38 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-import { AlertVariant, Button } from '@patternfly/react-core';
-import { FunctionComponent, useCallback, useContext } from 'react';
+import {
+  Alert,
+  Button,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  InputGroup,
+  InputGroupItem,
+  InputGroupText,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Radio,
+  Stack,
+  StackItem,
+  TextInput,
+} from '@patternfly/react-core';
+import { FunctionComponent, useCallback, useContext, useMemo, useState } from 'react';
+import { Typeahead, TypeaheadItem } from '@kaoto/forms';
 
-import { ImportIcon } from '@patternfly/react-icons';
+import { FileImportIcon, ImportIcon } from '@patternfly/react-icons';
 import { useCanvas } from '../../../hooks/useCanvas';
 import { useDataMapper } from '../../../hooks/useDataMapper';
-import { DocumentDefinitionType } from '../../../models/datamapper/document';
-import { DocumentType } from '../../../models/datamapper/path';
+import {
+  CreateDocumentResult,
+  DocumentDefinitionType,
+  DocumentType,
+  RootElementOption,
+  SCHEMA_FILE_NAME_PATTERN,
+  SCHEMA_FILE_NAME_PATTERN_SOURCE_BODY,
+} from '../../../models/datamapper/document';
 import { MetadataContext } from '../../../providers';
 import { DataMapperMetadataService } from '../../../services/datamapper-metadata.service';
 import { DocumentService } from '../../../services/document.service';
@@ -37,51 +61,369 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
   hasSchema = false,
 }) => {
   const api = useContext(MetadataContext)!;
-  const { addAlert, setIsLoading, updateDocumentDefinition } = useDataMapper();
+  const { setIsLoading, updateDocument } = useDataMapper();
   const { clearNodeReferencesForDocument, reloadNodeReferences } = useCanvas();
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState<boolean>(false);
+  const [selectedSchemaType, setSelectedSchemaType] = useState<DocumentDefinitionType>(
+    DocumentDefinitionType.XML_SCHEMA,
+  );
+  const [filePaths, setFilePaths] = useState<string[]>([]);
+  const [createDocumentResult, setCreateDocumentResult] = useState<CreateDocumentResult | null>(null);
 
-  const onClick = useCallback(async () => {
-    const paths = await DataMapperMetadataService.selectDocumentSchema(api);
-    if (!paths || (Array.isArray(paths) && paths.length === 0)) return;
+  const actionName = hasSchema ? 'Update' : 'Attach';
+  const fileNamePattern =
+    documentType === DocumentType.SOURCE_BODY ? SCHEMA_FILE_NAME_PATTERN_SOURCE_BODY : SCHEMA_FILE_NAME_PATTERN;
+
+  const documentTypeLabel = useMemo(() => {
+    if (documentType === DocumentType.PARAM) return `Parameter: ${documentId}`;
+    return documentType === DocumentType.SOURCE_BODY ? 'Source' : 'Target';
+  }, [documentId, documentType]);
+
+  const onModalOpen = useCallback(() => {
+    setIsWarningModalOpen(false);
+    setIsModalOpen(true);
+  }, []);
+
+  const onFileUpload = useCallback(async () => {
+    setCreateDocumentResult(null);
+    setFilePaths([]);
+
+    const paths = await DataMapperMetadataService.selectDocumentSchema(api, fileNamePattern);
+    let pathsArray: string[] = [];
+    if (Array.isArray(paths)) {
+      pathsArray = paths;
+    } else if (paths) {
+      pathsArray = [paths];
+    }
+    if (pathsArray.length === 0) return;
+
+    const fileExtension = pathsArray[0].toLowerCase().substring(pathsArray[0].lastIndexOf('.'));
+    if (documentType === DocumentType.SOURCE_BODY) {
+      if (fileExtension === '.json') {
+        setCreateDocumentResult({
+          validationStatus: 'error',
+          validationMessage:
+            'JSON source body is not supported at this moment. For the source body, only XML schema file (.xml, .xsd) is supported. In order to use JSON data, It must be either source parameter or target',
+        });
+        return;
+      } else if (!['.xml', '.xsd'].includes(fileExtension)) {
+        setCreateDocumentResult({
+          validationStatus: 'error',
+          validationMessage: `Unknown file extension '${fileExtension}'. Only XML schema file (.xml, .xsd) is supported.`,
+        });
+        return;
+      }
+    } else if (!['.json', '.xsd', '.xml'].includes(fileExtension)) {
+      setCreateDocumentResult({
+        validationStatus: 'error',
+        validationMessage: `Unknown file extension '${fileExtension}'. Either XML schema (.xsd, .xml) or JSON schema (.json) file is supported.`,
+      });
+      return;
+    }
+
+    const schemaType =
+      fileExtension === '.json' ? DocumentDefinitionType.JSON_SCHEMA : DocumentDefinitionType.XML_SCHEMA;
+
+    const result = await DocumentService.createDocument(api, documentType, schemaType, documentId, pathsArray);
+    setCreateDocumentResult(result);
+
+    if (result.validationStatus === 'success') {
+      setFilePaths(pathsArray);
+      setSelectedSchemaType(schemaType);
+    }
+  }, [api, fileNamePattern, documentType, documentId]);
+
+  const hasRootElementOptions: boolean = useMemo(() => {
+    if (!createDocumentResult?.rootElementOptions) return false;
+    return createDocumentResult.rootElementOptions.length > 0;
+  }, [createDocumentResult?.rootElementOptions]);
+
+  const onUpdateRootElement = useCallback(
+    (option: RootElementOption) => {
+      if (!createDocumentResult?.document || !createDocumentResult?.documentDefinition) return;
+      createDocumentResult.documentDefinition.rootElementChoice = option;
+      createDocumentResult.document = DocumentService.updateRootElement(createDocumentResult?.document, option);
+    },
+    [createDocumentResult],
+  );
+
+  const onCommit = useCallback(async () => {
+    if (!createDocumentResult?.document || !createDocumentResult.documentDefinition) {
+      setCreateDocumentResult({ validationStatus: 'error', validationMessage: 'Please select a schema file first' });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const definition = await DocumentService.createDocumentDefinition(
-        api,
-        documentType,
-        DocumentDefinitionType.XML_SCHEMA,
-        documentId,
-        Array.isArray(paths) ? paths : [paths],
-      );
-      if (!definition) return;
-      await updateDocumentDefinition(definition);
+      updateDocument(createDocumentResult.document, createDocumentResult.documentDefinition);
       clearNodeReferencesForDocument(documentType, documentId);
       reloadNodeReferences();
       /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (error: any) {
       const cause = error['message'] ? ': ' + error['message'] : '';
-      addAlert({ variant: AlertVariant.danger, title: `Cannot read the schema file ${cause}` });
+      setCreateDocumentResult({ validationStatus: 'error', validationMessage: `Cannot attach the schema ${cause}` });
     } finally {
       setIsLoading(false);
     }
+    setIsModalOpen(false);
+    setCreateDocumentResult(null);
+    setFilePaths([]);
   }, [
-    addAlert,
-    api,
     clearNodeReferencesForDocument,
     documentId,
     documentType,
     reloadNodeReferences,
     setIsLoading,
-    updateDocumentDefinition,
+    updateDocument,
+    createDocumentResult,
   ]);
 
+  const onCancel = useCallback(() => {
+    setIsModalOpen(false);
+    setCreateDocumentResult(null);
+    setFilePaths([]);
+  }, []);
+
+  const onWarningModalOpen = useCallback(() => {
+    setIsWarningModalOpen(true);
+  }, []);
+
+  const onWarningModalClose = useCallback(() => {
+    setIsWarningModalOpen(false);
+  }, []);
+
+  const handleWarningModal = useCallback(() => {
+    if (actionName === 'Update') {
+      onWarningModalOpen();
+    } else {
+      onModalOpen();
+    }
+  }, [actionName, onModalOpen, onWarningModalOpen]);
+
+  const isReadyToSubmit = useMemo(() => {
+    return (
+      filePaths.length > 0 && createDocumentResult?.validationStatus === 'success' && createDocumentResult?.document
+    );
+  }, [filePaths.length, createDocumentResult]);
+
   return (
-    <Button
-      icon={<ImportIcon />}
-      variant="plain"
-      title={hasSchema ? 'Update schema' : 'Attach a schema'}
-      aria-label={hasSchema ? 'Update schema' : 'Attach schema'}
-      data-testid={`attach-schema-${documentType}-${documentId}-button`}
-      onClick={onClick}
+    <>
+      <Button
+        icon={<ImportIcon />}
+        variant="plain"
+        title={`${actionName} schema`}
+        aria-label={`${actionName} schema`}
+        data-testid={`attach-schema-${documentType}-${documentId}-button`}
+        onClick={handleWarningModal}
+      />
+
+      <UpdateWarningModal
+        actionName={actionName}
+        documentTypeLabel={documentTypeLabel}
+        isWarningModalOpen={isWarningModalOpen}
+        onModalOpen={onModalOpen}
+        onWarningModalClose={onWarningModalClose}
+      />
+
+      <Modal isOpen={isModalOpen} variant="small" data-testid="attach-schema-modal">
+        <ModalHeader title={`${actionName} schema : ( ${documentTypeLabel} )`} />
+        <ModalBody>
+          <Stack hasGutter>
+            <StackItem>
+              <InputGroup>
+                <InputGroupItem isFill>
+                  <TextInput
+                    type="text"
+                    aria-label="Attaching schema file name"
+                    data-testid="attach-schema-modal-text"
+                    validated={createDocumentResult?.validationStatus}
+                    readOnly
+                    value={filePaths.join(', ')}
+                  />
+                </InputGroupItem>
+                <InputGroupItem>
+                  <Button data-testid="attach-schema-modal-btn-file" icon={<FileImportIcon />} onClick={onFileUpload} />
+                </InputGroupItem>
+              </InputGroup>
+            </StackItem>
+            <StackItem>
+              {createDocumentResult && (
+                <FormHelperText>
+                  <HelperText>
+                    <HelperTextItem
+                      data-testid="attach-schema-modal-text-helper"
+                      variant={createDocumentResult.validationStatus}
+                    >
+                      {createDocumentResult.validationMessage}
+                    </HelperTextItem>
+                  </HelperText>
+                </FormHelperText>
+              )}
+            </StackItem>
+            <StackItem>
+              <InputGroup>
+                <InputGroupItem>
+                  <Radio
+                    id="option-xml-schema"
+                    name="schema-type"
+                    aria-label="XML Schema"
+                    label="XML Schema"
+                    data-testid="attach-schema-modal-option-xml"
+                    isChecked={selectedSchemaType === DocumentDefinitionType.XML_SCHEMA}
+                    onChange={() => setSelectedSchemaType(DocumentDefinitionType.XML_SCHEMA)}
+                  />
+                </InputGroupItem>
+                {documentType !== DocumentType.SOURCE_BODY && (
+                  <InputGroupItem>
+                    <Radio
+                      id="option-json-schema"
+                      name="schema-type"
+                      aria-label="JSON Schema"
+                      label="JSON Schema"
+                      data-testid="attach-schema-modal-option-json"
+                      isChecked={selectedSchemaType === DocumentDefinitionType.JSON_SCHEMA}
+                      onChange={() => setSelectedSchemaType(DocumentDefinitionType.JSON_SCHEMA)}
+                    />
+                  </InputGroupItem>
+                )}
+              </InputGroup>
+            </StackItem>
+            {hasRootElementOptions && (
+              <StackItem>
+                <InputGroup>
+                  <InputGroupText>Root element</InputGroupText>
+                  <InputGroupItem>
+                    <RootElementSelect createDocumentResult={createDocumentResult!} onUpdate={onUpdateRootElement} />
+                  </InputGroupItem>
+                </InputGroup>
+              </StackItem>
+            )}
+          </Stack>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            key="Attach"
+            data-testid="attach-schema-modal-btn-attach"
+            variant="primary"
+            onClick={onCommit}
+            isDisabled={!isReadyToSubmit}
+          >
+            {actionName}
+          </Button>
+          <Button key="Cancel" data-testid="attach-schema-modal-btn-cancel" variant="link" onClick={onCancel}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </>
+  );
+};
+
+type UpdateWarningModalProps = {
+  actionName: string;
+  documentTypeLabel: string;
+  isWarningModalOpen: boolean;
+  onModalOpen: () => void;
+  onWarningModalClose: () => void;
+};
+
+const UpdateWarningModal: FunctionComponent<UpdateWarningModalProps> = ({
+  actionName,
+  documentTypeLabel,
+  isWarningModalOpen,
+  onModalOpen,
+  onWarningModalClose,
+}) => {
+  return (
+    <Modal isOpen={isWarningModalOpen} variant="small" data-testid="update-schema-warning-modal">
+      <ModalHeader title={`${actionName} schema : ( ${documentTypeLabel} )`} />
+      <ModalBody>
+        <Stack hasGutter>
+          <StackItem>
+            <Alert variant="warning" title="Warning">
+              {documentTypeLabel} already has a schema attached. Are you sure you want to replace it? Replacing it might
+              result in a loss of any existing data mappings.
+            </Alert>
+          </StackItem>
+        </Stack>
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          key="Update-Schema-Warning-Button"
+          data-testid="update-schema-warning-modal-btn-continue"
+          variant="primary"
+          onClick={onModalOpen}
+        >
+          Continue
+        </Button>
+        <Button
+          key="Cancel"
+          data-testid="update-schema-warning-modal-btn-cancel"
+          variant="link"
+          onClick={onWarningModalClose}
+        >
+          Cancel
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+};
+
+type RootElementSelectProps = {
+  createDocumentResult: CreateDocumentResult;
+  onUpdate: (option: RootElementOption) => void;
+};
+
+const RootElementSelect: FunctionComponent<RootElementSelectProps> = ({ createDocumentResult, onUpdate }) => {
+  const rootQName = DocumentService.getRootElementQName(createDocumentResult.document);
+  const initialSelectedOption = rootQName
+    ? createDocumentResult.rootElementOptions?.find(
+        (option) =>
+          option.namespaceUri === (rootQName.getNamespaceURI() || '') && option.name === rootQName.getLocalPart(),
+      )
+    : undefined;
+
+  const [selectedItem, setSelectedItem] = useState<TypeaheadItem | undefined>(
+    initialSelectedOption
+      ? {
+          name: initialSelectedOption.name,
+          value: initialSelectedOption.name,
+          description: initialSelectedOption.namespaceUri,
+        }
+      : undefined,
+  );
+
+  const items: TypeaheadItem[] = useMemo(() => {
+    if (!createDocumentResult?.rootElementOptions) return [];
+    return createDocumentResult.rootElementOptions.map((option) => ({
+      name: option.name,
+      value: option.name,
+      description: `Namespace URI: ${option.namespaceUri}`,
+    }));
+  }, [createDocumentResult?.rootElementOptions]);
+
+  const handleSelectionChange = useCallback(
+    (item?: TypeaheadItem) => {
+      if (!createDocumentResult.rootElementOptions || !item?.value) return;
+      const option = createDocumentResult.rootElementOptions.find((opt) => opt.name === item.value);
+      if (option) {
+        onUpdate(option);
+        setSelectedItem(item);
+      }
+    },
+    [createDocumentResult.rootElementOptions, onUpdate],
+  );
+
+  return (
+    <Typeahead
+      id="attach-schema-root-element"
+      data-testid="attach-schema-root-element"
+      aria-label="Attach schema / Choose Root Element"
+      placeholder={selectedItem?.name}
+      selectedItem={selectedItem}
+      onChange={handleSelectionChange}
+      items={items}
     />
   );
 };

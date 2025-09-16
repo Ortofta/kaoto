@@ -1,7 +1,7 @@
-import { Button, Icon } from '@patternfly/react-core';
+import { Button, Icon, SearchInput } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import { FunctionComponent, MouseEvent, useCallback, useContext, useRef } from 'react';
+import { FunctionComponent, MouseEvent, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { ValidationResult } from '../../../../models';
 import { BaseVisualCamelEntity } from '../../../../models/visualization/base-visual-entity';
 import {
@@ -19,10 +19,11 @@ interface IFlowsList {
   onClose?: () => void;
 }
 
-export const FlowsList: FunctionComponent<IFlowsList> = (props) => {
+export const FlowsList: FunctionComponent<IFlowsList> = ({ onClose }) => {
   const { visualEntities, camelResource, updateEntitiesFromCamelResource } = useContext(EntitiesContext)!;
   const { visibleFlows, allFlowsVisible, visualFlowsApi } = useContext(VisibleFlowsContext)!;
   const deleteModalContext = useContext(ActionConfirmationModalContext);
+  const [searchString, setSearchString] = useState<string>('');
 
   const isListEmpty = visualEntities.length === 0;
 
@@ -32,13 +33,17 @@ export const FlowsList: FunctionComponent<IFlowsList> = (props) => {
     delete: 'Delete',
   });
 
+  const filteredIds = useMemo(() => {
+    return visualEntities.filter((flow) => flow.id.includes(searchString)).map((flow) => flow.id);
+  }, [visualEntities, searchString]);
+
   const onSelectFlow = useCallback(
     (flowId: string): void => {
-      visualFlowsApi.hideAllFlows();
+      visualFlowsApi.hideFlows();
       visualFlowsApi.toggleFlowVisible(flowId);
-      props.onClose?.();
+      onClose?.();
     },
-    [props, visualFlowsApi],
+    [onClose, visualFlowsApi],
   );
 
   const routeIdValidator = useCallback(
@@ -48,119 +53,169 @@ export const FlowsList: FunctionComponent<IFlowsList> = (props) => {
     [visualEntities],
   );
 
+  const areFlowsVisible = useCallback(() => {
+    if (searchString === '') return allFlowsVisible;
+
+    return visualEntities
+      .filter((entity) => entity.id.includes(searchString))
+      .every((entity) => visibleFlows[entity.id]);
+  }, [searchString, allFlowsVisible, visualEntities, visibleFlows]);
+
   const onToggleAll = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
-      if (allFlowsVisible) {
-        visualFlowsApi.hideAllFlows();
+      if (areFlowsVisible()) {
+        visualFlowsApi.hideFlows(filteredIds.length > 0 ? filteredIds : undefined);
       } else {
-        visualFlowsApi.showAllFlows();
+        visualFlowsApi.showFlows(filteredIds.length > 0 ? filteredIds : undefined);
       }
       event.stopPropagation();
     },
-    [allFlowsVisible, visualFlowsApi],
+    [areFlowsVisible, visualFlowsApi, filteredIds],
   );
 
+  const onDeleteAll = useCallback(
+    async (_event: MouseEvent<HTMLButtonElement>) => {
+      onClose?.();
+      const isDeleteConfirmed = await deleteModalContext?.actionConfirmation({
+        title: 'Do you want to delete the filtered routes ?',
+        text: 'All steps will be lost.',
+      });
+      if (isDeleteConfirmed !== ACTION_ID_CONFIRM) return;
+      if (filteredIds.length === 0) {
+        return;
+      }
+      camelResource.removeEntity(filteredIds);
+      updateEntitiesFromCamelResource();
+    },
+    [onClose, deleteModalContext, filteredIds, camelResource, updateEntitiesFromCamelResource],
+  );
   return isListEmpty ? (
     <FlowsListEmptyState data-testid="flows-list-empty-state" />
   ) : (
-    <Table className="flows-list-table" variant="compact" data-testid="flows-list-table">
-      <Thead noWrap>
-        <Tr>
-          <Th>{columnNames.current.id}</Th>
-          <Th>
-            <Button
-              title={allFlowsVisible ? 'Hide all flows' : 'Show all flows'}
-              data-testid="toggle-btn-all-flows"
-              onClick={onToggleAll}
-              icon={
-                <Icon isInline>
-                  {allFlowsVisible ? (
-                    <EyeIcon data-testid="toggle-btn-hide-all" />
-                  ) : (
-                    <EyeSlashIcon data-testid="toggle-btn-show-all" />
-                  )}
-                </Icon>
-              }
-              variant="plain"
-            />
-          </Th>
-          <Th>{columnNames.current.delete}</Th>
-        </Tr>
-      </Thead>
-      <Tbody>
-        {visualEntities.map((flow: BaseVisualCamelEntity) => (
-          <Tr key={flow.id} data-testid={`flows-list-row-${flow.id}`}>
-            <Td dataLabel={columnNames.current.id}>
-              <InlineEdit
-                editTitle={`Rename ${flow.id}`}
-                textTitle={`Focus on ${flow.id}`}
-                data-testid={`goto-btn-${flow.id}`}
-                value={flow.id}
-                validator={routeIdValidator}
-                onClick={() => {
-                  onSelectFlow(flow.id);
+    <div id="flows-list">
+      <Table className="flows-list-table" variant="compact" data-testid="flows-list-table">
+        <Thead noWrap>
+          <Tr>
+            <Th>
+              <SearchInput
+                label={columnNames.current.id}
+                aria-label="search"
+                value={searchString}
+                onClear={(event) => {
+                  setSearchString('');
+                  event.stopPropagation();
                 }}
-                onChange={(name) => {
-                  visualFlowsApi.renameFlow(flow.id, name);
-                  flow.setId(name);
-                  updateEntitiesFromCamelResource();
+                onChange={(_event, value) => {
+                  setSearchString(value);
                 }}
               />
-              {/*TODO add description*/}
-            </Td>
-
-            <Td dataLabel={columnNames.current.isVisible}>
+            </Th>
+            <Th>
               <Button
-                data-testid={`toggle-btn-${flow.id}`}
+                title={allFlowsVisible ? 'Hide all flows' : 'Show all flows'}
+                data-testid="toggle-btn-all-flows"
+                onClick={onToggleAll}
+                isDisabled={filteredIds.length === 0}
                 icon={
-                  visibleFlows[flow.id] ? (
-                    <Icon isInline>
-                      <EyeIcon title={`Hide ${flow.id}`} data-testid={`toggle-btn-${flow.id}-visible`} />
-                    </Icon>
-                  ) : (
-                    <Icon isInline>
-                      <EyeSlashIcon title={`Show ${flow.id}`} data-testid={`toggle-btn-${flow.id}-hidden`} />
-                    </Icon>
-                  )
+                  <Icon isInline>
+                    {areFlowsVisible() ? (
+                      <EyeIcon data-testid="toggle-btn-hide-all" />
+                    ) : (
+                      <EyeSlashIcon data-testid="toggle-btn-show-all" />
+                    )}
+                  </Icon>
                 }
                 variant="plain"
-                onClick={(event) => {
-                  visualFlowsApi.toggleFlowVisible(flow.id);
-                  /** Required to avoid closing the Dropdown after clicking in the icon */
-                  event.stopPropagation();
-                }}
               />
-            </Td>
-
-            <Td dataLabel={columnNames.current.delete}>
+            </Th>
+            <Th>
               <Button
-                title={`Delete ${flow.id}`}
-                data-testid={`delete-btn-${flow.id}`}
+                title="Delete all flows"
+                data-testid="delete-filtered-btn"
                 icon={<TrashIcon />}
                 variant="plain"
-                onClick={async (event) => {
-                  const isDeleteConfirmed = await deleteModalContext?.actionConfirmation({
-                    title:
-                      "Do you want to delete the '" +
-                      flow.toVizNode().getId() +
-                      "' " +
-                      flow.toVizNode().getNodeTitle() +
-                      '?',
-                    text: 'All steps will be lost.',
-                  });
-
-                  if (isDeleteConfirmed !== ACTION_ID_CONFIRM) return;
-
-                  camelResource.removeEntity(flow.id);
-                  updateEntitiesFromCamelResource();
-                  /** Required to avoid closing the Dropdown after clicking in the icon */
-                  event.stopPropagation();
-                }}
+                onClick={onDeleteAll}
+                isDisabled={filteredIds.length === 0}
               />
-            </Td>
+            </Th>
           </Tr>
-        ))}
-      </Tbody>
-    </Table>
+        </Thead>
+        <Tbody>
+          {visualEntities
+            .filter((flow) => flow.id.includes(searchString))
+            .map((flow: BaseVisualCamelEntity) => (
+              <Tr key={flow.id} data-testid={`flows-list-row-${flow.id}`}>
+                <Td dataLabel={columnNames.current.id}>
+                  <InlineEdit
+                    editTitle={`Rename ${flow.id}`}
+                    textTitle={`Focus on ${flow.id}`}
+                    data-testid={`goto-btn-${flow.id}`}
+                    value={flow.id}
+                    validator={routeIdValidator}
+                    onClick={() => {
+                      onSelectFlow(flow.id);
+                    }}
+                    onChange={(name) => {
+                      visualFlowsApi.renameFlow(flow.id, name);
+                      flow.setId(name);
+                      updateEntitiesFromCamelResource();
+                    }}
+                  />
+                  {/*TODO add description*/}
+                </Td>
+
+                <Td dataLabel={columnNames.current.isVisible}>
+                  <Button
+                    data-testid={`toggle-btn-${flow.id}`}
+                    icon={
+                      visibleFlows[flow.id] ? (
+                        <Icon isInline>
+                          <EyeIcon title={`Hide ${flow.id}`} data-testid={`toggle-btn-${flow.id}-visible`} />
+                        </Icon>
+                      ) : (
+                        <Icon isInline>
+                          <EyeSlashIcon title={`Show ${flow.id}`} data-testid={`toggle-btn-${flow.id}-hidden`} />
+                        </Icon>
+                      )
+                    }
+                    variant="plain"
+                    onClick={(event) => {
+                      visualFlowsApi.toggleFlowVisible(flow.id);
+                      /** Required to avoid closing the Dropdown after clicking in the icon */
+                      event.stopPropagation();
+                    }}
+                  />
+                </Td>
+
+                <Td dataLabel={columnNames.current.delete}>
+                  <Button
+                    title={`Delete ${flow.id}`}
+                    data-testid={`delete-btn-${flow.id}`}
+                    icon={<TrashIcon />}
+                    variant="plain"
+                    onClick={async (_event) => {
+                      //close the dropdown if it is open to not to interfere with the delete modal
+                      onClose?.();
+                      const isDeleteConfirmed = await deleteModalContext?.actionConfirmation({
+                        title:
+                          "Do you want to delete the '" +
+                          flow.toVizNode().getId() +
+                          "' " +
+                          flow.toVizNode().getNodeTitle() +
+                          '?',
+                        text: 'All steps will be lost.',
+                      });
+                      if (isDeleteConfirmed !== ACTION_ID_CONFIRM) return;
+
+                      camelResource.removeEntity([flow.id]);
+                      updateEntitiesFromCamelResource();
+                    }}
+                  />
+                </Td>
+              </Tr>
+            ))}
+        </Tbody>
+      </Table>
+    </div>
   );
 };

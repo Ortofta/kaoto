@@ -1,10 +1,7 @@
-import { FunctionComponent, PropsWithChildren, createContext, useContext, useEffect, useMemo, useReducer } from 'react';
-import {
-  IVisibleFlows,
-  VisibleFlowsReducer,
-  VisualFlowsApi,
-} from '../models/visualization/flows/support/flows-visibility';
-import { initVisibleFlows } from '../utils';
+import { createContext, FunctionComponent, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from 'react';
+import { VisibleFlowsReducer, VisualFlowsApi } from '../models/visualization/flows/support/flows-visibility';
+import { initVisibleFlows, IVisibleFlows } from '../utils/init-visible-flows';
+import { isSameArray } from '../utils/is-same-array';
 import { EntitiesContext } from './entities.provider';
 
 export interface VisibleFlowsContextResult {
@@ -28,8 +25,20 @@ export const VisibleFlowsProvider: FunctionComponent<PropsWithChildren> = (props
     return new VisualFlowsApi(dispatch);
   }, [dispatch]);
 
+  const visibleFlowsIds = useMemo(() => Object.keys(visibleFlows), [visibleFlows]);
+
   useEffect(() => {
-    visualFlowsApi.initVisibleFlows(visualEntitiesIds);
+    const hasSameIds = isSameArray(visualEntitiesIds, visibleFlowsIds);
+
+    /**
+     * If the ids of the visual entities are different from the ids of the visible flows,
+     * we need to initialize the visible flows with the new ids.
+     * This is important because the visible flows are stored in the state and
+     * if the ids change, we need to update the state to reflect the new ids.
+     */
+    if (!hasSameIds) {
+      visualFlowsApi.initVisibleFlows(visualEntitiesIds);
+    }
   }, [visualEntitiesIds, visualFlowsApi]);
 
   const value = useMemo(() => {

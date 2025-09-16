@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Properties Suggestions should return suggestions 1`] = `
+[
+  {
+    "description": "Reference the 'test' variable",
+    "value": ":#\${variable.test}",
+  },
+  {
+    "description": "Reference the 'test' header",
+    "value": ":#\${header.test}",
+  },
+]
+`;

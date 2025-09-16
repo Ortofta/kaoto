@@ -10,11 +10,11 @@ import {
   WhenItem,
 } from '../models/datamapper/mapping';
 import { MappingSerializerService } from './mapping-serializer.service';
-import { DocumentType } from '../models/datamapper/path';
-import { XmlSchemaDocument, XmlSchemaDocumentService } from './xml-schema-document.service';
-import { IDocument } from '../models/datamapper/document';
-import { message837Xsd, shipOrderToShipOrderXslt, TestUtil, x12837PDfdlXsd, x12837PXslt } from '../stubs/data-mapper';
+import { XmlSchemaDocument } from './xml-schema-document.service';
+import { DocumentType, IDocument } from '../models/datamapper/document';
+import { shipOrderToShipOrderXslt, TestUtil } from '../stubs/datamapper/data-mapper';
 import { XPathService } from './xpath/xpath.service';
+import { MappingLinksService } from './mapping-links.service';
 
 describe('MappingService', () => {
   let sourceDoc: XmlSchemaDocument;
@@ -125,7 +125,7 @@ describe('MappingService', () => {
       expect(priceItem.children.length).toEqual(1);
       expect((priceItem.children[0] as ValueSelector).expression).toEqual('Price');
 
-      const links = MappingService.extractMappingLinks(tree, paramsMap, sourceDoc);
+      const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
       expect(links.length).toEqual(11);
       links.forEach((link) => expect(link.sourceNodePath.includes(sourceDoc.fields[0].id)).toBeTruthy());
     });
@@ -167,7 +167,7 @@ describe('MappingService', () => {
       expect(priceItem.children.length).toEqual(1);
       expect((priceItem.children[0] as ValueSelector).expression).toEqual('Price');
 
-      const links = MappingService.extractMappingLinks(tree, paramsMap, sourceDoc);
+      const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
       expect(links.length).toEqual(11);
       links.forEach((link) => expect(link.targetNodePath.includes(targetDoc.fields[0].id)).toBeTruthy());
     });
@@ -182,7 +182,7 @@ describe('MappingService', () => {
       expect(forEachItem.parent).toEqual(shipOrderItem);
       expect(forEachItem.children.length).toEqual(1);
 
-      const links = MappingService.extractMappingLinks(tree, paramsMap, sourceDoc);
+      const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
       expect(links.length).toEqual(1);
       expect(links[0].sourceNodePath.includes(sourceDoc.fields[0].id)).toBeTruthy();
     });
@@ -197,7 +197,7 @@ describe('MappingService', () => {
       expect(forEachItem.parent).toEqual(shipOrderItem);
       expect(forEachItem.children.length).toEqual(1);
 
-      const links = MappingService.extractMappingLinks(tree, paramsMap, sourceDoc);
+      const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
       expect(links.length).toEqual(1);
       expect(links[0].targetNodePath.includes(targetDoc.fields[0].id)).toBeTruthy();
     });
@@ -284,80 +284,6 @@ describe('MappingService', () => {
       const orderIdValueSelector = tree.children[0].children[0].children[0] as ValueSelector;
       MappingService.deleteMappingItem(orderIdValueSelector);
       expect(tree.children[0].children.length).toEqual(3);
-    });
-  });
-
-  describe('extractMappingLinks()', () => {
-    it('should return IMappingLink[]', () => {
-      const links = MappingService.extractMappingLinks(tree, paramsMap, sourceDoc);
-      expect(links.length).toEqual(11);
-      expect(links[0].sourceNodePath).toMatch('OrderId');
-      expect(links[0].targetNodePath).toMatch('OrderId');
-      expect(links[1].sourceNodePath).toMatch('OrderPerson');
-      expect(links[1].targetNodePath).toMatch('/if-');
-      expect(links[2].sourceNodePath).toMatch('OrderPerson');
-      expect(links[2].targetNodePath).toMatch(/if-.*field-OrderPerson/);
-      expect(links[3].targetNodePath).toMatch('ShipTo');
-      expect(links[3].targetNodePath).toMatch('ShipTo');
-      expect(links[4].sourceNodePath).toMatch('Item');
-      expect(links[4].targetNodePath).toMatch('/for-each');
-      expect(links[5].sourceNodePath).toMatch('Title');
-      expect(links[5].targetNodePath).toMatch(/for-each-.*field-Item-.*field-Title-.*/);
-      expect(links[6].sourceNodePath).toMatch('Note');
-      expect(links[6].targetNodePath).toMatch(/for-each-.*field-Item-.*choose-.*when-.*/);
-      expect(links[7].sourceNodePath).toMatch('Note');
-      expect(links[7].targetNodePath).toMatch(/for-each-.*field-Item-.*field-Note-.*/);
-      expect(links[8].sourceNodePath).toMatch('Title');
-      expect(links[8].targetNodePath).toMatch(/for-each-.*field-Item-.*choose-.*otherwise-.*field-Note-.*/);
-      expect(links[9].sourceNodePath).toMatch('Quantity');
-      expect(links[9].targetNodePath).toMatch(/for-each-.*field-Item-.*field-Quantity-.*/);
-      expect(links[10].sourceNodePath).toMatch('Price');
-      expect(links[10].targetNodePath).toMatch(/for-each-.*field-Item-.*field-Price-.*/);
-    });
-
-    it('should generate mapping links for the cached type fragments field', () => {
-      sourceDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
-        DocumentType.SOURCE_BODY,
-        'X12-837P.dfdl.xsd',
-        x12837PDfdlXsd,
-      );
-      targetDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
-        DocumentType.TARGET_BODY,
-        'Message837.xsd',
-        message837Xsd,
-      );
-      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId);
-      MappingSerializerService.deserialize(x12837PXslt, targetDoc, tree, paramsMap);
-      const links = MappingService.extractMappingLinks(tree, paramsMap, sourceDoc);
-      expect(links.length).toEqual(14);
-      expect(links[0].sourceNodePath).toMatch('field-GS-02');
-      expect(links[0].targetNodePath).toMatch('field-From');
-      expect(links[1].sourceNodePath).toMatch('field-GS-03');
-      expect(links[1].targetNodePath).toMatch('field-To');
-      expect(links[2].sourceNodePath).toMatch('field-GS-04');
-      expect(links[2].targetNodePath).toMatch('field-Date');
-      expect(links[3].sourceNodePath).toMatch('field-GS-05');
-      expect(links[3].targetNodePath).toMatch('field-Time');
-      expect(links[4].sourceNodePath).toMatch('field-Loop2000');
-      expect(links[4].targetNodePath).toMatch('for-each');
-      expect(links[5].sourceNodePath).toMatch('field-CLM-01');
-      expect(links[5].targetNodePath).toMatch('field-SubmitterId');
-      expect(links[6].sourceNodePath).toMatch('field-CLM-02');
-      expect(links[6].targetNodePath).toMatch('field-MonetaryAmount');
-      expect(links[7].sourceNodePath).toMatch('field-C023-01');
-      expect(links[7].targetNodePath).toMatch('field-FacilityCodeValue');
-      expect(links[8].sourceNodePath).toMatch('field-C023-02');
-      expect(links[8].targetNodePath).toMatch('field-FacilityCodeQualifier');
-      expect(links[9].sourceNodePath).toMatch('field-C023-03');
-      expect(links[9].targetNodePath).toMatch('field-ClaimFrequencyTypeCode');
-      expect(links[10].sourceNodePath).toMatch('field-CLM-06');
-      expect(links[10].targetNodePath).toMatch('field-YesNoConditionOrResponseCodeFile');
-      expect(links[11].sourceNodePath).toMatch('field-CLM-07');
-      expect(links[11].targetNodePath).toMatch('field-ProviderAcceptAssignmentCode');
-      expect(links[12].sourceNodePath).toMatch('field-CLM-08');
-      expect(links[12].targetNodePath).toMatch('field-YesNoConditionOrResponseCodeBenefits');
-      expect(links[13].sourceNodePath).toMatch('field-CLM-09');
-      expect(links[13].targetNodePath).toMatch('field-ReleaseOfInformationCode');
     });
   });
 });

@@ -1,7 +1,15 @@
-import { ArrowDownIcon, ArrowUpIcon, CodeBranchIcon, PlusIcon } from '@patternfly/react-icons';
+import {
+  AngleDoubleDownIcon,
+  AngleDoubleUpIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
+  BlueprintIcon,
+  CodeBranchIcon,
+  PlusIcon,
+} from '@patternfly/react-icons';
 import { ContextMenuSeparator, ElementModel, GraphElement } from '@patternfly/react-topology';
 import { forwardRef, ReactElement } from 'react';
-import { AddStepMode } from '../../../../models/visualization/base-visual-entity';
+import { AddStepMode, IVisualizationNode, NodeInteraction } from '../../../../models/visualization/base-visual-entity';
 import { CanvasNode } from '../../Canvas/canvas.models';
 import { ItemAddStep } from './ItemAddStep';
 import { ItemDeleteGroup } from './ItemDeleteGroup';
@@ -10,6 +18,10 @@ import { ItemDisableStep } from './ItemDisableStep';
 import { ItemEnableAllSteps } from './ItemEnableAllSteps';
 import { ItemInsertStep } from './ItemInsertStep';
 import { ItemReplaceStep } from './ItemReplaceStep';
+import { ItemCopyStep } from './ItemCopyStep';
+import { ItemPasteStep } from './ItemPasteStep';
+import { ItemMoveStep } from './ItemMoveStep';
+import { ItemDuplicateStep } from './ItemDuplicateStep';
 
 export const NodeContextMenuFn = (element: GraphElement<ElementModel, CanvasNode['data']>) => {
   const items: ReactElement[] = [];
@@ -44,9 +56,40 @@ export const NodeContextMenuFn = (element: GraphElement<ElementModel, CanvasNode
       </ItemAddStep>,
     );
   }
+
+  items.push(
+    <ItemDuplicateStep key="context-menu-item-duplicate" data-testid="context-menu-item-duplicate" vizNode={vizNode}>
+      <BlueprintIcon /> Duplicate
+    </ItemDuplicateStep>,
+  );
+
+  addCopyPasteItems(items, nodeInteractions, vizNode);
+
   if (nodeInteractions.canHavePreviousStep || nodeInteractions.canHaveNextStep) {
     items.push(<ContextMenuSeparator key="context-menu-separator-add" />);
   }
+
+  items.push(
+    <ItemMoveStep
+      key="context-menu-item-move-before"
+      data-testid="context-menu-item-move-before"
+      mode={AddStepMode.PrependStep}
+      vizNode={vizNode}
+    >
+      <AngleDoubleUpIcon /> Move Before
+    </ItemMoveStep>,
+  );
+
+  items.push(
+    <ItemMoveStep
+      key="context-menu-item-move-next"
+      data-testid="context-menu-item-move-next"
+      mode={AddStepMode.AppendStep}
+      vizNode={vizNode}
+    >
+      <AngleDoubleDownIcon /> Move Next
+    </ItemMoveStep>,
+  );
 
   if (nodeInteractions.canHaveChildren) {
     items.push(
@@ -124,3 +167,43 @@ export const NodeContextMenu = forwardRef<HTMLDivElement, { element: GraphElemen
     );
   },
 );
+
+const addCopyPasteItems = (items: ReactElement[], nodeInteractions: NodeInteraction, vizNode: IVisualizationNode) => {
+  items.push(<ItemCopyStep key="context-menu-item-copy" data-testid="context-menu-item-copy" vizNode={vizNode} />);
+
+  if (nodeInteractions.canHaveChildren) {
+    items.push(
+      <ItemPasteStep
+        key="context-menu-item-paste-as-child"
+        data-testid="context-menu-item-paste-as-child"
+        mode={AddStepMode.InsertChildStep}
+        vizNode={vizNode}
+        text="Paste as child"
+      />,
+    );
+  }
+
+  if (nodeInteractions.canHaveNextStep) {
+    items.push(
+      <ItemPasteStep
+        key="context-menu-item-paste-as-next-step"
+        data-testid="context-menu-item-paste-as-next-step"
+        mode={AddStepMode.AppendStep}
+        vizNode={vizNode}
+        text="Paste as next step"
+      />,
+    );
+  }
+
+  if (nodeInteractions.canHaveSpecialChildren) {
+    items.push(
+      <ItemPasteStep
+        key="context-menu-item-paste-as-special-child"
+        data-testid="context-menu-item-paste-as-special-child"
+        mode={AddStepMode.InsertSpecialChildStep}
+        vizNode={vizNode}
+        text="Paste as special child"
+      />,
+    );
+  }
+};

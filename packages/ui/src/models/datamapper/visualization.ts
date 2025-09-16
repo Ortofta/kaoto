@@ -1,6 +1,8 @@
-import { IDocument, IField, PrimitiveDocument } from './document';
+import { DocumentType, IDocument, IField, PrimitiveDocument } from './document';
 import { ExpressionItem, FieldItem, IFunctionDefinition, MappingItem, MappingParentType, MappingTree } from './mapping';
-import { DocumentType, NodePath } from './path';
+import { NodePath } from './nodepath';
+import { RefObject } from 'react';
+import { AlertProps } from '@patternfly/react-core';
 
 export interface NodeData {
   title: string;
@@ -51,7 +53,7 @@ export class FieldNodeData implements NodeData {
     public parent: NodeData,
     public field: IField,
   ) {
-    this.title = field.name;
+    this.title = field.displayName;
     this.id = field.id;
     this.path = NodePath.childOf(parent.path, this.id);
     this.isSource = parent.isSource;
@@ -97,6 +99,38 @@ export class MappingNodeData implements TargetNodeData {
   mappingTree: MappingTree;
 }
 
+export class FieldItemNodeData extends MappingNodeData {
+  constructor(
+    public parent: TargetNodeData,
+    public mapping: FieldItem,
+  ) {
+    super(parent, mapping);
+    this.title = mapping.field.displayName;
+    this.field = mapping.field;
+  }
+  public field: IField;
+}
+
+export class AddMappingNodeData implements TargetNodeData {
+  constructor(
+    public parent: TargetNodeData,
+    public field: IField,
+  ) {
+    const ID_PREFIX = 'add-mapping-';
+    this.id = ID_PREFIX + field.id;
+    this.path = NodePath.childOf(parent.path, this.id);
+    this.title = field.name;
+    this.isPrimitive = parent.isPrimitive;
+    this.mappingTree = parent.mappingTree;
+  }
+  id: string;
+  isPrimitive: boolean;
+  isSource = false;
+  mappingTree: MappingTree;
+  path: NodePath;
+  title: string;
+}
+
 class SimpleNodePath extends NodePath {
   constructor(public path: string) {
     super();
@@ -131,4 +165,28 @@ export class FunctionNodeData implements NodeData {
 export interface IMappingLink {
   sourceNodePath: string;
   targetNodePath: string;
+  isSelected: boolean;
 }
+
+export interface NodeReference {
+  path: string;
+  isSource: boolean;
+  headerRef: HTMLDivElement | null;
+  containerRef: HTMLDivElement | null;
+}
+
+export type LineCoord = {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+};
+
+export type LineProps = LineCoord & {
+  sourceNodePath: string;
+  targetNodePath: string;
+  isSelected?: boolean;
+  svgRef?: RefObject<SVGSVGElement>;
+};
+
+export type SendAlertProps = Partial<AlertProps & { description: string }>;

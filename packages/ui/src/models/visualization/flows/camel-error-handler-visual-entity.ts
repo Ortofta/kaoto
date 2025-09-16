@@ -1,6 +1,5 @@
 import { ErrorHandlerDeserializer, ProcessorDefinition } from '@kaoto/camel-catalog/types';
 import { getCamelRandomId } from '../../../camel-utils/camel-random-id';
-import { SchemaService } from '../../../components/Form/schema.service';
 import { NodeIconResolver, NodeIconType, getValue, isDefined, setValue } from '../../../utils';
 import { EntityType } from '../../camel/entities/base-entity';
 import {
@@ -13,6 +12,8 @@ import {
 import { NodeMapperService } from './nodes/node-mapper.service';
 import { CamelCatalogService } from './camel-catalog.service';
 import { CatalogKind } from '../../catalog-kind';
+import { IClipboardCopyObject } from '../../../components/Visualization/Custom/hooks/copy-step.hook';
+import { SourceSchemaType } from '../../camel/source-schema-type';
 
 export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
   id: string;
@@ -91,16 +92,24 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
     return;
   }
 
+  getCopiedContent(): IClipboardCopyObject | undefined {
+    return {
+      type: SourceSchemaType.Route,
+      name: CamelErrorHandlerVisualEntity.ROOT_PATH,
+      definition: this.errorHandlerDef.errorHandler,
+    };
+  }
+
+  pasteStep(): void {
+    return;
+  }
+
   canDragNode(_path?: string) {
     return false;
   }
 
   canDropOnNode(_path?: string) {
     return false;
-  }
-
-  moveNodeTo(_options: { draggedNodePath: string; droppedNodePath?: string }) {
-    return;
   }
 
   removeStep(): void {
@@ -117,7 +126,7 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
   }
 
   getOmitFormFields(): string[] {
-    return SchemaService.OMIT_FORM_FIELDS;
+    return [];
   }
 
   updateModel(path: string | undefined, value: unknown): void {

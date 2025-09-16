@@ -76,6 +76,44 @@ describe('Canvas', () => {
     expect(result?.asFragment()).toMatchSnapshot();
   });
 
+  it('should schedule a graph.fit(80) upon loading', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { Provider } = TestProvidersWrapper({
+      visibleFlowsContext: { visibleFlows: { ['route-8888']: true } } as unknown as VisibleFlowsContextResult,
+    });
+    const controller = ControllerService.createController();
+    const fromModelSpy = jest.spyOn(controller, 'fromModel');
+
+    await act(async () => {
+      render(
+        <Provider>
+          <VisualizationProvider controller={controller}>
+            <Canvas entities={[entity]} />
+          </VisualizationProvider>
+        </Provider>,
+      );
+    });
+
+    // The graph has been initialized with the .fromModel method, but the requestAnimationFrame
+    // has not been called yet, so the graph.fit(80) is not called yet.
+    const fitSpy = jest.spyOn(controller.getGraph(), 'fit');
+    const layoutSpy = jest.spyOn(controller.getGraph(), 'layout');
+
+    await act(async () => {
+      await jest.runAllTimersAsync();
+    });
+
+    expect(fromModelSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ graph: { id: 'g1', type: 'graph', layout: 'DagreVertical' } }),
+      false,
+    );
+    expect(fitSpy).toHaveBeenCalledWith(80);
+
+    // This won't be called the first time
+    expect(fromModelSpy).not.toHaveBeenCalledWith(expect.anything(), true);
+    expect(layoutSpy).not.toHaveBeenCalled();
+  });
+
   it('should be able to delete the routes', async () => {
     const camelResource = new CamelRouteResource([camelRouteJson]);
     const routeEntities = camelResource.getVisualEntities();
@@ -117,7 +155,7 @@ describe('Canvas', () => {
     });
 
     // Click the Delete ContextMenuItem
-    const deleteRoute = screen.getByRole('menuitem', { name: 'Delete' });
+    const deleteRoute = await screen.findByRole('menuitem', { name: 'Delete' });
     expect(deleteRoute).toBeInTheDocument();
 
     await act(async () => {
@@ -134,7 +172,7 @@ describe('Canvas', () => {
 
     // Check if the remove function is called
     expect(removeSpy).toHaveBeenCalled();
-    expect(removeSpy).toHaveBeenCalledWith('route-8888');
+    expect(removeSpy).toHaveBeenCalledWith(['route-8888']);
   });
 
   it('should be able to delete the kamelets', async () => {
@@ -178,7 +216,7 @@ describe('Canvas', () => {
     });
 
     // click the Delete ContextMenuItem
-    const deleteKamelet = screen.getByRole('menuitem', { name: 'Delete' });
+    const deleteKamelet = await screen.findByRole('menuitem', { name: 'Delete' });
     expect(deleteKamelet).toBeInTheDocument();
 
     await act(async () => {
@@ -207,7 +245,9 @@ describe('Canvas', () => {
 
       await act(async () => {
         result = render(
-          <CatalogModalContext.Provider value={{ getNewComponent: jest.fn(), setIsModalOpen: jest.fn() }}>
+          <CatalogModalContext.Provider
+            value={{ getNewComponent: jest.fn(), setIsModalOpen: jest.fn(), checkCompatibility: jest.fn() }}
+          >
             <Provider>
               <VisualizationProvider controller={ControllerService.createController()}>
                 <Canvas entities={[entity]} />

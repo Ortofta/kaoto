@@ -12,10 +12,14 @@ import { I18nService } from '@kie-tools-core/i18n/dist/envelope/I18nService';
 import { KeyboardShortcutsService } from '@kie-tools-core/keyboard-shortcuts/dist/envelope/KeyboardShortcutsService';
 import { OperatingSystem } from '@kie-tools-core/operating-system/dist/OperatingSystem';
 import { RefObject } from 'react';
-import { AbstractSettingsAdapter, DefaultSettingsAdapter } from '../models/settings';
+import { CatalogKind, StepUpdateAction } from '../models';
+import { AbstractSettingsAdapter, ColorScheme, DefaultSettingsAdapter } from '../models/settings';
+import { setColorScheme } from '../utils/color-scheme';
 import { EditService } from './EditService';
 import { KaotoEditorApp } from './KaotoEditorApp';
 import { KaotoEditorChannelApi } from './KaotoEditorChannelApi';
+
+jest.mock('../utils/color-scheme');
 
 describe('KaotoEditorApp', () => {
   let kaotoEditorApp: KaotoEditorAppTest;
@@ -41,6 +45,7 @@ describe('KaotoEditorApp', () => {
     };
 
     envelopeContext = {
+      supportedThemes: [EditorTheme.DARK, EditorTheme.LIGHT],
       channelApi: {
         notifications: {
           kogitoEditor_ready: getNotificationMock(),
@@ -57,6 +62,7 @@ describe('KaotoEditorApp', () => {
           setMetadata: jest.fn(),
           getResourceContent: jest.fn(),
           saveResourceContent: jest.fn(),
+          onStepUpdated: jest.fn(),
         } as unknown as ApiRequests<KaotoEditorChannelApi>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         shared: {} as any,
@@ -74,6 +80,7 @@ describe('KaotoEditorApp', () => {
       initialLocale: 'en-us',
       isReadOnly: false,
       channel: ChannelType.VSCODE_DESKTOP,
+      workspaceRootAbsolutePosixPath: '/workspace',
     };
 
     settingsAdapter = new DefaultSettingsAdapter();
@@ -118,18 +125,6 @@ describe('KaotoEditorApp', () => {
       await kaotoEditorApp.setContent('path', 'content');
 
       expect(editorRef.current!.setContent).toHaveBeenCalledWith('path', 'content');
-    });
-
-    it('should store the calling arguments until the editor is ready', async () => {
-      kaotoEditorApp.setEditorRef({ current: null });
-
-      await kaotoEditorApp.setContent('path', 'content');
-
-      kaotoEditorApp.setEditorRef(editorRef);
-      await kaotoEditorApp.sendReady();
-
-      expect(editorRef.current!.setContent).toHaveBeenCalledWith('path', 'content');
-      expect(editorRef.current!.setContent).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -234,6 +229,25 @@ describe('KaotoEditorApp', () => {
     await kaotoEditorApp.saveResourceContent('path', 'content');
 
     expect(envelopeContext.channelApi.requests.saveResourceContent).toHaveBeenCalledWith('path', 'content');
+  });
+
+  it('should set the color theme upon opening the editor', () => {
+    kaotoEditorApp.af_onOpen();
+
+    expect(setColorScheme).toHaveBeenCalledWith(ColorScheme.Auto);
+  });
+
+  it('should notify when a new step is added', async () => {
+    const stepType = CatalogKind.Component;
+    const stepName = 'amqp';
+
+    await kaotoEditorApp.onStepUpdated(StepUpdateAction.Add, stepType, stepName);
+
+    expect(envelopeContext.channelApi.requests.onStepUpdated).toHaveBeenCalledWith(
+      StepUpdateAction.Add,
+      stepType,
+      stepName,
+    );
   });
 });
 

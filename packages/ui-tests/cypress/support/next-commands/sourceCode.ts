@@ -60,11 +60,22 @@ Cypress.Commands.add('checkCodeSpanLine', (spanText: string, linesCount?: number
   });
 });
 
+Cypress.Commands.add('checkMultipleCodeSpanEntry', (spanText: string, linesCount: number) => {
+  cy.waitForEditorToLoad();
+  cy.get('.pf-v6-c-code-editor').within(() => {
+    cy.get('span:only-child')
+      .filter(':contains("' + spanText.replace(/\s/g, '\u00a0') + '")')
+      .should('have.length', linesCount);
+  });
+});
+
 Cypress.Commands.add('checkMultiLineContent', (textContent: string[]) => {
   const modifiedTextContent: string[] = textContent.map((line) => {
     return line.replace(/\s/g, '\u00a0');
   });
 
+  // workaround for sporadic failures of basicXml.cy.ts on edge - https://github.com/KaotoIO/kaoto/issues/2278
+  cy.get('.monaco-editor').invoke('text').should('not.be.empty', { timeout: 5000 });
   cy.get('.monaco-editor')
     .invoke('text')
     .then(($value) => {

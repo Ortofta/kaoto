@@ -1,5 +1,5 @@
-import { EMPTY_XSL, MappingSerializerService, NS_XSL } from './mapping-serializer.service';
-import { BODY_DOCUMENT_ID } from '../models/datamapper/document';
+import { EMPTY_XSL, MappingSerializerService } from './mapping-serializer.service';
+import { BODY_DOCUMENT_ID, DocumentType } from '../models/datamapper/document';
 import {
   ChooseItem,
   FieldItem,
@@ -10,10 +10,19 @@ import {
   ValueSelector,
   WhenItem,
 } from '../models/datamapper/mapping';
-import { DocumentType } from '../models/datamapper/path';
 import { Types } from '../models/datamapper/types';
 
-import { shipOrderToShipOrderXslt, shipOrderToShipOrderInvalidForEachXslt, TestUtil } from '../stubs/data-mapper';
+import {
+  shipOrderToShipOrderXslt,
+  shipOrderToShipOrderInvalidForEachXslt,
+  TestUtil,
+  x12850ForEachXslt,
+  invoice850Xsd,
+  shipOrderToShipOrderMultipleForEachXslt,
+  shipOrderToShipOrderCollectionIndexXslt,
+} from '../stubs/datamapper/data-mapper';
+import { XmlSchemaDocumentService, XmlSchemaField } from './xml-schema-document.service';
+import { NS_XSL } from '../models/datamapper/xslt';
 
 describe('MappingSerializerService', () => {
   const sourceParameterMap = TestUtil.createParameterMap();
@@ -28,9 +37,7 @@ describe('MappingSerializerService', () => {
     expect(stylesheet[0].namespaceURI).toBe(NS_XSL);
     expect(stylesheet[0].localName).toBe('stylesheet');
     const template = xslt.getElementsByTagNameNS(NS_XSL, 'template');
-    expect(template.length).toEqual(1);
-    expect(template[0].namespaceURI).toBe(NS_XSL);
-    expect(template[0].localName).toBe('template');
+    expect(template.length).toEqual(0);
   });
 
   describe('deserialize()', () => {
@@ -179,6 +186,68 @@ describe('MappingSerializerService', () => {
       const itemSelector = forEachItem.children[0].children[0] as ValueSelector;
       expect(itemSelector.expression).toEqual('/ns0:ShipOrder/Item');
     });
+
+    it('should deserialize a mapping on cached type fragment', () => {
+      const targetDoc850 = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.TARGET_BODY,
+        'Invoice.xsd',
+        invoice850Xsd,
+      );
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      mappingTree = MappingSerializerService.deserialize(
+        x12850ForEachXslt,
+        targetDoc850,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const itemsFieldItem = mappingTree.children[0].children[0] as FieldItem;
+      expect(itemsFieldItem.children.length).toEqual(1);
+      const forEachItem = itemsFieldItem.children[0] as ForEachItem;
+      expect(forEachItem.expression).toEqual('/X12_850/PO1Loop');
+
+      expect(itemsFieldItem.field.namedTypeFragmentRefs.length).toEqual(0);
+      expect(itemsFieldItem.field.fields.length).toEqual(1);
+      expect(itemsFieldItem.field.fields[0] instanceof XmlSchemaField).toBeTruthy();
+    });
+
+    it('should deserialize multiple for-each mappings on a same target collection', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      mappingTree = MappingSerializerService.deserialize(
+        shipOrderToShipOrderMultipleForEachXslt,
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      expect(mappingTree.children[0].children.length).toEqual(2);
+      const forEach1 = mappingTree.children[0].children[0] as ForEachItem;
+      expect(forEach1.expression).toEqual('/ns0:ShipOrder/Item');
+      expect(forEach1.children.length).toEqual(1);
+      const item1 = forEach1.children[0] as FieldItem;
+      expect(item1.field.name).toEqual('Item');
+      const forEach2 = mappingTree.children[0].children[1] as ForEachItem;
+      expect(forEach2.expression).toEqual('$sourceParam1/ns0:ShipOrder/Item');
+      expect(forEach2.children.length).toEqual(1);
+      const item2 = forEach1.children[0] as FieldItem;
+      expect(item2.field.name).toEqual('Item');
+    });
+
+    it('should deserialize multiple indexed collection mappings on a same target collection', () => {
+      const mockCrypto = { getRandomValues: () => [Math.random() * 10000] };
+      jest.spyOn(global, 'crypto', 'get').mockImplementation(() => mockCrypto as unknown as Crypto);
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      mappingTree = MappingSerializerService.deserialize(
+        shipOrderToShipOrderCollectionIndexXslt,
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      expect(mappingTree.children[0].children.length).toEqual(2);
+      const item1 = mappingTree.children[0].children[0] as FieldItem;
+      expect(item1.children.length).toEqual(4);
+      const item2 = mappingTree.children[0].children[1] as FieldItem;
+      expect(item2.children.length).toEqual(4);
+      expect(item1.id).not.toEqual(item2.id);
+    });
   });
 
   describe('serialize()', () => {
@@ -193,8 +262,7 @@ describe('MappingSerializerService', () => {
         .evaluate('/xsl:stylesheet/xsl:template', dom, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE)
         .iterateNext();
       expect(template).toBeTruthy();
-      expect(template!.childNodes.length).toEqual(1);
-      expect(template!.childNodes[0].nodeType).toEqual(Node.TEXT_NODE);
+      expect(template!.childNodes.length).toEqual(0);
     });
 
     it('should serialize mappings', () => {

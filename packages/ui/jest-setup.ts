@@ -2,14 +2,12 @@ import '@testing-library/jest-dom';
 import { setupJestCanvasMock } from 'jest-canvas-mock';
 import { subtle } from 'node:crypto';
 import { TextDecoder, TextEncoder } from 'node:util';
-import { FilterDOMPropsKeys, filterDOMProps } from 'uniforms';
 
 Object.defineProperties(global, {
   TextDecoder: { value: TextDecoder },
   TextEncoder: { value: TextEncoder },
 });
 
-filterDOMProps.register('inputRef' as FilterDOMPropsKeys, 'placeholder' as FilterDOMPropsKeys);
 enableSVGElementMocks();
 
 Object.defineProperty(window, 'fetch', {
@@ -52,6 +50,8 @@ beforeEach(() => {
   fetchMock.mockResolvedValue(null as unknown as Response);
   setupJestCanvasMock();
 });
+
+Element.prototype.scrollIntoView = jest.fn();
 
 function enableSVGElementMocks() {
   /**

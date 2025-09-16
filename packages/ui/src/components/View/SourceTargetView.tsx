@@ -13,18 +13,24 @@ import {
 } from '@patternfly/react-core';
 import { FunctionComponent, useEffect, useRef } from 'react';
 import { useDataMapper } from '../../hooks/useDataMapper';
-import { MappingLinksContainer } from './MappingLink';
+import { MappingLinksContainer } from './MappingLinkContainer';
 import './SourceTargetView.scss';
 import { useCanvas } from '../../hooks/useCanvas';
 import { SourcePanel } from './SourcePanel';
 import { SourceTargetDnDHandler } from '../../providers/dnd/SourceTargetDnDHandler';
 import { TargetDocument } from '../Document/TargetDocument';
+import { useMappingLinks } from '../../hooks/useMappingLinks';
 
 export const SourceTargetView: FunctionComponent = () => {
   const { targetBodyDocument } = useDataMapper();
-  const { reloadNodeReferences, setDefaultHandler, setMappingLinkCanvasRef } = useCanvas();
+  const { reloadNodeReferences, setDefaultHandler } = useCanvas();
+  const { setMappingLinkCanvasRef } = useMappingLinks();
   const mappingLinkCanvasRef = useRef<HTMLDivElement>(null);
-  setMappingLinkCanvasRef(mappingLinkCanvasRef);
+
+  useEffect(() => {
+    setMappingLinkCanvasRef(mappingLinkCanvasRef);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setDefaultHandler(new SourceTargetDnDHandler());

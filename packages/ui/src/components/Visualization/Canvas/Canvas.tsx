@@ -25,6 +25,7 @@ import {
   useState,
 } from 'react';
 import { useLocalStorage } from '../../../hooks';
+import { usePrevious } from '../../../hooks/previous.hook';
 import { LocalStorageKeys } from '../../../models';
 import { BaseVisualCamelEntity } from '../../../models/visualization/base-visual-entity';
 import { CatalogModalContext } from '../../../providers/catalog-modal.provider';
@@ -64,6 +65,8 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
     return areNoFlows || areAllFlowsHidden;
   }, [entities.length, visibleFlows]);
 
+  const wasEmptyStateVisible = usePrevious(shouldShowEmptyState);
+
   /** Draw graph */
   useEffect(() => {
     setSelectedNode(undefined);
@@ -89,9 +92,13 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
       },
     };
 
-    if (!initialized) {
+    if (!initialized || wasEmptyStateVisible) {
       controller.fromModel(model, false);
       setInitialized(true);
+
+      requestAnimationFrame(() => {
+        controller.getGraph().fit(CanvasDefaults.CANVAS_FIT_PADDING);
+      });
       return;
     }
 
@@ -176,6 +183,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
       resetViewCallback: action(() => {
         controller.getGraph().reset();
         controller.getGraph().layout();
+        controller.getGraph().fit(CanvasDefaults.CANVAS_FIT_PADDING);
       }),
       legend: false,
       customButtons,

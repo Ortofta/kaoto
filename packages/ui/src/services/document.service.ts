@@ -1,17 +1,22 @@
 import {
   BODY_DOCUMENT_ID,
+  CreateDocumentResult,
   DocumentDefinition,
   DocumentDefinitionType,
   DocumentInitializationModel,
+  DocumentType,
   IDocument,
   IField,
   IParentType,
-  ITypeFragment,
   PrimitiveDocument,
+  RootElementOption,
 } from '../models/datamapper/document';
-import { DocumentType } from '../models/datamapper/path';
-import { XmlSchemaDocumentService } from './xml-schema-document.service';
 import { IMetadataApi } from '../providers';
+import { JsonSchemaDocumentService } from './json-schema-document.service';
+import { XmlSchemaDocument, XmlSchemaDocumentService } from './xml-schema-document.service';
+import { PathSegment } from '../models/datamapper';
+import { XPathService } from './xpath/xpath.service';
+import { DocumentUtilService } from './document-util.service';
 
 interface InitialDocumentsSet {
   sourceBodyDocument?: IDocument;
@@ -19,8 +24,97 @@ interface InitialDocumentsSet {
   targetBodyDocument?: IDocument;
 }
 
+/**
+ * The collection of the Document handling logic. In order to avoid circular dependency, the common routines
+ * to be used by the format specific document services such as {@link XmlSchemaDocumentService} and
+ * {@link JsonSchemaDocumentService} have been split into {@link DocumentUtilService}.
+ *
+ * @see DocumentUtilService
+ * @see XmlSchemaDocumentService
+ * @see JsonSchemaDocumentService
+ * @see XPathService
+ */
 export class DocumentService {
-  static async createDocumentDefinition(
+  /**
+   * Creates {@link DocumentDefinition} object and an appropriate implementation of {@link IDocument} object by
+   * consuming metadata such as {@link DocumentType}, {@link DocumentDefinitionType} `Document ID` and schema files.
+   * @see createPrimitiveDocument
+   *
+   * @param api
+   * @param documentType
+   * @param schemaType
+   * @param documentId
+   * @param schemaFilePaths
+   */
+  static async createDocument(
+    api: IMetadataApi,
+    documentType: DocumentType,
+    schemaType: DocumentDefinitionType,
+    documentId: string,
+    schemaFilePaths: string[],
+  ): Promise<CreateDocumentResult> {
+    try {
+      const docId = documentType === DocumentType.PARAM ? documentId : BODY_DOCUMENT_ID;
+      const documentDefinition = await DocumentService.doCreateDocumentDefinition(
+        api,
+        documentType,
+        schemaType,
+        docId,
+        schemaFilePaths,
+      );
+      if (!documentDefinition) {
+        return { validationStatus: 'error', validationMessage: 'Could not read schema file(s)' };
+      }
+
+      const document = DocumentService.doCreateDocumentFromDefinition(documentDefinition);
+      if (!document) {
+        return { validationStatus: 'error', validationMessage: 'Could not create a document from schema file(s)' };
+      }
+
+      const rootElementOptions: RootElementOption[] = [];
+      if (document instanceof XmlSchemaDocument) {
+        const options: RootElementOption[] = Array.from(document.xmlSchema.getElements().keys())
+          .filter((key) => !!key.getLocalPart())
+          .map((key) => {
+            return { namespaceUri: key.getNamespaceURI() || '', name: key.getLocalPart() };
+          }) as RootElementOption[];
+        rootElementOptions.push(...options);
+      }
+
+      return {
+        validationStatus: 'success',
+        validationMessage: 'Schema validation successful',
+        documentDefinition,
+        document,
+        rootElementOptions,
+      };
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Unknown validation error';
+      return { validationStatus: 'error', validationMessage: errorMessage };
+    }
+  }
+
+  /**
+   * Creates {@link DocumentDefinition} object and a {@link PrimitiveDocument} object.
+   * @see createDocument
+   *
+   * @param documentType
+   * @param schemaType
+   * @param documentId
+   */
+  static createPrimitiveDocument(
+    documentType: DocumentType,
+    schemaType: DocumentDefinitionType,
+    documentId: string,
+  ): CreateDocumentResult {
+    const definition = new DocumentDefinition(documentType, schemaType, documentId);
+    const docId = documentType === DocumentType.PARAM ? definition.name! : BODY_DOCUMENT_ID;
+    const doc = new PrimitiveDocument(definition.documentType, docId);
+    return { validationStatus: 'success', documentDefinition: definition, document: doc };
+  }
+
+  private static async doCreateDocumentDefinition(
     api: IMetadataApi,
     documentType: DocumentType,
     definitionType: DocumentDefinitionType,
@@ -40,14 +134,37 @@ export class DocumentService {
     return new DocumentDefinition(documentType, definitionType, documentId, fileContents);
   }
 
-  static createDocument(definition: DocumentDefinition): IDocument | null {
+  private static doCreateDocumentFromDefinition(definition: DocumentDefinition): IDocument | null {
     if (definition.definitionType === DocumentDefinitionType.Primitive) {
       return new PrimitiveDocument(definition.documentType, DocumentType.PARAM ? definition.name! : BODY_DOCUMENT_ID);
     }
     if (!definition.definitionFiles || Object.keys(definition.definitionFiles).length === 0) return null;
     const content = Object.values(definition.definitionFiles)[0];
     const documentId = definition.documentType === DocumentType.PARAM ? definition.name! : BODY_DOCUMENT_ID;
-    return XmlSchemaDocumentService.createXmlSchemaDocument(definition.documentType, documentId, content);
+    switch (definition.definitionType) {
+      case DocumentDefinitionType.XML_SCHEMA:
+        return XmlSchemaDocumentService.createXmlSchemaDocument(
+          definition.documentType,
+          documentId,
+          content,
+          definition.rootElementChoice,
+        );
+      case DocumentDefinitionType.JSON_SCHEMA:
+        return JsonSchemaDocumentService.createJsonSchemaDocument(definition.documentType, documentId, content);
+      default:
+        return null;
+    }
+  }
+
+  static updateRootElement(document: IDocument, rootElementOption: RootElementOption): IDocument {
+    if (!(document instanceof XmlSchemaDocument)) return document;
+
+    return XmlSchemaDocumentService.updateRootElement(document, rootElementOption);
+  }
+
+  static getRootElementQName(document?: IDocument) {
+    if (!(document instanceof XmlSchemaDocument)) return null;
+    return document.rootElement?.getQName();
   }
 
   static createInitialDocuments(initModel?: DocumentInitializationModel): InitialDocumentsSet | null {
@@ -56,30 +173,20 @@ export class DocumentService {
       sourceParameterMap: new Map<string, IDocument>(),
     };
     if (initModel.sourceBody) {
-      const document = DocumentService.createDocument(initModel.sourceBody);
+      const document = DocumentService.doCreateDocumentFromDefinition(initModel.sourceBody);
       if (document) answer.sourceBodyDocument = document;
     }
     if (initModel.sourceParameters) {
       Object.entries(initModel.sourceParameters).forEach(([key, value]) => {
-        const document = DocumentService.createDocument(value);
+        const document = DocumentService.doCreateDocumentFromDefinition(value);
         answer.sourceParameterMap.set(key, document ? document : new PrimitiveDocument(DocumentType.PARAM, key));
       });
     }
     if (initModel.targetBody) {
-      const document = DocumentService.createDocument(initModel.targetBody);
+      const document = DocumentService.doCreateDocumentFromDefinition(initModel.targetBody);
       if (document) answer.targetBodyDocument = document;
     }
     return answer;
-  }
-
-  static getFieldStack(field: IField, includeItself: boolean = false) {
-    if (field instanceof PrimitiveDocument) return [];
-    const fieldStack: IField[] = [];
-    if (includeItself) fieldStack.push(field);
-    for (let next = field.parent; 'parent' in next && next !== next.parent; next = (next as IField).parent) {
-      fieldStack.push(next);
-    }
-    return fieldStack;
   }
 
   static hasField(document: IDocument, field: IField) {
@@ -102,7 +209,7 @@ export class DocumentService {
     if (field instanceof PrimitiveDocument) return undefined;
 
     let left: IField | undefined = undefined;
-    const fieldStack = DocumentService.getFieldStack(field, true);
+    const fieldStack = DocumentUtilService.getFieldStack(field, true);
     for (const right of fieldStack.reverse()) {
       const parent: IParentType = left ? left : document;
       left = parent.fields.find((leftTest: IField) => {
@@ -118,13 +225,18 @@ export class DocumentService {
     return left;
   }
 
-  static getFieldFromPathSegments(document: IDocument, pathSegments: string[]) {
+  static getFieldFromPathSegments(
+    namespaces: { [p: string]: string },
+    document: IDocument,
+    pathSegments: PathSegment[],
+  ) {
     let parent: IDocument | IField = document;
+
     for (const segment of pathSegments) {
       if (!segment) continue;
       const child: IField | undefined = parent.fields.find((f) => {
-        const resolvedField = DocumentService.resolveTypeFragment(f);
-        return DocumentService.getFieldExpression(resolvedField) === segment;
+        const resolvedField = DocumentUtilService.resolveTypeFragment(f);
+        return XPathService.matchSegment(namespaces, resolvedField, segment);
       });
       if (!child) {
         return undefined;
@@ -134,47 +246,6 @@ export class DocumentService {
     return parent;
   }
 
-  static getFieldFromPathExpression(document: IDocument, pathExpression: string) {
-    return DocumentService.getFieldFromPathSegments(document, pathExpression.split('/'));
-  }
-
-  static getFieldExpression(field: IField) {
-    return field.isAttribute ? `@${field.name}` : field.name;
-  }
-
-  static getFieldExpressionNS(field: IField, namespaceMap: { [prefix: string]: string }) {
-    let answer = field.isAttribute ? '@' : '';
-    const nsPair =
-      field.namespaceURI &&
-      Object.entries(namespaceMap).find(([prefix, uri]) => prefix && uri && field.namespaceURI === uri);
-    if (nsPair) answer += nsPair[0] + ':';
-    return answer + field.name;
-  }
-
-  static getOwnerDocument<DocumentType extends IDocument>(docOrField: IParentType): DocumentType {
-    return ('ownerDocument' in docOrField ? docOrField.ownerDocument : docOrField) as DocumentType;
-  }
-
-  static resolveTypeFragment(field: IField) {
-    if (field.namedTypeFragmentRefs.length === 0) return field;
-    const doc = DocumentService.getOwnerDocument(field);
-    field.namedTypeFragmentRefs.forEach((ref) => {
-      const fragment = doc.namedTypeFragments[ref];
-      DocumentService.adoptTypeFragment(field, fragment);
-    });
-    field.namedTypeFragmentRefs = [];
-    return field;
-  }
-
-  private static adoptTypeFragment(field: IField, fragment: ITypeFragment) {
-    const doc = DocumentService.getOwnerDocument(field);
-    fragment.fields.forEach((f) => f.adopt(field));
-    fragment.namedTypeFragmentRefs.forEach((childRef) => {
-      const childFragment = doc.namedTypeFragments[childRef];
-      DocumentService.adoptTypeFragment(field, childFragment);
-    });
-  }
-
   static isNonPrimitiveField(parent: IParentType) {
     return parent && !('documentType' in parent);
   }
@@ -182,7 +253,7 @@ export class DocumentService {
   static isRecursiveField(field: IField) {
     const name = field.name;
     const namespace = field.namespaceURI;
-    const stack = DocumentService.getFieldStack(field);
+    const stack = DocumentUtilService.getFieldStack(field);
     return !!stack.find((f) => f.name === name && f.namespaceURI === namespace);
   }
 
@@ -192,5 +263,9 @@ export class DocumentService {
 
   static hasChildren(field: IField) {
     return field.fields.length > 0 || field.namedTypeFragmentRefs.length > 0;
+  }
+
+  static isCollectionField(field: IField) {
+    return !!field.maxOccurs && field.maxOccurs > 1;
   }
 }

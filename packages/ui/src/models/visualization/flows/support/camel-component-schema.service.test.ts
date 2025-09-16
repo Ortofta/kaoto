@@ -8,6 +8,9 @@ import { NodeLabelType } from '../../../settings/settings.model';
 import { CamelCatalogService } from '../camel-catalog.service';
 import { CamelComponentSchemaService } from './camel-component-schema.service';
 import { CamelProcessorStepsProperties, ICamelElementLookupResult } from './camel-component-types';
+import { IClipboardCopyObject } from '../../../../components/Visualization/Custom/hooks/copy-step.hook';
+import { SourceSchemaType } from '../../../camel/source-schema-type';
+import { ICamelComponentDefinition } from '../../../camel-components-catalog';
 
 describe('CamelComponentSchemaService', () => {
   let path: string;
@@ -477,7 +480,7 @@ describe('CamelComponentSchemaService', () => {
       };
       const actualContent = CamelComponentSchemaService.getTooltipContent(camelElementLookup);
 
-      expect(actualContent).toEqual('Deserialize payload to Avro');
+      expect(actualContent).toContain('Deserialize payload to Avro');
     });
 
     it('should return the kamelet name', () => {
@@ -722,6 +725,76 @@ describe('CamelComponentSchemaService', () => {
       const uri = 'timer';
       const componentName = CamelComponentSchemaService.getComponentNameFromUri(uri);
       expect(componentName).toEqual('timer');
+    });
+  });
+
+  describe('getNodeDefinitionValue', () => {
+    it('should return Node definition for a simple processor', () => {
+      const clipboadContent: IClipboardCopyObject = {
+        type: SourceSchemaType.Route,
+        name: 'log',
+        definition: {
+          id: 'log-3245',
+          message: '${body}',
+        },
+      };
+      const expectedValue = CamelComponentSchemaService.getNodeDefinitionValue(clipboadContent);
+      expect(expectedValue).toEqual({ log: { id: 'log-3245', message: '${body}' } });
+    });
+
+    it('should return Node definition for a Special processor', () => {
+      const clipboadContent: IClipboardCopyObject = {
+        type: SourceSchemaType.Route,
+        name: 'when',
+        definition: {
+          id: 'when-2765',
+          steps: [{ log: { id: 'log-2202', message: '${body}' } }],
+        },
+      };
+      const expectedValue = CamelComponentSchemaService.getNodeDefinitionValue(clipboadContent);
+      expect(expectedValue).toEqual({ id: 'when-2765', steps: [{ log: { id: 'log-2202', message: '${body}' } }] });
+    });
+  });
+
+  describe('getComponentDefinitionFromUri', () => {
+    it('returns undefined for empty uri', () => {
+      expect(CamelComponentSchemaService.getComponentDefinitionFromUri('')).toEqual({ uri: '' });
+    });
+
+    it('returns undefined for unknown component', () => {
+      jest.spyOn(CamelCatalogService, 'getComponent').mockReturnValueOnce(undefined);
+      expect(CamelComponentSchemaService.getComponentDefinitionFromUri('unknown:foo')).toEqual({ uri: 'unknown:foo' });
+    });
+
+    it('parses simple component uri', () => {
+      jest.spyOn(CamelCatalogService, 'getComponent').mockReturnValueOnce({
+        component: { syntax: 'timer:timerName' },
+        propertiesSchema: { required: ['timerName'] },
+      } as ICamelComponentDefinition);
+      expect(CamelComponentSchemaService.getComponentDefinitionFromUri('timer:myTimer')).toEqual({
+        uri: 'timer',
+        parameters: { timerName: 'myTimer' },
+      });
+    });
+
+    it('parses uri with query parameters', () => {
+      jest.spyOn(CamelCatalogService, 'getComponent').mockReturnValueOnce({
+        component: { syntax: 'timer:timerName' },
+        propertiesSchema: {
+          required: ['timerName'],
+        },
+      } as ICamelComponentDefinition);
+      expect(CamelComponentSchemaService.getComponentDefinitionFromUri('timer:myTimer?period=1000&delay=500')).toEqual({
+        uri: 'timer',
+        parameters: { timerName: 'myTimer', period: 1000, delay: 500 },
+      });
+    });
+
+    it('parses kamelet uri', () => {
+      jest.spyOn(CamelCatalogService, 'getComponent').mockReturnValueOnce(undefined);
+      expect(CamelComponentSchemaService.getComponentDefinitionFromUri('kamelet:beer-source')).toEqual({
+        uri: 'kamelet:beer-source',
+      });
     });
   });
 });
