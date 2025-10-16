@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom';
 import { setupJestCanvasMock } from 'jest-canvas-mock';
-import { subtle } from 'node:crypto';
+import { getRandomValues, subtle } from 'node:crypto';
 import { TextDecoder, TextEncoder } from 'node:util';
 
-Object.defineProperties(global, {
+Object.defineProperties(globalThis, {
   TextDecoder: { value: TextDecoder },
   TextEncoder: { value: TextEncoder },
 });
@@ -29,9 +29,7 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-jest
-  .spyOn(global, 'crypto', 'get')
-  .mockImplementation(() => ({ getRandomValues: () => [12345678], subtle }) as unknown as Crypto);
+jest.spyOn(globalThis, 'crypto', 'get').mockImplementation(() => ({ getRandomValues, subtle }) as unknown as Crypto);
 
 jest.spyOn(console, 'warn').mockImplementation((...args) => {
   if (
@@ -61,12 +59,12 @@ function enableSVGElementMocks() {
    * https://github.com/apexcharts/react-apexcharts/issues/52#issuecomment-844757362
    */
 
-  Object.defineProperty(global.SVGElement.prototype, 'getScreenCTM', {
+  Object.defineProperty(globalThis.SVGElement.prototype, 'getScreenCTM', {
     writable: true,
     value: jest.fn(),
   });
 
-  Object.defineProperty(global.SVGElement.prototype, 'getBBox', {
+  Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
     writable: true,
     value: jest.fn().mockReturnValue({
       x: 0,
@@ -74,12 +72,12 @@ function enableSVGElementMocks() {
     }),
   });
 
-  Object.defineProperty(global.SVGElement.prototype, 'getComputedTextLength', {
+  Object.defineProperty(globalThis.SVGElement.prototype, 'getComputedTextLength', {
     writable: true,
     value: jest.fn().mockReturnValue(0),
   });
 
-  Object.defineProperty(global.SVGElement.prototype, 'createSVGMatrix', {
+  Object.defineProperty(globalThis.SVGElement.prototype, 'createSVGMatrix', {
     writable: true,
     value: jest.fn().mockReturnValue({
       x: 10,

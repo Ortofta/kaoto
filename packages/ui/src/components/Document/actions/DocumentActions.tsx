@@ -1,20 +1,25 @@
 import { ActionListGroup, ActionListItem } from '@patternfly/react-core';
-import { AttachSchemaButton } from './AttachSchemaButton';
-import { DetachSchemaButton } from './DetachSchemaButton';
+import { FunctionComponent, MouseEvent, useCallback } from 'react';
 import { DocumentType } from '../../../models/datamapper/document';
 import { DocumentNodeData } from '../../../models/datamapper/visualization';
-import { DeleteParameterButton } from './DeleteParameterButton';
-import { FunctionComponent, MouseEvent, useCallback } from 'react';
 import '../Document.scss';
+import { AttachSchemaButton } from './AttachSchemaButton';
+import { DeleteParameterButton } from './DeleteParameterButton';
+import { DetachSchemaButton } from './DetachSchemaButton';
+import { RenameParameterButton } from './RenameParameterButton';
+import { useDataMapper } from '../../../hooks/useDataMapper';
 
 type DocumentActionsProps = {
   className?: string;
   nodeData: DocumentNodeData;
+  onRenameClick: () => void;
 };
 
-export const DocumentActions: FunctionComponent<DocumentActionsProps> = ({ className, nodeData }) => {
+export const DocumentActions: FunctionComponent<DocumentActionsProps> = ({ className, nodeData, onRenameClick }) => {
+  const { mappingTree } = useDataMapper();
   const documentType = nodeData.document.documentType;
   const documentId = nodeData.document.documentId;
+  const documentReferenceId = nodeData.document.getReferenceId(mappingTree.namespaceMap);
   const handleStopPropagation = useCallback((event: MouseEvent) => {
     event.stopPropagation();
   }, []);
@@ -29,16 +34,26 @@ export const DocumentActions: FunctionComponent<DocumentActionsProps> = ({ class
         <AttachSchemaButton
           documentType={documentType}
           documentId={documentId}
+          documentReferenceId={documentReferenceId}
           hasSchema={!nodeData.isPrimitive}
-        ></AttachSchemaButton>
+        />
       </ActionListItem>
       <ActionListItem>
-        <DetachSchemaButton documentType={documentType} documentId={documentId}></DetachSchemaButton>
+        <DetachSchemaButton
+          documentType={documentType}
+          documentId={documentId}
+          documentReferenceId={documentReferenceId}
+        />
       </ActionListItem>
       {documentType === DocumentType.PARAM && (
-        <ActionListItem>
-          <DeleteParameterButton parameterName={documentId} />
-        </ActionListItem>
+        <>
+          <ActionListItem>
+            <RenameParameterButton parameterName={documentId} onRenameClick={onRenameClick} />
+          </ActionListItem>
+          <ActionListItem>
+            <DeleteParameterButton parameterName={documentId} parameterReferenceId={documentReferenceId} />
+          </ActionListItem>
+        </>
       )}
     </ActionListGroup>
   );

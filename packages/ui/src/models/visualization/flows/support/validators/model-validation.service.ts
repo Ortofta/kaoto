@@ -12,6 +12,9 @@ interface IValidationResult {
   message: string;
 }
 
+function isEmptyOrNotArray(value: unknown): boolean {
+  return !Array.isArray(value) || value.length === 0;
+}
 /**
  * Service for validating the model of a node.
  * Ideally, this should be done with a JSON schema validator, like ajv, but for our use case, it's not possible,
@@ -86,29 +89,14 @@ export class ModelValidationService {
     if (schema.properties) {
       Object.entries(schema.properties).forEach(([propertyName, propertyValue]) => {
         const propertySchema = propertyValue as KaotoSchemaDefinition['schema'];
-        // TODO
-        if (propertySchema.type === 'array') return;
-        if (model?.[propertyName] && propertySchema.$ref) {
-          const path = parentPath ? `${parentPath}.${propertyName}` : propertyName;
-          const resolvedPropertySchema = resolveSchemaWithRef(propertySchema, definitions!);
-          answer.push(
-            ...this.validateRequiredProperties(resolvedPropertySchema, model[propertyName], path, definitions),
-          );
-        }
-        if (propertySchema.type === 'object') {
-          const path = parentPath ? `${parentPath}.${propertyName}` : propertyName;
-          if (model) {
-            answer.push(...this.validateRequiredProperties(propertySchema, model[propertyName], path, definitions));
-          }
-          return;
-        }
-        // check missing required parameter
+        const path = parentPath ? `${parentPath}.${propertyName}` : propertyName;
+
         if (
           Array.isArray(schema.required) &&
           schema.required.includes(propertyName) &&
           propertySchema.default === undefined &&
           propertySchema.$ref === undefined &&
-          (!model || !model[propertyName])
+          (!model?.[propertyName] || (propertySchema.type === 'array' && isEmptyOrNotArray(model[propertyName])))
         ) {
           answer.push({
             level: 'error',
@@ -117,6 +105,18 @@ export class ModelValidationService {
             propertyName: propertyName,
             message: `Missing required property ${propertyName}`,
           });
+          return;
+        }
+        if (model?.[propertyName] && propertySchema.$ref) {
+          const resolvedPropertySchema = resolveSchemaWithRef(propertySchema, definitions!);
+          answer.push(
+            ...this.validateRequiredProperties(resolvedPropertySchema, model[propertyName], path, definitions),
+          );
+        }
+        if (propertySchema.type === 'object') {
+          if (model) {
+            answer.push(...this.validateRequiredProperties(propertySchema, model[propertyName], path, definitions));
+          }
         }
       });
     }

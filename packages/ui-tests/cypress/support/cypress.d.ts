@@ -95,6 +95,7 @@ declare global {
       checkDarkMode(): Chainable<JQuery<Element>>;
       switchCodeToXml(): Chainable<JQuery<Element>>;
       switchCodeToYaml(): Chainable<JQuery<Element>>;
+      DnD(sourceNode: string, targetNode: string): Chainable<JQuery<Element>>;
       // nodeConfiguration
       interactWithConfigInputObject(inputName: string, value?: string): Chainable<JQuery<Element>>;
       interactWithExpressionInputObject(inputName: string, value?: string, index?: number): Chainable<JQuery<Element>>;
@@ -151,7 +152,9 @@ declare global {
       attachSourceBodySchema(filePath: string): Chainable<JQuery<Element>>;
       attachTargetBodySchema(filePath: string): Chainable<JQuery<Element>>;
       addParameter(name: string): Chainable<JQuery<Element>>;
+      deleteParameter(name: string): Chainable<JQuery<Element>>;
       attachParameterSchema(name: string, filePath: string): Chainable<JQuery<Element>>;
+      detachParameterSchema(name: string): Chainable<JQuery<Element>>;
       importMappings(filePath: string): Chainable<JQuery<Element>>;
       exportMappings(): Chainable<JQuery<Element>>;
       closeExportMappingsModal(): Chainable<JQuery<Element>>;

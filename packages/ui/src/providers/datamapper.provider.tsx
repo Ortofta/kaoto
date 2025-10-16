@@ -39,20 +39,16 @@ export interface IDataMapperContext {
   activeView: CanvasView;
   setActiveView(view: CanvasView): void;
 
-  initialExpandedFieldRank: number;
-  setInitialExpandedFieldRank: (rank: number) => void;
-  maxTotalFieldCountToExpandAll: number;
-  setMaxTotalFieldCountToExpandAll: (rank: number) => void;
-
   sourceParameterMap: Map<string, IDocument>;
   refreshSourceParameters: () => void;
   deleteSourceParameter: (name: string) => void;
+  renameSourceParameter: (oldName: string, newName: string) => void;
   sourceBodyDocument: IDocument;
   setSourceBodyDocument: (doc: IDocument) => void;
   targetBodyDocument: IDocument;
   setTargetBodyDocument: (doc: IDocument) => void;
   setNewDocument: (documentType: DocumentType, documentId: string, document: IDocument) => void;
-  updateDocument: (document: IDocument, definition: DocumentDefinition) => void;
+  updateDocument: (document: IDocument, definition: DocumentDefinition, previousDocumentReferenceId: string) => void;
 
   isSourceParametersExpanded: boolean;
   setSourceParametersExpanded: (expanded: boolean) => void;
@@ -72,21 +68,19 @@ export interface IDataMapperContext {
 export const DataMapperContext = createContext<IDataMapperContext | null>(null);
 
 type DataMapperProviderProps = PropsWithChildren & {
-  defaultInitialExpandedFieldRank?: number;
-  defaultMaxTotalFieldCountToExpandAll?: number;
   documentInitializationModel?: DocumentInitializationModel;
   onUpdateDocument?: (definition: DocumentDefinition) => void;
   onDeleteParameter?: (name: string) => void;
+  onRenameParameter?: (oldName: string, newName: string) => void;
   initialXsltFile?: string;
   onUpdateMappings?: (xsltFile: string) => void;
 };
 
 export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
-  defaultInitialExpandedFieldRank = 1,
-  defaultMaxTotalFieldCountToExpandAll = 100,
   documentInitializationModel,
   onUpdateDocument,
   onDeleteParameter,
+  onRenameParameter,
   initialXsltFile,
   onUpdateMappings,
   children,
@@ -94,10 +88,6 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
   const [debug, setDebug] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeView, setActiveView] = useState<CanvasView>(CanvasView.SOURCE_TARGET);
-  const [initialExpandedFieldRank, setInitialExpandedFieldRank] = useState<number>(defaultInitialExpandedFieldRank);
-  const [maxTotalFieldCountToExpandAll, setMaxTotalFieldCountToExpandAll] = useState<number>(
-    defaultMaxTotalFieldCountToExpandAll,
-  );
 
   const [sourceParameterMap, setSourceParameterMap] = useState<Map<string, IDocument>>(new Map<string, IDocument>());
   const [isSourceParametersExpanded, setSourceParametersExpanded] = useState<boolean>(true);
@@ -141,6 +131,12 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update mapping tree when target document changes
+  useEffect(() => {
+    refreshMappingTree();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetBodyDocument]);
+
   const refreshSourceParameters = useCallback(() => {
     setSourceParameterMap(new Map(sourceParameterMap));
   }, [sourceParameterMap]);
@@ -162,17 +158,42 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
     });
     newMapping.namespaceMap = mappingTree.namespaceMap;
     setMappingTree(newMapping);
-    onUpdateMappings?.(MappingSerializerService.serialize(mappingTree, sourceParameterMap));
+    onUpdateMappings?.(MappingSerializerService.serialize(newMapping, sourceParameterMap));
   }, [mappingTree, onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
 
   const resetMappingTree = useCallback(() => {
     const newMapping = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, targetBodyDocument.definitionType);
     setMappingTree(newMapping);
-    onUpdateMappings?.(MappingSerializerService.serialize(mappingTree, sourceParameterMap));
-  }, [mappingTree, onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
+    onUpdateMappings?.(MappingSerializerService.serialize(newMapping, sourceParameterMap));
+  }, [onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
+
+  const renameSourceParameter = useCallback(
+    (oldName: string, newName: string) => {
+      if (oldName === newName) return;
+
+      // Get the existing document
+      const document = sourceParameterMap.get(oldName);
+      if (!document) return;
+
+      // Update the document's properties
+      DocumentService.renameDocument(document, newName);
+
+      // Update the sourceParameterMap
+      sourceParameterMap.delete(oldName);
+      sourceParameterMap.set(newName, document);
+      refreshSourceParameters();
+
+      // Update mapping tree to reflect the parameter name change
+      MappingService.renameParameterInMappings(mappingTree, oldName, newName);
+      refreshMappingTree();
+
+      onRenameParameter?.(oldName, newName);
+    },
+    [sourceParameterMap, refreshSourceParameters, mappingTree, refreshMappingTree, onRenameParameter],
+  );
 
   const removeStaleMappings = useCallback(
-    (documentType: DocumentType, documentId: string, newDocument: IDocument) => {
+    (documentType: DocumentType, documentId: string, newDocument: IDocument, documentReferenceId: string) => {
       let isFromPrimitive: boolean;
       switch (documentType) {
         case DocumentType.SOURCE_BODY:
@@ -187,7 +208,7 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
       const isToPrimitive = newDocument instanceof PrimitiveDocument;
       const cleaned =
         isFromPrimitive || isToPrimitive
-          ? MappingService.removeAllMappingsForDocument(mappingTree, documentType, documentId)
+          ? MappingService.removeAllMappingsForDocument(mappingTree, documentType, documentReferenceId)
           : MappingService.removeStaleMappingsForDocument(mappingTree, newDocument);
       setMappingTree(cleaned);
     },
@@ -202,7 +223,6 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
           break;
         case DocumentType.TARGET_BODY:
           setTargetBodyDocument(newDocument);
-          mappingTree.documentDefinitionType = newDocument.definitionType;
           break;
         case DocumentType.PARAM:
           sourceParameterMap!.set(documentId, newDocument);
@@ -210,16 +230,21 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
           break;
       }
     },
-    [mappingTree, refreshSourceParameters, sourceParameterMap],
+    [refreshSourceParameters, sourceParameterMap],
   );
 
   const updateDocument = useCallback(
-    (document: IDocument, definition: DocumentDefinition) => {
-      removeStaleMappings(document.documentType, document.documentId, document);
+    (document: IDocument, definition: DocumentDefinition, previousDocumentReferenceId: string) => {
+      /** For removing stale mappings when the document structure has changed, we need to know the previous
+       * documentReferenceId. This is especially important for JSON Schema where the documentId and documentReferenceId
+       * can be different.
+       */
+      removeStaleMappings(document.documentType, document.documentId, document, previousDocumentReferenceId);
       setNewDocument(document.documentType, document.documentId, document);
-      onUpdateDocument && onUpdateDocument(definition);
+      refreshMappingTree();
+      onUpdateDocument?.(definition);
     },
-    [onUpdateDocument, removeStaleMappings, setNewDocument],
+    [onUpdateDocument, refreshMappingTree, removeStaleMappings, setNewDocument],
   );
 
   const sendAlert = useCallback(
@@ -247,15 +272,12 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
       setIsLoading,
       activeView,
       setActiveView,
-      initialExpandedFieldRank,
-      setInitialExpandedFieldRank,
-      maxTotalFieldCountToExpandAll,
-      setMaxTotalFieldCountToExpandAll,
       sourceParameterMap,
       isSourceParametersExpanded,
       setSourceParametersExpanded,
       refreshSourceParameters,
       deleteSourceParameter,
+      renameSourceParameter,
       sourceBodyDocument,
       setSourceBodyDocument,
       targetBodyDocument,
@@ -274,12 +296,11 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
   }, [
     isLoading,
     activeView,
-    initialExpandedFieldRank,
-    maxTotalFieldCountToExpandAll,
     sourceParameterMap,
     isSourceParametersExpanded,
     refreshSourceParameters,
     deleteSourceParameter,
+    renameSourceParameter,
     sourceBodyDocument,
     targetBodyDocument,
     setNewDocument,

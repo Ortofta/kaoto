@@ -2,6 +2,7 @@ import { MappingService } from './mapping.service';
 import {
   ChooseItem,
   FieldItem,
+  ForEachItem,
   IfItem,
   MappingTree,
   OtherwiseItem,
@@ -11,10 +12,21 @@ import {
 } from '../models/datamapper/mapping';
 import { MappingSerializerService } from './mapping-serializer.service';
 import { XmlSchemaDocument } from './xml-schema-document.service';
-import { DocumentType, IDocument } from '../models/datamapper/document';
-import { shipOrderToShipOrderXslt, TestUtil } from '../stubs/datamapper/data-mapper';
+import { DocumentDefinitionType, DocumentType, IDocument } from '../models/datamapper/document';
+import {
+  cartToShipOrderJsonXslt,
+  cartToShipOrderXslt,
+  conditionalMappingsToShipOrderJsonXslt,
+  conditionalMappingsToShipOrderXslt,
+  multipleForEachJsonXslt,
+  shipOrderToShipOrderMultipleForEachXslt,
+  shipOrderToShipOrderXslt,
+  TestUtil,
+} from '../stubs/datamapper/data-mapper';
 import { XPathService } from './xpath/xpath.service';
 import { MappingLinksService } from './mapping-links.service';
+import { DocumentService } from './document.service';
+import { mockRandomValues } from '../stubs';
 
 describe('MappingService', () => {
   let sourceDoc: XmlSchemaDocument;
@@ -22,11 +34,15 @@ describe('MappingService', () => {
   let paramsMap: Map<string, IDocument>;
   let tree: MappingTree;
 
+  beforeAll(() => {
+    mockRandomValues();
+  });
+
   beforeEach(() => {
     sourceDoc = TestUtil.createSourceOrderDoc();
     targetDoc = TestUtil.createTargetOrderDoc();
     paramsMap = TestUtil.createParameterMap();
-    tree = new MappingTree(targetDoc.documentType, targetDoc.documentId);
+    tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
     MappingSerializerService.deserialize(shipOrderToShipOrderXslt, targetDoc, tree, paramsMap);
   });
 
@@ -57,6 +73,226 @@ describe('MappingService', () => {
       expect(tree.children.length).toEqual(1);
       MappingService.removeAllMappingsForDocument(tree, DocumentType.PARAM, 'sourceParam1');
       expect(tree.children.length).toEqual(1);
+    });
+
+    it('should remove mappings related to the removed param in case of XML schema', () => {
+      targetDoc = TestUtil.createTargetOrderDoc();
+      paramsMap = TestUtil.createParameterMap();
+      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
+      MappingSerializerService.deserialize(conditionalMappingsToShipOrderXslt, targetDoc, tree, paramsMap);
+
+      expect(tree.children.length).toEqual(1);
+      MappingService.removeAllMappingsForDocument(tree, DocumentType.PARAM, 'cart');
+      expect(tree.children.length).toEqual(0);
+    });
+
+    it('should remove mappings related to the removed param in case of JSON schema', () => {
+      const targetJSONDoc = TestUtil.createJSONTargetOrderDoc();
+      paramsMap = TestUtil.createJSONParameterMap();
+      tree = new MappingTree(targetJSONDoc.documentType, targetJSONDoc.documentId, DocumentDefinitionType.JSON_SCHEMA);
+      MappingSerializerService.deserialize(conditionalMappingsToShipOrderJsonXslt, targetJSONDoc, tree, paramsMap);
+
+      expect(tree.children[0].children[0].children.length).toEqual(1);
+      const forEach = tree.children[0].children[0].children[0] as ForEachItem;
+      expect(forEach.expression).toEqual('$cart-x/xf:array/xf:map');
+
+      MappingService.removeAllMappingsForDocument(tree, DocumentType.PARAM, 'cart-x');
+      expect(tree.children.length).toEqual(0);
+    });
+
+    it('should remove mappings related to the removed param in case of JSON schema, but not the other', () => {
+      const targetJSONDoc = TestUtil.createJSONTargetOrderDoc();
+      paramsMap = TestUtil.createJSONParameterMap();
+      tree = new MappingTree(targetJSONDoc.documentType, targetJSONDoc.documentId, DocumentDefinitionType.JSON_SCHEMA);
+      MappingSerializerService.deserialize(multipleForEachJsonXslt, targetJSONDoc, tree, paramsMap);
+
+      expect(tree.children[0].children[0].children.length).toEqual(2);
+      let forEach1 = tree.children[0].children[0].children[0] as ForEachItem;
+      const forEach2 = tree.children[0].children[0].children[1] as ForEachItem;
+      expect(forEach1.expression).toEqual('$cart-x/xf:array/xf:map');
+      expect(forEach2.expression).toEqual('$cart2-x/xf:array/xf:map');
+
+      MappingService.removeAllMappingsForDocument(tree, DocumentType.PARAM, 'cart-x');
+      expect(tree.children[0].children[0].children.length).toEqual(1);
+      forEach1 = tree.children[0].children[0].children[0] as ForEachItem;
+      expect(forEach1.expression).toEqual('$cart2-x/xf:array/xf:map');
+    });
+
+    it('should not remove parameter mappings when detaching schema from source body', () => {
+      targetDoc = TestUtil.createTargetOrderDoc();
+      paramsMap = TestUtil.createParameterMap();
+      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
+      MappingSerializerService.deserialize(shipOrderToShipOrderMultipleForEachXslt, targetDoc, tree, paramsMap);
+
+      const validateForEach = (forEachItem: ForEachItem) => {
+        expect(forEachItem.children.length).toEqual(1);
+        const item = forEachItem.children[0] as FieldItem;
+        expect(item.children.length).toEqual(4);
+        const title = item.children[0] as FieldItem;
+        expect((title.children[0] as ValueSelector).expression).toEqual('Title');
+        const note = item.children[1] as FieldItem;
+        expect((note.children[0] as ValueSelector).expression).toEqual('Note');
+        const quantity = item.children[2] as FieldItem;
+        expect((quantity.children[0] as ValueSelector).expression).toEqual('Quantity');
+        const price = item.children[3] as FieldItem;
+        expect((price.children[0] as ValueSelector).expression).toEqual('Price');
+      };
+
+      expect(tree.children[0].children.length).toEqual(2);
+      const bodyForEach = tree.children[0].children[0] as ForEachItem;
+      let paramForEach = tree.children[0].children[1] as ForEachItem;
+      expect(bodyForEach.expression).toEqual('/ns0:ShipOrder/Item');
+      validateForEach(bodyForEach);
+      expect(paramForEach.expression).toEqual('$sourceParam1/ns0:ShipOrder/Item');
+      validateForEach(paramForEach);
+
+      MappingService.removeAllMappingsForDocument(tree, DocumentType.SOURCE_BODY);
+      expect(tree.children[0].children.length).toEqual(1);
+      [paramForEach] = tree.children[0].children as ForEachItem[];
+      expect(paramForEach.expression).toEqual('$sourceParam1/ns0:ShipOrder/Item');
+      validateForEach(paramForEach);
+    });
+
+    it('should ignore mappings with XPath parse errors and continue removing valid stale mappings', () => {
+      targetDoc = TestUtil.createTargetOrderDoc();
+      paramsMap = TestUtil.createParameterMap();
+      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
+      MappingSerializerService.deserialize(shipOrderToShipOrderMultipleForEachXslt, targetDoc, tree, paramsMap);
+
+      const bodyForEach = tree.children[0].children[0] as ForEachItem;
+      const paramForEach = tree.children[0].children[1] as ForEachItem;
+      bodyForEach.expression = 'invalid[[xpath]]syntax';
+
+      MappingService.removeAllMappingsForDocument(tree, DocumentType.SOURCE_BODY);
+
+      expect(tree.children[0].children.length).toEqual(2);
+      expect(tree.children[0].children[0]).toBe(bodyForEach);
+      expect(tree.children[0].children[1]).toBe(paramForEach);
+    });
+
+    it('should remove stale mapping in the nested item', () => {
+      targetDoc = TestUtil.createTargetOrderDoc();
+      paramsMap = TestUtil.createParameterMap();
+      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
+      MappingSerializerService.deserialize(shipOrderToShipOrderMultipleForEachXslt, targetDoc, tree, paramsMap);
+
+      const bodyForEach = tree.children[0].children[0] as ForEachItem;
+      expect(bodyForEach.children[0].children.length).toEqual(4);
+      const bodyForEachTitleSelector = bodyForEach.children[0].children[0].children[0] as ValueSelector;
+      expect(bodyForEachTitleSelector.expression).toEqual('Title');
+      bodyForEachTitleSelector.expression = '$sourceParam1/ns0:ShipOrder/Item[0]/Title';
+
+      const paramForEach = tree.children[0].children[1] as ForEachItem;
+      expect(paramForEach.children[0].children.length).toEqual(4);
+      const paramForEachTitleSelector = paramForEach.children[0].children[0].children[0] as ValueSelector;
+      expect(paramForEachTitleSelector.expression).toEqual('Title');
+      paramForEachTitleSelector.expression = '/ns0:ShipOrder/Item[0]/Title';
+
+      MappingService.removeAllMappingsForDocument(tree, DocumentType.SOURCE_BODY);
+
+      expect(tree.children[0].children.length).toEqual(1);
+      expect(tree.children[0].children[0]).toBe(paramForEach);
+      expect(paramForEach.children[0].children.length).toEqual(3);
+    });
+  });
+
+  describe('renameParameterInMappings()', () => {
+    const updateDoc = (paramsMap: Map<string, IDocument>, oldParam: string, newParam: string) => {
+      const document = paramsMap.get(oldParam);
+      // Update the document's properties
+      DocumentService.renameDocument(document!, newParam);
+
+      // Create a new map with the updated document
+      const newSourceParameterMap = new Map(paramsMap);
+      newSourceParameterMap.delete(oldParam);
+      newSourceParameterMap.set(newParam, document!);
+
+      return newSourceParameterMap;
+    };
+
+    it('should rename simple mappings for XML document', () => {
+      MappingSerializerService.deserialize(cartToShipOrderXslt, targetDoc, tree, paramsMap);
+      expect(tree.children.length).toEqual(1);
+      const linksBefore = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
+      MappingService.renameParameterInMappings(tree, 'cart', 'newTargetParam');
+
+      // this is needed to simulate the renaming of the document in the params map
+      const newSourceParameterMap = updateDoc(paramsMap, 'cart', 'newTargetParam');
+
+      const linksAfter = MappingLinksService.extractMappingLinks(tree, newSourceParameterMap, sourceDoc);
+      expect(linksBefore.length).toEqual(linksAfter.length);
+      for (const link of linksAfter) {
+        expect(link.sourceNodePath.startsWith('param:newTargetParam')).toBeTruthy();
+      }
+    });
+
+    it('should rename conditional mappings for XML document', () => {
+      MappingSerializerService.deserialize(conditionalMappingsToShipOrderXslt, targetDoc, tree, paramsMap);
+      expect(tree.children.length).toEqual(1);
+      const linksBefore = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
+      MappingService.renameParameterInMappings(tree, 'cart', 'newTargetParam');
+
+      // this is needed to simulate the renaming of the document in the params map
+      const newSourceParameterMap = updateDoc(paramsMap, 'cart', 'newTargetParam');
+
+      const linksAfter = MappingLinksService.extractMappingLinks(tree, newSourceParameterMap, sourceDoc);
+      expect(linksBefore.length).toEqual(linksAfter.length);
+      for (const link of linksAfter) {
+        expect(link.sourceNodePath.startsWith('param:newTargetParam')).toBeTruthy();
+      }
+    });
+
+    it('should rename simple mappings for JSON document', () => {
+      const targetJSONDoc = TestUtil.createJSONTargetOrderDoc();
+      const jsonParamsMap = TestUtil.createJSONParameterMap();
+      const mappingTree = new MappingTree(
+        targetJSONDoc.documentType,
+        targetJSONDoc.documentId,
+        DocumentDefinitionType.JSON_SCHEMA,
+      );
+      MappingSerializerService.deserialize(cartToShipOrderJsonXslt, targetJSONDoc, mappingTree, jsonParamsMap);
+
+      expect(mappingTree.children.length).toEqual(1);
+      const linksBefore = MappingLinksService.extractMappingLinks(mappingTree, jsonParamsMap, sourceDoc);
+      MappingService.renameParameterInMappings(mappingTree, 'cart', 'newTargetParam');
+
+      // this is needed to simulate the renaming of the document in the params map
+      const newSourceParameterMap = updateDoc(jsonParamsMap, 'cart', 'newTargetParam');
+
+      const linksAfter = MappingLinksService.extractMappingLinks(mappingTree, newSourceParameterMap, sourceDoc);
+      expect(linksBefore.length).toEqual(linksAfter.length);
+      for (const link of linksAfter) {
+        expect(link.sourceNodePath.startsWith('param:newTargetParam')).toBeTruthy();
+      }
+    });
+
+    it('should rename conditional mappings for JSON document', () => {
+      const targetJSONDoc = TestUtil.createJSONTargetOrderDoc();
+      const jsonParamsMap = TestUtil.createJSONParameterMap();
+      const mappingTree = new MappingTree(
+        targetJSONDoc.documentType,
+        targetJSONDoc.documentId,
+        DocumentDefinitionType.JSON_SCHEMA,
+      );
+      MappingSerializerService.deserialize(
+        conditionalMappingsToShipOrderJsonXslt,
+        targetJSONDoc,
+        mappingTree,
+        jsonParamsMap,
+      );
+
+      expect(mappingTree.children.length).toEqual(1);
+      const linksBefore = MappingLinksService.extractMappingLinks(mappingTree, jsonParamsMap, sourceDoc);
+      MappingService.renameParameterInMappings(mappingTree, 'cart', 'newTargetParam');
+
+      // this is needed to simulate the renaming of the document in the params map
+      const newSourceParameterMap = updateDoc(jsonParamsMap, 'cart', 'newTargetParam');
+
+      const linksAfter = MappingLinksService.extractMappingLinks(mappingTree, newSourceParameterMap, sourceDoc);
+      expect(linksBefore.length).toEqual(linksAfter.length);
+      for (const link of linksAfter) {
+        expect(link.sourceNodePath.startsWith('param:newTargetParam')).toBeTruthy();
+      }
     });
   });
 
@@ -201,6 +437,44 @@ describe('MappingService', () => {
       expect(links.length).toEqual(1);
       expect(links[0].targetNodePath.includes(targetDoc.fields[0].id)).toBeTruthy();
     });
+
+    it('should ignore mappings with XPath parse errors and remove valid stale source field mappings', () => {
+      expect(tree.children[0].children.length).toEqual(4);
+
+      const orderIdFieldItem = tree.children[0].children[0] as FieldItem;
+      const valueSelector = orderIdFieldItem.children[0] as ValueSelector;
+      valueSelector.expression = 'invalid[[xpath]]syntax';
+
+      // Remove the OrderPerson field from the source document (second field)
+      const orderIdField = sourceDoc.fields[0].fields[0];
+      expect(orderIdField.name).toEqual('OrderId');
+      const orderPersonField = sourceDoc.fields[0].fields[1];
+      expect(orderPersonField.name).toEqual('OrderPerson');
+      sourceDoc.fields[0].fields.splice(0, 2);
+
+      MappingService.removeStaleMappingsForDocument(tree, sourceDoc);
+
+      expect(tree.children[0].children.length).toEqual(3);
+      expect((tree.children[0].children[0].children[0] as ValueSelector).expression).toBe('invalid[[xpath]]syntax');
+      expect(tree.children[0].children[1].name).toContain('ShipTo');
+    });
+
+    it('should ignore mappings with XPath parse errors and remove valid stale target field mappings', () => {
+      expect(tree.children[0].children.length).toEqual(4);
+
+      const ifConditionItem = tree.children[0].children[1] as IfItem;
+      ifConditionItem.expression = 'invalid[[xpath]]syntax';
+
+      const orderIdField = targetDoc.fields[0].fields[0];
+      expect(orderIdField.name).toEqual('OrderId');
+      targetDoc.fields[0].fields.splice(0, 1);
+
+      MappingService.removeStaleMappingsForDocument(tree, targetDoc);
+
+      expect(tree.children[0].children.length).toEqual(3);
+      expect(tree.children[0].children[0]).toBe(ifConditionItem);
+      expect(ifConditionItem.expression).toEqual('invalid[[xpath]]syntax');
+    });
   });
 
   describe('addChooseWhenOtherwise()', () => {
@@ -284,6 +558,16 @@ describe('MappingService', () => {
       const orderIdValueSelector = tree.children[0].children[0].children[0] as ValueSelector;
       MappingService.deleteMappingItem(orderIdValueSelector);
       expect(tree.children[0].children.length).toEqual(3);
+    });
+
+    it('should delete the empty root field item when it has no children', () => {
+      MappingSerializerService.deserialize(conditionalMappingsToShipOrderXslt, targetDoc, tree, paramsMap);
+
+      expect(tree.children[0].children.length).toEqual(1);
+      const forEachItem = tree.children[0].children[0] as ForEachItem;
+      expect(forEachItem.expression).toEqual('$cart/ns0:Cart/Item');
+      MappingService.deleteMappingItem(forEachItem);
+      expect(tree.children.length).toEqual(0);
     });
   });
 });

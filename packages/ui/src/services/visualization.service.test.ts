@@ -1,14 +1,10 @@
-import { VisualizationService } from './visualization.service';
 import {
-  AddMappingNodeData,
-  DocumentNodeData,
-  FieldItemNodeData,
-  FieldNodeData,
-  MappingNodeData,
-  TargetDocumentNodeData,
-  TargetFieldNodeData,
-  TargetNodeData,
-} from '../models/datamapper/visualization';
+  BODY_DOCUMENT_ID,
+  DocumentDefinitionType,
+  DocumentType,
+  IDocument,
+  PrimitiveDocument,
+} from '../models/datamapper/document';
 import {
   ChooseItem,
   ExpressionItem,
@@ -20,16 +16,32 @@ import {
   ValueSelector,
   WhenItem,
 } from '../models/datamapper/mapping';
-import { XmlSchemaDocument } from './xml-schema-document.service';
-import { MappingSerializerService } from './mapping-serializer.service';
-import { BODY_DOCUMENT_ID, DocumentType, IDocument, PrimitiveDocument } from '../models/datamapper/document';
 import {
+  AddMappingNodeData,
+  DocumentNodeData,
+  FieldItemNodeData,
+  FieldNodeData,
+  MappingNodeData,
+  TargetDocumentNodeData,
+  TargetFieldNodeData,
+  TargetNodeData,
+} from '../models/datamapper/visualization';
+import {
+  conditionalMappingsToShipOrderXslt,
+  contactsXsd,
+  extensionComplexXsd,
+  extensionSimpleXsd,
+  orgXsd,
+  schemaTestXsd,
   shipOrderToShipOrderCollectionIndexXslt,
   shipOrderToShipOrderInvalidForEachXslt,
   shipOrderToShipOrderMultipleForEachXslt,
   shipOrderToShipOrderXslt,
   TestUtil,
 } from '../stubs/datamapper/data-mapper';
+import { MappingSerializerService } from './mapping-serializer.service';
+import { VisualizationService } from './visualization.service';
+import { XmlSchemaDocument, XmlSchemaDocumentService } from './xml-schema-document.service';
 
 describe('VisualizationService', () => {
   let sourceDoc: XmlSchemaDocument;
@@ -44,12 +56,50 @@ describe('VisualizationService', () => {
     sourceDocNode = new DocumentNodeData(sourceDoc);
     targetDoc = TestUtil.createTargetOrderDoc();
     paramsMap = TestUtil.createParameterMap();
-    tree = new MappingTree(targetDoc.documentType, targetDoc.documentId);
+    tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
   });
 
   describe('without pre-populated mappings', () => {
     beforeEach(() => {
       targetDocNode = new TargetDocumentNodeData(targetDoc, tree);
+    });
+
+    describe('generateNodeDataChildren', () => {
+      it('should generate primitive document children', () => {
+        const primitiveSpy = jest.spyOn(VisualizationService, 'generatePrimitiveDocumentChildren');
+        const structuredSpy = jest.spyOn(VisualizationService, 'generateStructuredDocumentChildren');
+        const nonDocumentSpy = jest.spyOn(VisualizationService, 'generateNonDocumentNodeDataChildren');
+        sourceDocNode.isPrimitive = true;
+        VisualizationService.generateNodeDataChildren(sourceDocNode);
+
+        expect(primitiveSpy).toHaveBeenCalled();
+        expect(structuredSpy).not.toHaveBeenCalled();
+        expect(nonDocumentSpy).not.toHaveBeenCalled();
+      });
+
+      it('should generate structured document children', () => {
+        const primitiveSpy = jest.spyOn(VisualizationService, 'generatePrimitiveDocumentChildren');
+        const structuredSpy = jest.spyOn(VisualizationService, 'generateStructuredDocumentChildren');
+        const nonDocumentSpy = jest.spyOn(VisualizationService, 'generateNonDocumentNodeDataChildren');
+        sourceDocNode.isPrimitive = false;
+        VisualizationService.generateNodeDataChildren(sourceDocNode);
+
+        expect(primitiveSpy).not.toHaveBeenCalled();
+        expect(structuredSpy).toHaveBeenCalled();
+        expect(nonDocumentSpy).not.toHaveBeenCalled();
+      });
+
+      it('should generate non document children', () => {
+        const primitiveSpy = jest.spyOn(VisualizationService, 'generatePrimitiveDocumentChildren');
+        const structuredSpy = jest.spyOn(VisualizationService, 'generateStructuredDocumentChildren');
+        const nonDocumentSpy = jest.spyOn(VisualizationService, 'generateNonDocumentNodeDataChildren');
+
+        VisualizationService.generateNodeDataChildren(new FieldNodeData(sourceDocNode, sourceDoc.fields[0]));
+
+        expect(primitiveSpy).not.toHaveBeenCalled();
+        expect(structuredSpy).not.toHaveBeenCalled();
+        expect(nonDocumentSpy).toHaveBeenCalled();
+      });
     });
 
     describe('testNodePair()', () => {
@@ -87,7 +137,11 @@ describe('VisualizationService', () => {
 
       it('should add If on primitive target body', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(primitiveTargetDoc, tree);
         VisualizationService.applyIf(targetDocNode);
 
@@ -141,7 +195,11 @@ describe('VisualizationService', () => {
 
       it('should add Choose-When-Otherwise on primitive target body', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(primitiveTargetDoc, tree);
         VisualizationService.applyChooseWhenOtherwise(targetDocNode);
 
@@ -198,7 +256,11 @@ describe('VisualizationService', () => {
 
       it('should add When in primitive target body choose', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(primitiveTargetDoc, tree);
         VisualizationService.applyChooseWhenOtherwise(targetDocNode);
 
@@ -256,7 +318,11 @@ describe('VisualizationService', () => {
 
       it('should add Otherwise in primitive target body choose', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(primitiveTargetDoc, tree);
         VisualizationService.applyChooseWhenOtherwise(targetDocNode);
 
@@ -312,7 +378,11 @@ describe('VisualizationService', () => {
 
       it('should apply value selector on primitive target body', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(primitiveTargetDoc, tree);
         VisualizationService.applyValueSelector(targetDocNode);
 
@@ -325,7 +395,11 @@ describe('VisualizationService', () => {
     describe('getExpressionItemForNode()', () => {
       it('should return ValueSelector for primitive target body', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(targetDoc, tree);
         const sourceDocChildren = VisualizationService.generateStructuredDocumentChildren(sourceDocNode);
         const sourceShipOrderChildren = VisualizationService.generateNonDocumentNodeDataChildren(sourceDocChildren[0]);
@@ -339,7 +413,11 @@ describe('VisualizationService', () => {
     describe('deleteMappingItem()', () => {
       it('should delete primitive target body mapping', () => {
         const primitiveTargetDoc = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
-        tree = new MappingTree(primitiveTargetDoc.documentType, primitiveTargetDoc.documentId);
+        tree = new MappingTree(
+          primitiveTargetDoc.documentType,
+          primitiveTargetDoc.documentId,
+          DocumentDefinitionType.XML_SCHEMA,
+        );
         targetDocNode = new TargetDocumentNodeData(targetDoc, tree);
         const sourceDocChildren = VisualizationService.generateStructuredDocumentChildren(sourceDocNode);
         const sourceShipOrderChildren = VisualizationService.generateNonDocumentNodeDataChildren(sourceDocChildren[0]);
@@ -489,6 +567,212 @@ describe('VisualizationService', () => {
         targetItemChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetForEachChildren[0]);
         expect((targetItemChildren[0] as TargetFieldNodeData).mapping?.children[0] as ValueSelector).toBeUndefined();
       });
+    });
+    it('should fill ContextItemExpr (.) and AbbrevReverseStep (..) in xpath when it maps under for-each', () => {
+      const orgDoc = XmlSchemaDocumentService.createXmlSchemaDocument(DocumentType.SOURCE_BODY, 'Org.xsd', orgXsd);
+      const contactsDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.TARGET_BODY,
+        'Contacts.xsd',
+        contactsXsd,
+      );
+
+      const orgToContactsTree = new MappingTree(
+        contactsDoc.documentType,
+        contactsDoc.documentId,
+        DocumentDefinitionType.XML_SCHEMA,
+      );
+      const orgSourceNode = new DocumentNodeData(orgDoc);
+      const targetContactsNode = new TargetDocumentNodeData(contactsDoc, orgToContactsTree);
+
+      const orgSourceChildren = VisualizationService.generateStructuredDocumentChildren(orgSourceNode);
+      const orgChildren = VisualizationService.generateNonDocumentNodeDataChildren(orgSourceChildren[0]);
+      const orgNameField = orgChildren.find((f) => f.title === 'Name') as FieldNodeData;
+      const personChildren = VisualizationService.generateNonDocumentNodeDataChildren(
+        orgChildren.find((f) => f.title === 'Person') as FieldNodeData,
+      );
+      const personNameField = personChildren.find((f) => f.title === 'Name') as FieldNodeData;
+      const emailField = personChildren.find((f) => f.title === 'Email') as FieldNodeData; // Email field
+
+      let targetContactsChildren = VisualizationService.generateStructuredDocumentChildren(targetContactsNode);
+      let contactsChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetContactsChildren[0]);
+
+      const targetContactField = contactsChildren[0] as TargetFieldNodeData; // Contact field
+      VisualizationService.applyForEach(targetContactField);
+
+      targetContactsChildren = VisualizationService.generateStructuredDocumentChildren(targetContactsNode);
+      contactsChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetContactsChildren[0]);
+      VisualizationService.engageMapping(orgToContactsTree, emailField, contactsChildren[0] as TargetNodeData);
+
+      targetContactsChildren = VisualizationService.generateStructuredDocumentChildren(targetContactsNode);
+      contactsChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetContactsChildren[0]);
+      let targetForEachChildren = VisualizationService.generateNonDocumentNodeDataChildren(contactsChildren[0]);
+      let targetContactChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetForEachChildren[0]);
+
+      let targetOrgNameField = targetContactChildren.find(
+        (child) => (child as TargetFieldNodeData).field?.name === 'OrgName',
+      ) as TargetFieldNodeData;
+      VisualizationService.engageMapping(orgToContactsTree, orgNameField, targetOrgNameField);
+      let targetPersonNameField = targetContactChildren.find(
+        (child) => (child as TargetFieldNodeData).field?.name === 'PersonName',
+      ) as TargetFieldNodeData;
+      VisualizationService.engageMapping(orgToContactsTree, personNameField, targetPersonNameField);
+      let targetEmailField = targetContactChildren.find(
+        (child) => (child as TargetFieldNodeData).field?.name === 'Email',
+      ) as TargetFieldNodeData;
+      VisualizationService.engageMapping(orgToContactsTree, emailField, targetEmailField);
+
+      targetContactsChildren = VisualizationService.generateStructuredDocumentChildren(targetContactsNode);
+      contactsChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetContactsChildren[0]);
+      targetForEachChildren = VisualizationService.generateNonDocumentNodeDataChildren(contactsChildren[0]);
+      targetContactChildren = VisualizationService.generateNonDocumentNodeDataChildren(targetForEachChildren[0]);
+
+      targetOrgNameField = targetContactChildren.find(
+        (child) => (child as TargetFieldNodeData).field?.name === 'OrgName',
+      ) as TargetFieldNodeData;
+      expect(targetOrgNameField.mapping).toBeDefined();
+      let valueSelector = targetOrgNameField.mapping?.children[0] as ValueSelector;
+      expect(valueSelector).toBeDefined();
+      expect(valueSelector.expression).toEqual('../../Name');
+
+      targetPersonNameField = targetContactChildren.find(
+        (child) => (child as TargetFieldNodeData).field?.name === 'PersonName',
+      ) as TargetFieldNodeData;
+      expect(targetPersonNameField.mapping).toBeDefined();
+      valueSelector = targetPersonNameField.mapping?.children[0] as ValueSelector;
+      expect(valueSelector).toBeDefined();
+      expect(valueSelector.expression).toEqual('../Name');
+
+      targetEmailField = targetContactChildren.find(
+        (child) => (child as TargetFieldNodeData).field?.name === 'Email',
+      ) as TargetFieldNodeData;
+      expect(targetEmailField.mapping).toBeDefined();
+      valueSelector = targetEmailField.mapping?.children[0] as ValueSelector;
+      expect(valueSelector).toBeDefined();
+      expect(valueSelector.expression).toEqual('.');
+    });
+
+    it('should render ExtensionSimple.xsd', () => {
+      const doc = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.SOURCE_BODY,
+        BODY_DOCUMENT_ID,
+        extensionSimpleXsd,
+      );
+      const docNode = new DocumentNodeData(doc);
+      const docChildren = VisualizationService.generateStructuredDocumentChildren(docNode);
+      expect(docChildren.length).toEqual(1);
+
+      const product = docChildren[0];
+      expect(product.title).toEqual('Product');
+      const productChildren = VisualizationService.generateNonDocumentNodeDataChildren(product);
+      expect(productChildren.length).toEqual(2);
+
+      const nameField = productChildren.find((child) => child.title === 'name') as FieldNodeData;
+      expect(nameField).toBeDefined();
+      const nameChildren = VisualizationService.generateNonDocumentNodeDataChildren(nameField);
+
+      expect(nameChildren.length).toEqual(2);
+      const langAttr = nameChildren.find((child) => child.title === 'lang');
+      expect(langAttr).toBeDefined();
+      const formatAttr = nameChildren.find((child) => child.title === 'format');
+      expect(formatAttr).toBeDefined();
+
+      const priceField = productChildren.find((child) => child.title === 'price') as FieldNodeData;
+      expect(priceField).toBeDefined();
+      const priceChildren = VisualizationService.generateNonDocumentNodeDataChildren(priceField);
+
+      expect(priceChildren.length).toEqual(3);
+      const discountAttr = priceChildren.find((child) => child.title === 'discount');
+      expect(discountAttr).toBeDefined();
+      const currencyAttr = priceChildren.find((child) => child.title === 'currency');
+      expect(currencyAttr).toBeDefined();
+      const taxIncludedAttr = priceChildren.find((child) => child.title === 'taxIncluded');
+      expect(taxIncludedAttr).toBeDefined();
+    });
+
+    it('should render ExtensionComplex.xsd', () => {
+      const doc = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.SOURCE_BODY,
+        BODY_DOCUMENT_ID,
+        extensionComplexXsd,
+        { namespaceUri: 'http://www.example.com/TEST', name: 'Request' },
+      );
+      const docNode = new DocumentNodeData(doc);
+      const docChildren = VisualizationService.generateStructuredDocumentChildren(docNode);
+      expect(docChildren.length).toEqual(1);
+
+      const request = docChildren[0];
+      expect(request.title).toEqual('Request');
+      const requestChildren = VisualizationService.generateNonDocumentNodeDataChildren(request);
+
+      expect(requestChildren.length).toEqual(3);
+
+      const nameField = requestChildren.find((child) => child.title === 'name');
+      expect(nameField).toBeDefined();
+
+      const userField = requestChildren.find((child) => child.title === 'user');
+      expect(userField).toBeDefined();
+
+      const timestampField = requestChildren.find((child) => child.title === 'timestamp');
+      expect(timestampField).toBeDefined();
+    });
+
+    it('should render SchemaTest.xsd', () => {
+      const doc = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.SOURCE_BODY,
+        BODY_DOCUMENT_ID,
+        schemaTestXsd,
+      );
+      const docNode = new DocumentNodeData(doc);
+      const docChildren = VisualizationService.generateStructuredDocumentChildren(docNode);
+      expect(docChildren.length).toEqual(1);
+
+      const root = docChildren[0];
+      expect(root.title).toEqual('Root');
+      const rootChildren = VisualizationService.generateNonDocumentNodeDataChildren(root);
+      expect(rootChildren.length).toEqual(2);
+
+      const personField = rootChildren.find((child) => child.title === 'person') as FieldNodeData;
+      expect(personField).toBeDefined();
+      const personChildren = VisualizationService.generateNonDocumentNodeDataChildren(personField);
+
+      expect(personChildren.length).toEqual(11);
+
+      const nameField = personChildren.find((child) => child.title === 'name');
+      expect(nameField).toBeDefined();
+
+      const streetField = personChildren.find((child) => child.title === 'street');
+      expect(streetField).toBeDefined();
+
+      const cityField = personChildren.find((child) => child.title === 'city');
+      expect(cityField).toBeDefined();
+
+      const emailField = personChildren.find((child) => child.title === 'email');
+      expect(emailField).toBeDefined();
+
+      const phoneField = personChildren.find((child) => child.title === 'phone');
+      expect(phoneField).toBeDefined();
+
+      const faxField = personChildren.find((child) => child.title === 'fax');
+      expect(faxField).toBeDefined();
+
+      const createdByField = personChildren.find((child) => child.title === 'createdBy');
+      expect(createdByField).toBeDefined();
+
+      const createdDateField = personChildren.find((child) => child.title === 'createdDate');
+      expect(createdDateField).toBeDefined();
+
+      // Attributes from ExtendedAttributes -> CommonAttributes
+      const idAttr = personChildren.find((child) => child.title === 'id');
+      expect(idAttr).toBeDefined();
+
+      const versionAttr = personChildren.find((child) => child.title === 'version');
+      expect(versionAttr).toBeDefined();
+
+      const statusAttr = personChildren.find((child) => child.title === 'status');
+      expect(statusAttr).toBeDefined();
+
+      const restrictedField = rootChildren.find((child) => child.title === 'restricted') as FieldNodeData;
+      expect(restrictedField).toBeDefined();
     });
   });
 
@@ -679,5 +963,24 @@ describe('VisualizationService', () => {
     expect(addMappingNode.id).toContain('add-mapping-fx-Item');
     expect(addMappingNode.field.name).toEqual('Item');
     expect(addMappingNode.field.maxOccurs).toBeGreaterThan(1);
+  });
+
+  describe('isDeletableNode', () => {
+    it('should identify deletable nodes', () => {
+      MappingSerializerService.deserialize(conditionalMappingsToShipOrderXslt, targetDoc, tree, paramsMap);
+      const docData = new TargetDocumentNodeData(targetDoc, tree);
+
+      const fieldNodeData = new FieldItemNodeData(docData, tree.children[0] as FieldItem);
+      expect(VisualizationService.isDeletableNode(fieldNodeData)).toBeFalsy();
+
+      const forEachNodeData = new MappingNodeData(docData, tree.children[0].children[0] as ForEachItem);
+      expect(VisualizationService.isDeletableNode(forEachNodeData)).toBeTruthy();
+
+      const valueSelectorNodeData = new MappingNodeData(
+        docData,
+        tree.children[0].children[0].children[0] as ValueSelector,
+      );
+      expect(VisualizationService.isDeletableNode(valueSelectorNodeData)).toBeTruthy();
+    });
   });
 });

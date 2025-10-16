@@ -1,8 +1,15 @@
-import { XmlSchemaDocument, XmlSchemaDocumentService } from './xml-schema-document.service';
-import { MappingLinksService } from './mapping-links.service';
+import { renderHook } from '@testing-library/react';
+import { MutableRefObject, RefObject, useRef } from 'react';
+import { BODY_DOCUMENT_ID, DocumentDefinitionType, DocumentType, IDocument } from '../models/datamapper/document';
+import { MappingTree } from '../models/datamapper/mapping';
+import { NodeReference } from '../models/datamapper/visualization';
+import { mockRandomValues } from '../stubs';
 import {
+  contactsXsd,
   invoice850Xsd,
   message837Xsd,
+  orgToContactsXslt,
+  orgXsd,
   shipOrderJsonSchema,
   shipOrderToShipOrderCollectionIndexXslt,
   shipOrderToShipOrderMultipleForEachXslt,
@@ -13,13 +20,10 @@ import {
   x12850DfdlXsd,
   x12850ForEachXslt,
 } from '../stubs/datamapper/data-mapper';
-import { DocumentDefinitionType, DocumentType, IDocument } from '../models/datamapper/document';
-import { MappingTree } from '../models/datamapper/mapping';
-import { NodeReference } from '../models/datamapper/visualization';
-import { MappingSerializerService } from './mapping-serializer.service';
-import { MutableRefObject, RefObject, useRef } from 'react';
-import { renderHook } from '@testing-library/react';
 import { JsonSchemaDocumentService } from './json-schema-document.service';
+import { MappingLinksService } from './mapping-links.service';
+import { MappingSerializerService } from './mapping-serializer.service';
+import { XmlSchemaDocument, XmlSchemaDocumentService } from './xml-schema-document.service';
 
 describe('MappingLinksService', () => {
   let sourceDoc: XmlSchemaDocument;
@@ -27,11 +31,15 @@ describe('MappingLinksService', () => {
   let paramsMap: Map<string, IDocument>;
   let tree: MappingTree;
 
+  beforeAll(() => {
+    mockRandomValues();
+  });
+
   beforeEach(() => {
     sourceDoc = TestUtil.createSourceOrderDoc();
     targetDoc = TestUtil.createTargetOrderDoc();
     paramsMap = TestUtil.createParameterMap();
-    tree = new MappingTree(targetDoc.documentType, targetDoc.documentId);
+    tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
     MappingSerializerService.deserialize(shipOrderToShipOrderXslt, targetDoc, tree, paramsMap);
   });
 
@@ -66,15 +74,15 @@ describe('MappingLinksService', () => {
     it('should generate mapping links for the cached type fragments field', () => {
       sourceDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
         DocumentType.SOURCE_BODY,
-        'X12-837P.dfdl.xsd',
+        BODY_DOCUMENT_ID,
         x12837PDfdlXsd,
       );
       targetDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
         DocumentType.TARGET_BODY,
-        'Message837.xsd',
+        BODY_DOCUMENT_ID,
         message837Xsd,
       );
-      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId);
+      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
       MappingSerializerService.deserialize(x12837PXslt, targetDoc, tree, paramsMap);
       const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
       expect(links.length).toEqual(14);
@@ -111,15 +119,15 @@ describe('MappingLinksService', () => {
     it('should not generate mapping link from the source body root', () => {
       sourceDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
         DocumentType.SOURCE_BODY,
-        'X12-850.dfdl.xsd',
+        BODY_DOCUMENT_ID,
         x12850DfdlXsd,
       );
       targetDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
         DocumentType.TARGET_BODY,
-        'Invoice850.xsd',
+        BODY_DOCUMENT_ID,
         invoice850Xsd,
       );
-      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId);
+      tree = new MappingTree(targetDoc.documentType, targetDoc.documentId, DocumentDefinitionType.XML_SCHEMA);
       MappingSerializerService.deserialize(x12850ForEachXslt, targetDoc, tree, paramsMap);
       const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc);
       expect(links.find((l) => l.sourceNodePath === 'sourceBody:X12-850.dfdl.xsd://')).toBeUndefined();
@@ -140,11 +148,50 @@ describe('MappingLinksService', () => {
     it('should generate mapping links for JSON documents', () => {
       const jsonTargetDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
         DocumentType.TARGET_BODY,
-        'ShipOrder',
+        BODY_DOCUMENT_ID,
         shipOrderJsonSchema,
       );
       tree = new MappingTree(jsonTargetDoc.documentType, jsonTargetDoc.documentId, DocumentDefinitionType.JSON_SCHEMA);
       MappingSerializerService.deserialize(shipOrderToShipOrderXslt, jsonTargetDoc, tree, paramsMap);
+    });
+
+    it('should generate mapping links for parent references', () => {
+      const orgSourceDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.SOURCE_BODY,
+        BODY_DOCUMENT_ID,
+        orgXsd,
+      );
+      const contactsTargetDoc = XmlSchemaDocumentService.createXmlSchemaDocument(
+        DocumentType.TARGET_BODY,
+        BODY_DOCUMENT_ID,
+        contactsXsd,
+      );
+
+      tree = new MappingTree(
+        contactsTargetDoc.documentType,
+        contactsTargetDoc.documentId,
+        DocumentDefinitionType.XML_SCHEMA,
+      );
+      MappingSerializerService.deserialize(orgToContactsXslt, contactsTargetDoc, tree, paramsMap);
+
+      const links = MappingLinksService.extractMappingLinks(tree, paramsMap, orgSourceDoc);
+
+      expect(links.length).toBeGreaterThan(0);
+
+      const orgNameLink = links.find(
+        (link) => link.sourceNodePath.includes('Name') && link.targetNodePath.includes('OrgName'),
+      );
+      expect(orgNameLink).toBeDefined();
+
+      const personNameLink = links.find(
+        (link) => link.sourceNodePath.includes('Name') && link.targetNodePath.includes('PersonName'),
+      );
+      expect(personNameLink).toBeDefined();
+
+      const emailLink = links.find(
+        (link) => link.sourceNodePath.includes('Email') && link.targetNodePath.includes('Email'),
+      );
+      expect(emailLink).toBeDefined();
     });
   });
 
@@ -152,7 +199,7 @@ describe('MappingLinksService', () => {
     it('should detect selected mapping', () => {
       const { result: refOrderId } = renderHook(() =>
         useRef<NodeReference>({
-          path: 'sourceBody:ShipOrder.xsd://fx-ShipOrder-1234/fx-OrderId-1234',
+          path: 'sourceBody:Body://fx-ShipOrder-1234/fx-OrderId-1234',
           isSource: true,
           containerRef: null,
           headerRef: null,
@@ -160,7 +207,7 @@ describe('MappingLinksService', () => {
       );
       const { result: refShipToName } = renderHook(() =>
         useRef<NodeReference>({
-          path: 'sourceBody:ShipOrder.xsd://fx-ShipOrder-1234/fx-ShipTo-1234/fx-Name-1234',
+          path: 'sourceBody:Body://fx-ShipOrder-1234/fx-ShipTo-1234/fx-Name-1234',
           isSource: true,
           containerRef: null,
           headerRef: null,
@@ -211,7 +258,7 @@ describe('MappingLinksService', () => {
         } as unknown as SVGSVGElement,
       };
 
-      const refOrderId = getNodeReference('sourceBody:ShipOrder.xsd://fx-ShipOrder-1234/fx-OrderId-1234');
+      const refOrderId = getNodeReference('sourceBody:Body://fx-ShipOrder-1234/fx-OrderId-1234');
 
       const links = MappingLinksService.extractMappingLinks(tree, paramsMap, sourceDoc, refOrderId);
       expect(links.length).toEqual(11);

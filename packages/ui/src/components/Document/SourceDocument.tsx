@@ -1,162 +1,32 @@
-import { Icon } from '@patternfly/react-core';
-import { AngleDownIcon, AtIcon, GripVerticalIcon, LayerGroupIcon } from '@patternfly/react-icons';
-import clsx from 'clsx';
-import { FunctionComponent, MouseEvent, useCallback, useRef, useState } from 'react';
-import { useCanvas } from '../../hooks/useCanvas';
-import { useDataMapper } from '../../hooks/useDataMapper';
+import { FunctionComponent, useEffect, useMemo, useState } from 'react';
 import { IDocument } from '../../models/datamapper/document';
-import { DocumentNodeData, NodeData, NodeReference } from '../../models/datamapper/visualization';
-import { VisualizationService } from '../../services/visualization.service';
-import { DocumentActions } from './actions/DocumentActions';
+import { DocumentTree } from '../../models/datamapper/document-tree';
+import { DocumentNodeData } from '../../models/datamapper/visualization';
+import { TreeUIService } from '../../services/tree-ui.service';
 import './Document.scss';
-import { NodeContainer } from './NodeContainer';
-import { NodeTitle } from './NodeTitle';
-import { useMappingLinks } from '../../hooks/useMappingLinks';
+import { SourceDocumentNode } from './SourceDocumentNode';
 
-type DocumentProps = {
+type DocumentTreeProps = {
   document: IDocument;
   isReadOnly: boolean;
 };
 
-export const SourceDocument: FunctionComponent<DocumentProps> = ({ document, isReadOnly }) => {
-  const { initialExpandedFieldRank, maxTotalFieldCountToExpandAll } = useDataMapper();
-  const nodeData = new DocumentNodeData(document);
-  return (
-    <SourceDocumentNode
-      nodeData={nodeData}
-      isReadOnly={isReadOnly}
-      expandAll={document.totalFieldCount < maxTotalFieldCountToExpandAll}
-      initialExpandedRank={initialExpandedFieldRank}
-      rank={0}
-    />
-  );
-};
+/**
+ * Tree-based source document component for virtual scrolling implementation
+ * Uses pre-parsed tree structure with simplified UI state management
+ */
+export const SourceDocument: FunctionComponent<DocumentTreeProps> = ({ document, isReadOnly }) => {
+  const documentNodeData = useMemo(() => new DocumentNodeData(document), [document]);
+  const [treeNode, setTreeNode] = useState<DocumentTree | undefined>(undefined);
+  const documentId = documentNodeData.id;
 
-type DocumentNodeProps = {
-  nodeData: NodeData;
-  isReadOnly: boolean;
-  expandAll: boolean;
-  initialExpandedRank: number;
-  rank: number;
-};
+  useEffect(() => {
+    setTreeNode(TreeUIService.createTree(documentNodeData));
+  }, [documentNodeData]);
 
-export const SourceDocumentNode: FunctionComponent<DocumentNodeProps> = ({
-  nodeData,
-  isReadOnly,
-  expandAll,
-  initialExpandedRank,
-  rank,
-}) => {
-  const { getNodeReference, reloadNodeReferences, setNodeReference } = useCanvas();
-  const { isInSelectedMapping, toggleSelectedNodeReference } = useMappingLinks();
+  if (!treeNode) {
+    return <div>Loading tree...</div>;
+  }
 
-  const shouldCollapseByDefault =
-    !expandAll && VisualizationService.shouldCollapseByDefault(nodeData, initialExpandedRank, rank);
-  const [collapsed, setCollapsed] = useState(shouldCollapseByDefault);
-
-  const isDocument = VisualizationService.isDocumentNode(nodeData);
-  const hasChildren = VisualizationService.hasChildren(nodeData);
-
-  const handleClickToggle = useCallback(
-    (event: MouseEvent) => {
-      if (!hasChildren) return;
-
-      setCollapsed(!collapsed);
-      event.stopPropagation();
-      reloadNodeReferences();
-    },
-    [collapsed, hasChildren, reloadNodeReferences],
-  );
-
-  const children = collapsed ? [] : VisualizationService.generateNodeDataChildren(nodeData);
-  const isCollectionField = VisualizationService.isCollectionField(nodeData);
-  const isAttributeField = VisualizationService.isAttributeField(nodeData);
-  const isDraggable = !isDocument || VisualizationService.isPrimitiveDocumentNode(nodeData);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const nodeRefId = nodeData.path.toString();
-  const nodeReference = useRef<NodeReference>({
-    path: nodeRefId,
-    isSource: true,
-    get headerRef() {
-      return headerRef.current;
-    },
-    get containerRef() {
-      return containerRef.current;
-    },
-  });
-  getNodeReference(nodeRefId) !== nodeReference && setNodeReference(nodeRefId, nodeReference);
-
-  const isSelected = isInSelectedMapping(nodeReference);
-  const handleClickField = useCallback(
-    (event: MouseEvent) => {
-      toggleSelectedNodeReference(nodeReference);
-      event.stopPropagation();
-    },
-    [toggleSelectedNodeReference],
-  );
-
-  return (
-    <div
-      data-testid={`node-source-${isSelected ? 'selected-' : ''}${nodeData.id}`}
-      className={clsx({ node__container: !isDocument })}
-      onClick={handleClickField}
-    >
-      <NodeContainer ref={containerRef} nodeData={nodeData}>
-        <div className={clsx({ node__header: !isDocument })}>
-          <NodeContainer nodeData={nodeData} ref={headerRef} className={clsx({ 'selected-container': isSelected })}>
-            <section className="node__row" data-draggable={isDraggable}>
-              {hasChildren && (
-                <Icon className="node__spacer" onClick={handleClickToggle}>
-                  <AngleDownIcon
-                    data-testid={`expand-source-icon-${nodeData.title}`}
-                    className={clsx('toggle-icon', { 'toggle-icon--collapsed': collapsed })}
-                  />
-                </Icon>
-              )}
-
-              <Icon className="node__spacer" data-drag-handler>
-                <GripVerticalIcon />
-              </Icon>
-
-              {isCollectionField && (
-                <Icon className="node__spacer">
-                  <LayerGroupIcon />
-                </Icon>
-              )}
-
-              {isAttributeField && (
-                <Icon className="node__spacer">
-                  <AtIcon />
-                </Icon>
-              )}
-
-              <NodeTitle className="node__spacer" nodeData={nodeData} isDocument={isDocument} />
-
-              {!isReadOnly && isDocument ? (
-                <DocumentActions className="node__target__actions" nodeData={nodeData} />
-              ) : (
-                <span className="node__target__actions" />
-              )}
-            </section>
-          </NodeContainer>
-        </div>
-
-        {hasChildren && !collapsed && (
-          <div className={clsx({ node__children: !isDocument })}>
-            {children.map((child) => (
-              <SourceDocumentNode
-                nodeData={child}
-                key={child.id}
-                isReadOnly={isReadOnly}
-                initialExpandedRank={initialExpandedRank}
-                rank={rank + 1}
-                expandAll={expandAll}
-              />
-            ))}
-          </div>
-        )}
-      </NodeContainer>
-    </div>
-  );
+  return <SourceDocumentNode treeNode={treeNode.root} documentId={documentId} isReadOnly={isReadOnly} rank={0} />;
 };

@@ -56,11 +56,23 @@ export class MappingService {
     return MappingService.getConditionalFieldItems(mapping).map((item) => item.field);
   }
 
-  static removeAllMappingsForDocument(mappingTree: MappingTree, documentType: DocumentType, documentId: string) {
+  /**
+   * Removes all mappings for the specified document. When the document is a {@link DocumentType.PARAM},
+   * the 3rd argument {@link documentReferenceId} should indicate the parameter's document reference ID.
+   * Note that it could be different from document ID. For example, JSON document has a suffix `-x`.
+   * @param mappingTree
+   * @param documentType
+   * @param documentReferenceId
+   */
+  static removeAllMappingsForDocument(
+    mappingTree: MappingTree,
+    documentType: DocumentType,
+    documentReferenceId?: string,
+  ) {
     if (documentType === DocumentType.TARGET_BODY) {
       MappingService.doRemoveAllMappingsForTargetDocument(mappingTree);
     } else {
-      MappingService.doRemoveAllMappingsForSourceDocument(mappingTree, documentType, documentId);
+      MappingService.doRemoveAllMappingsForSourceDocument(mappingTree, documentType, documentReferenceId);
     }
     return mappingTree;
   }
@@ -72,13 +84,13 @@ export class MappingService {
   private static doRemoveAllMappingsForSourceDocument(
     item: MappingTree | MappingItem,
     documentType: DocumentType,
-    documentId: string,
+    documentReferenceId?: string,
   ) {
     item.children = item.children.reduce((acc, child) => {
-      MappingService.doRemoveAllMappingsForSourceDocument(child, documentType, documentId);
+      MappingService.doRemoveAllMappingsForSourceDocument(child, documentType, documentReferenceId);
       if (
         child instanceof ExpressionItem &&
-        MappingService.hasStaleSourceDocument(child.expression as string, documentType, documentId)
+        MappingService.hasStaleSourceDocument(child, documentType, documentReferenceId)
       ) {
         return acc;
       }
@@ -88,13 +100,28 @@ export class MappingService {
     }, [] as MappingItem[]);
   }
 
-  private static hasStaleSourceDocument(expression: string, documentType: DocumentType, documentId: string) {
-    const stalePath = XPathService.extractFieldPaths(expression).find((xpath) => {
-      return (
-        (documentType === DocumentType.SOURCE_BODY && !xpath.documentReferenceName) ||
-        (documentType === DocumentType.PARAM && xpath.documentReferenceName === documentId)
+  private static hasStaleSourceDocument(
+    expressionItem: ExpressionItem,
+    documentType: DocumentType,
+    documentReferenceId?: string,
+  ) {
+    let stalePath = undefined;
+    try {
+      stalePath = XPathService.extractFieldPaths(expressionItem.expression, expressionItem.contextPath).find(
+        (xpath) => {
+          return (
+            (documentType === DocumentType.SOURCE_BODY && !xpath.documentReferenceName) ||
+            (documentType === DocumentType.PARAM &&
+              documentReferenceId &&
+              xpath.documentReferenceName === documentReferenceId)
+          );
+        },
       );
-    });
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+    } catch (error: any) {
+      // Field path extraction failed, there might be xpath parse error. Since the same error should be shown
+      // on xpath input field, just ignoring here.
+    }
     return !!stalePath;
   }
 
@@ -154,9 +181,17 @@ export class MappingService {
     }, [] as MappingItem[]);
   }
 
-  private static hasStaleSourceField(expressionItem: ExpressionItem, document: IDocument) {
+  private static hasStaleSourceField(expressionItem: ExpressionItem, document: IDocument): boolean {
     const namespaces = expressionItem.mappingTree.namespaceMap;
-    const fieldPaths = XPathService.extractFieldPaths(expressionItem.expression);
+    let fieldPaths = [];
+    try {
+      fieldPaths = XPathService.extractFieldPaths(expressionItem.expression);
+    } catch (error: any) {
+      // Field path extraction failed, there might be xpath parse error. Since the same error should be shown
+      // on xpath input field, just ignoring here.
+      return false;
+    }
+
     const stalePath = fieldPaths.find((xpath) => {
       xpath.contextPath = expressionItem.parent.contextPath;
       xpath.isRelative = !!xpath.contextPath;
@@ -181,6 +216,24 @@ export class MappingService {
     wrapper.children.push(wrapped);
     wrapped.parent.children = wrapped.parent.children.map((m) => (m !== wrapped ? m : wrapper));
     wrapped.parent = wrapper;
+  }
+
+  /**
+   * Renames a parameter in all mappings within the mapping tree.
+   * This updates XPath expressions that reference the old parameter name.
+   */
+  static renameParameterInMappings(
+    item: MappingTree | MappingItem,
+    oldDocumentId: string,
+    newDocumentId: string,
+  ): void {
+    for (const child of item.children) {
+      MappingService.renameParameterInMappings(child, oldDocumentId, newDocumentId);
+      // Update XPath expressions in the item
+      if (child instanceof ExpressionItem) {
+        child.expression = child.expression.replace(new RegExp(`\\$${oldDocumentId}\\b`, 'g'), `$${newDocumentId}`);
+      }
+    }
   }
 
   static wrapWithForEach(wrapped: MappingItem) {
@@ -356,7 +409,8 @@ export class MappingService {
   private static deleteFromParent(item: MappingItem) {
     item.parent.children = item.parent.children.filter((child) => child !== item);
     const isParentFieldItem = item.parent instanceof FieldItem;
-    const isParentParentFieldItem = 'parent' in item.parent && item.parent.parent instanceof FieldItem;
+    const isParentParentFieldItem =
+      'parent' in item.parent && (item.parent.parent instanceof FieldItem || item.parent.parent instanceof MappingTree);
     const areNoChildren = item.parent.children.length === 0;
     if (isParentFieldItem && isParentParentFieldItem && areNoChildren) {
       MappingService.deleteFromParent(item.parent as FieldItem);
