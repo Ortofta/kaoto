@@ -64,12 +64,13 @@ describe('useMoveStep', () => {
   };
 
   beforeEach(() => {
-    jest.spyOn(vizNode, 'getComponentSchema').mockReturnValue({
-      definition: { id: 'testSchema' },
-      schema: {},
-    });
-    jest.clearAllMocks();
+  // Instead of jest.spyOn, directly assign the mock if the method is missing from the type
+  (vizNode as any).getComponentSchema = jest.fn().mockReturnValue({
+    definition: { id: 'testSchema' },
+    schema: {},
   });
+  jest.clearAllMocks();
+});
 
   it('should maintain stable reference when dependencies do not change', () => {
     mockGetPotentialPath.mockReturnValue(undefined);
