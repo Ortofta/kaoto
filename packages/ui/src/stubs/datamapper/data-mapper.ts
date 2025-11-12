@@ -69,6 +69,12 @@ export const shipOrderToShipOrderMultipleForEachXslt = fs
 export const shipOrderToShipOrderCollectionIndexXslt = fs
   .readFileSync(path.resolve(__dirname, './xml/ShipOrderToShipOrderCollectionIndex.xsl'))
   .toString();
+export const nestedConditionalsToShipOrderXslt = fs
+  .readFileSync(path.resolve(__dirname, './xml/NestedConditionalsToShipOrder.xsl'))
+  .toString();
+export const shipOrderWithCurrentXslt = fs
+  .readFileSync(path.resolve(__dirname, './xml/ShipOrderWithCurrent.xsl'))
+  .toString();
 
 export const x12837PDfdlXsd = fs.readFileSync(path.resolve(__dirname, './xml/X12-837P.dfdl.xsd')).toString();
 export const message837Xsd = fs.readFileSync(path.resolve(__dirname, './xml/Message837.xsd')).toString();
@@ -102,6 +108,25 @@ export const orgToContactsXslt = fs.readFileSync(path.resolve(__dirname, './xml/
 export const extensionSimpleXsd = fs.readFileSync(path.resolve(__dirname, './xml/ExtensionSimple.xsd')).toString();
 export const extensionComplexXsd = fs.readFileSync(path.resolve(__dirname, './xml/ExtensionComplex.xsd')).toString();
 export const schemaTestXsd = fs.readFileSync(path.resolve(__dirname, './xml/SchemaTest.xsd')).toString();
+export const restrictionComplexXsd = fs
+  .readFileSync(path.resolve(__dirname, './xml/RestrictionComplex.xsd'))
+  .toString();
+export const restrictionSimpleXsd = fs.readFileSync(path.resolve(__dirname, './xml/RestrictionSimple.xsd')).toString();
+export const restrictionInheritanceXsd = fs
+  .readFileSync(path.resolve(__dirname, './xml/RestrictionInheritance.xsd'))
+  .toString();
+export const multiLevelExtensionXsd = fs
+  .readFileSync(path.resolve(__dirname, './xml/MultiLevelExtension.xsd'))
+  .toString();
+export const multiLevelRestrictionXsd = fs
+  .readFileSync(path.resolve(__dirname, './xml/MultiLevelRestriction.xsd'))
+  .toString();
+export const invalidComplexExtensionXsd = fs
+  .readFileSync(path.resolve(__dirname, './xml/InvalidComplexExtension.xsd'))
+  .toString();
+export const simpleTypeInheritanceXsd = fs
+  .readFileSync(path.resolve(__dirname, './xml/SimpleTypeInheritance.xsd'))
+  .toString();
 
 export class TestUtil {
   static createSourceOrderDoc() {

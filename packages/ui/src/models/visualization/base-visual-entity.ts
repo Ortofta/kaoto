@@ -1,8 +1,8 @@
-import { IClipboardCopyObject } from '../../components/Visualization/Custom/hooks/copy-step.hook';
 import { DefinedComponent } from '../camel-catalog-index';
 import { BaseCamelEntity, EntityType } from '../camel/entities';
 import { KaotoSchemaDefinition } from '../kaoto-schema';
 import { NodeLabelType } from '../settings/settings.model';
+import { IClipboardCopyObject } from '../visualization/clipboard';
 
 /**
  * BaseVisualCamelEntity
@@ -31,8 +31,12 @@ export interface BaseVisualCamelEntity extends BaseCamelEntity {
   /** Given a path, get the component tooltip content */
   getTooltipContent: (path?: string) => string;
 
-  /** Given a path, get the component type and definition */
-  getComponentSchema: (path?: string) => VisualComponentSchema | undefined;
+  /** Given a path, returns the node's associated schema used for the configuration form */
+  getNodeSchema(path?: string): KaotoSchemaDefinition['schema'] | undefined;
+
+  /** Given a path, returns the node's underlying definition in JSON format */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getNodeDefinition(path?: string): any;
 
   /** Returnt fields that should be omitted when configuring this entity */
   getOmitFormFields: () => string[];
@@ -119,7 +123,12 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
 
   getNodeInteraction(): NodeInteraction;
 
-  getComponentSchema(): VisualComponentSchema | undefined;
+  /** This method returns the node's associated schema used for the configuration form */
+  getNodeSchema(): KaotoSchemaDefinition['schema'] | undefined;
+
+  /** This method returns the node's underlying definition in JSON format */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getNodeDefinition(): any;
 
   /** Returnt fields that should be omitted when configuring this entity */
   getOmitFormFields(): string[];
@@ -155,18 +164,6 @@ export interface IVisualizationNodeData {
   isPlaceholder?: boolean;
   isGroup?: boolean;
   [key: string]: unknown;
-}
-
-/**
- * VisualComponentSchema
- *
- * This interface is used to represent a component through
- * the name and the schema of the component.
- */
-export interface VisualComponentSchema {
-  schema: KaotoSchemaDefinition['schema'];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  definition: any;
 }
 
 export const enum AddStepMode {

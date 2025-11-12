@@ -68,8 +68,8 @@ export type JsonSchemaParentType = JsonSchemaDocument | JsonSchemaField;
  * Until we get a concrete idea of how to handle this in DataMapper UI, just pick one type and use it.
  *
  * Unlike XML, JSON could have anonymous object and array. In the JSON lossless representation in XSLT,
- * object is represented by `xf:map` and array is represented by `xf:array` while the name is specified with
- * `key` attribute, such as `xf:map[@key='objectName']` and `xf:map[@key='arrayName']`. `xf:map` and `xf:array`
+ * object is represented by `fn:map` and array is represented by `fn:array` while the name is specified with
+ * `key` attribute, such as `fn:map[@key='objectName']` and `fn:map[@key='arrayName']`. `fn:map` and `fn:array`
  * simply represents anonymous object and array. In order to take this into account, {@link JsonSchemaField.name}
  * holds the field type such as `map` or `array`, and {@link JsonSchemaField.key} holds the name if it's named one.
  * The `key` will be an empty string for the anonymous JSON field. Alternatively {@link JsonSchemaField.displayName}
@@ -80,7 +80,7 @@ export type JsonSchemaParentType = JsonSchemaDocument | JsonSchemaField;
 export class JsonSchemaField extends BaseField {
   fields: JsonSchemaField[] = [];
   namespaceURI: string = NS_XPATH_FUNCTIONS;
-  namespacePrefix: string = 'xf';
+  namespacePrefix: string = 'fn';
   isAttribute = false;
   predicates: Predicate[] = [];
   required: string[] = [];
@@ -108,15 +108,39 @@ export class JsonSchemaField extends BaseField {
     }
   }
 
+  private createNew(parent: JsonSchemaField) {
+    const created = new JsonSchemaField(parent, this.key, this.type);
+    this.copyTo(created);
+    created.minOccurs = parent.required.includes(this.key) ? 1 : 0;
+    created.maxOccurs = parent.type === Types.Array ? Number.MAX_SAFE_INTEGER : 1;
+    return created;
+  }
+
   adopt(parent: IField) {
     if (!(parent instanceof JsonSchemaField)) return super.adopt(parent);
 
-    const adopted = new JsonSchemaField(parent, this.key, this.type);
-    this.copyTo(adopted);
-    adopted.minOccurs = parent.required.includes(this.key) ? 1 : 0;
-    adopted.maxOccurs = parent.type === Types.Array ? Number.MAX_SAFE_INTEGER : 1;
-    parent.fields.push(adopted);
-    return adopted;
+    const existing = parent.fields.find((f) => f.isIdentical(this));
+    if (!existing) {
+      const adopted = this.createNew(parent);
+      parent.fields.push(adopted);
+      parent.ownerDocument.totalFieldCount++;
+      return adopted;
+    }
+
+    // Inherit field type if existing field is any type (i.e. not defined) - need to re-create the field object
+    if (this.type !== Types.AnyType && existing.type === Types.AnyType) {
+      const index = parent.fields.indexOf(existing);
+      const adopted = this.createNew(parent);
+      parent.fields[index] = adopted;
+      return adopted;
+    }
+
+    if (this.defaultValue !== null) existing.defaultValue = this.defaultValue;
+    for (const ref of this.namedTypeFragmentRefs) {
+      !existing.namedTypeFragmentRefs.includes(ref) && existing.namedTypeFragmentRefs.push(ref);
+    }
+    for (const child of this.fields) child.adopt(existing);
+    return existing;
   }
 
   copyTo(to: JsonSchemaField) {
@@ -140,6 +164,12 @@ export class JsonSchemaField extends BaseField {
     const prefix = nsPrefix ? `${nsPrefix}:` : '';
     const keyQuery = this.key ? `[@key='${this.key}']` : '';
     return `${prefix}${this.name}${keyQuery}`;
+  }
+
+  isIdentical(other: IField): boolean {
+    if (!('key' in other)) return false;
+    if (this.key !== other.key) return false;
+    return true;
   }
 }
 
@@ -239,11 +269,13 @@ export class JsonSchemaDocumentService {
     schema: JSONSchemaMetadata,
   ): JsonSchemaField {
     const fieldType = this.electFieldTypeFromSchema(schema);
-    let field = parent.fields.find((f) => f.key === propName && f.type === fieldType);
+    let field = parent.fields.find((f) => f.key === propName);
     if (!field) {
       field = new JsonSchemaField(parent, propName, fieldType);
       parent.fields.push(field);
       this.jsonDocument.totalFieldCount++;
+    } else if (field.type === Types.AnyType && fieldType !== Types.AnyType) {
+      field = this.ensureFieldType(field, fieldType);
     }
 
     if (schema.$ref) {

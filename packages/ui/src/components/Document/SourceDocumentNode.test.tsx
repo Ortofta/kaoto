@@ -41,7 +41,7 @@ describe('SourceDocumentNode', () => {
     const document = TestUtil.createSourceOrderDoc();
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
-    TreeParsingService.parseTreeToDepth(tree, 2);
+    TreeParsingService.parseTree(tree);
     const fieldNode = tree.root.children[0];
 
     act(() => {
@@ -58,7 +58,7 @@ describe('SourceDocumentNode', () => {
     const document = TestUtil.createSourceOrderDoc();
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
-    TreeParsingService.parseTreeToDepth(tree, 1);
+    TreeParsingService.parseTree(tree);
 
     act(() => {
       render(<SourceDocumentNode treeNode={tree.root} documentId={documentNodeData.id} isReadOnly={false} rank={0} />, {
@@ -88,7 +88,7 @@ describe('SourceDocumentNode', () => {
     const document = TestUtil.createSourceOrderDoc();
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
-    TreeParsingService.parseTreeToDepth(tree, 3);
+    TreeParsingService.parseTree(tree);
 
     const findCollectionField = (node: typeof tree.root): typeof tree.root | undefined => {
       if (VisualizationService.isCollectionField(node.nodeData)) {
@@ -123,7 +123,7 @@ describe('SourceDocumentNode', () => {
     const document = TestUtil.createSourceOrderDoc();
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
-    TreeParsingService.parseTreeToDepth(tree, 3);
+    TreeParsingService.parseTree(tree);
 
     const findAttributeField = (node: typeof tree.root): typeof tree.root | undefined => {
       if (VisualizationService.isAttributeField(node.nodeData)) {
@@ -158,7 +158,7 @@ describe('SourceDocumentNode', () => {
     const document = TestUtil.createSourceOrderDoc();
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
-    TreeParsingService.parseTreeToDepth(tree, 2);
+    TreeParsingService.parseTree(tree);
     const fieldNode = tree.root.children[0];
 
     const { container } = render(
@@ -228,7 +228,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       const toggleNodeSpy = jest.spyOn(TreeUIService, 'toggleNode');
 
@@ -267,7 +267,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 3);
+      TreeParsingService.parseTree(tree);
 
       const leafNode = findLeafNode(tree.root);
       expect(leafNode).toBeDefined();
@@ -292,7 +292,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       act(() => {
         useDocumentTreeStore.setState({
@@ -324,7 +324,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       act(() => {
         useDocumentTreeStore.setState({
@@ -356,7 +356,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       const toggleNodeSpy = jest.spyOn(TreeUIService, 'toggleNode');
 
@@ -480,7 +480,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       const parentClickHandler = jest.fn();
 
@@ -589,7 +589,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
       const fieldNode = tree.root.children[0]; // Get a field node, not a document node
 
       render(<SourceDocumentNode treeNode={fieldNode} documentId={documentNodeData.id} isReadOnly={false} rank={1} />, {
@@ -605,7 +605,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       act(() => {
         useDocumentTreeStore.setState({
@@ -632,7 +632,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       act(() => {
         useDocumentTreeStore.setState({
@@ -659,7 +659,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 3);
+      TreeParsingService.parseTree(tree);
 
       const grandchildren = tree.root.children.flatMap((c) => c.children);
 
@@ -705,7 +705,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       act(() => {
         useDocumentTreeStore.setState({
@@ -740,7 +740,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 2);
+      TreeParsingService.parseTree(tree);
 
       const parentClickHandler = jest.fn();
 
@@ -799,7 +799,7 @@ describe('SourceDocumentNode', () => {
       const document = TestUtil.createSourceOrderDoc();
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
-      TreeParsingService.parseTreeToDepth(tree, 3);
+      TreeParsingService.parseTree(tree);
 
       // Find a leaf node (no children)
 

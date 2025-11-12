@@ -237,9 +237,9 @@ describe('SourceTargetView', () => {
       });
 
       await waitFor(() => {
-        const map = screen.getByTestId(/node-target-fj-map-\d+/);
-        expect(map).toBeInTheDocument();
+        const map = screen.getAllByTestId(/node-target-fj-map-\d+/);
+        expect(map.length).toEqual(15);
       });
-    });
+    }, 30_000);
   });
 });

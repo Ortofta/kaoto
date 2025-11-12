@@ -1,7 +1,7 @@
 {
   "name": "@kaoto/kaoto-tests",
   "private": true,
-  "version": "2.8.0-dev",
+  "version": "2.9.0-dev",
   "type": "module",
   "description": "Kaoto UI tests and storybook",
   "repository": "https://github.com/KaotoIO/kaoto",
@@ -62,15 +62,15 @@
     "vite": "^5.4.0"
   },
   "dependencies": {
-    "@kaoto/camel-catalog": "^0.2.2",
-    "@kaoto/forms": "^1.4.4",
+    "@kaoto/camel-catalog": "^0.3.1",
+    "@kaoto/forms": "^1.5.9",
     "@kaoto/kaoto": "workspace:*",
-    "@patternfly/patternfly": "^6.3.0",
-    "@patternfly/react-code-editor": "^6.3.0",
-    "@patternfly/react-core": "6.3.1",
-    "@patternfly/react-icons": "^6.3.0",
-    "@patternfly/react-table": "^6.3.0",
-    "@patternfly/react-topology": "^6.3.0",
+    "@patternfly/patternfly": "^6.4.0",
+    "@patternfly/react-code-editor": "^6.4.0",
+    "@patternfly/react-core": "^6.4.0",
+    "@patternfly/react-icons": "^6.4.0",
+    "@patternfly/react-table": "^6.4.0",
+    "@patternfly/react-topology": "^6.4.0",
     "storybook": "^8.2.8"
   },
   "eslintConfig": {

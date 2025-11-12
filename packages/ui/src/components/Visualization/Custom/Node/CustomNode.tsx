@@ -27,7 +27,7 @@ import {
   withSelection,
 } from '@patternfly/react-topology';
 import clsx from 'clsx';
-import { FunctionComponent, useContext, useRef, useMemo } from 'react';
+import { FunctionComponent, useContext, useMemo, useRef } from 'react';
 import { useProcessorIcon } from '../../../../hooks/processor-icon.hook';
 import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityContext';
 import { AddStepMode, IVisualizationNode, NodeToolbarTrigger } from '../../../../models';
@@ -38,12 +38,14 @@ import { CanvasDefaults } from '../../Canvas/canvas.defaults';
 import { CanvasNode, LayoutType } from '../../Canvas/canvas.models';
 import { StepToolbar } from '../../Canvas/StepToolbar/StepToolbar';
 import { NodeContextMenuFn } from '../ContextMenu/NodeContextMenu';
+import { NODE_DRAG_TYPE } from '../customComponentUtils';
 import { AddStepIcon } from '../Edge/AddStepIcon';
 import { FloatingCircle } from '../FloatingCircle/FloatingCircle';
 import { TargetAnchor } from '../target-anchor';
 import './CustomNode.scss';
-import { NODE_DRAG_TYPE } from '../customComponentUtils';
 import { checkNodeDropCompatibility, handleValidNodeDrop } from './CustomNodeUtils';
+import { NodeInteractionAddonContext } from '../../../registers/interactions/node-interaction-addon.provider';
+import { IInteractionType, IOnCopyAddon } from '../../../registers/interactions/node-interaction-addon.model';
 
 type DefaultNodeProps = Parameters<typeof DefaultNode>[0];
 
@@ -64,10 +66,11 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
     const entitiesContext = useEntityContext();
     const catalogModalContext = useContext(CatalogModalContext);
     const settingsAdapter = useContext(SettingsContext);
+    const nodeInteractionAddonContext = useContext(NodeInteractionAddonContext);
     const label = vizNode?.getNodeLabel(settingsAdapter.getSettings().nodeLabel);
     const processorName = (vizNode?.data as CamelRouteVisualEntityData)?.processorName;
     const { Icon: ProcessorIcon, description: processorDescription } = useProcessorIcon(processorName);
-    const isDisabled = !!vizNode?.getComponentSchema()?.definition?.disabled;
+    const isDisabled = !!vizNode?.getNodeDefinition()?.disabled;
     const tooltipContent = vizNode?.getTooltipContent();
     const validationText = vizNode?.getNodeValidationText();
     const doesHaveWarnings = !isDisabled && !!validationText;
@@ -119,8 +122,15 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
             const droppedVizNode = dropResult.getData().vizNode as IVisualizationNode;
 
             // handle successful drop
-            handleValidNodeDrop(draggedVizNode, droppedVizNode, (flowId?: string) =>
-              entitiesContext?.camelResource.removeEntity(flowId ? [flowId] : undefined),
+            handleValidNodeDrop(
+              draggedVizNode,
+              droppedVizNode,
+              (flowId?: string) => entitiesContext?.camelResource.removeEntity(flowId ? [flowId] : undefined),
+              (vn) =>
+                nodeInteractionAddonContext.getRegisteredInteractionAddons(
+                  IInteractionType.ON_COPY,
+                  vn,
+                ) as IOnCopyAddon[],
             );
 
             // Set an empty model to clear the graph
@@ -143,7 +153,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
           }
         },
       }),
-      [canDragNode, dndSettingsEnabled, element, entitiesContext],
+      [canDragNode, dndSettingsEnabled, element, entitiesContext, nodeInteractionAddonContext],
     );
 
     const customNodeDropTargetSpec: DropTargetSpec<
@@ -168,7 +178,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
               const filter = entitiesContext.camelResource.getCompatibleComponents(
                 mode,
                 filterNode.data,
-                filterNode.getComponentSchema()?.definition,
+                filterNode.getNodeDefinition(),
               );
               return catalogModalContext?.checkCompatibility(compatibilityCheckNodeName, filter) ?? false;
             },

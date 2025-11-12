@@ -78,6 +78,7 @@ describe('step-xml-serializer tests', () => {
     const catalogsMap = await getFirstCatalogMap(catalogLibrary as CatalogLibrary);
     CamelCatalogService.setCatalogKey(CatalogKind.Processor, catalogsMap.modelCatalogMap);
     CamelCatalogService.setCatalogKey(CatalogKind.Component, catalogsMap.componentCatalogMap);
+    CamelCatalogService.setCatalogKey(CatalogKind.Kamelet, catalogsMap.kameletsCatalogMap);
     domParser = new DOMParser();
     xmlSerializer = new XMLSerializer();
   });
@@ -163,6 +164,21 @@ describe('step-xml-serializer tests', () => {
       const result = StepXmlSerializer.serialize('from', fileStep, getDocument());
       expect(result.tagName).toBe('from');
       expect(result.getAttribute('uri')).toBe('file:data?noop=true&recursive=true&delete=false');
+    });
+
+    it('creates URI from kamelet parameters correctly', () => {
+      const kameletStep = {
+        uri: 'kamelet:log-action',
+        parameters: {
+          level: 'DEBUG',
+          multiline: true,
+          showHeaders: false,
+        },
+      };
+
+      const result = StepXmlSerializer.serialize('from', kameletStep, getDocument());
+      expect(result.tagName).toBe('from');
+      expect(result.getAttribute('uri')).toBe('kamelet:log-action?level=DEBUG&multiline=true&showHeaders=false');
     });
 
     it('should not call decorateDoTry when doCatch and doFinally are in the catalog', () => {

@@ -1,11 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CamelErrorHandlerVisualEntity getComponentSchema should return schema from store 1`] = `
+exports[`CamelErrorHandlerVisualEntity should return schema from store 1`] = `
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "anyOf": [
     {
+      "format": "errorHandlerType",
       "oneOf": [
         {
           "properties": {
@@ -133,14 +134,14 @@ exports[`CamelErrorHandlerVisualEntity getComponentSchema should return schema f
         },
         "backOffMultiplier": {
           "$comment": "group:common",
-          "default": "2.0",
+          "default": 2,
           "description": "Sets the back off multiplier",
           "title": "Back Off Multiplier",
           "type": "number",
         },
         "collisionAvoidanceFactor": {
           "$comment": "group:advanced",
-          "default": "0.15",
+          "default": 0.15,
           "description": "Sets the collision avoidance factor",
           "title": "Collision Avoidance Factor",
           "type": "number",
@@ -272,7 +273,7 @@ exports[`CamelErrorHandlerVisualEntity getComponentSchema should return schema f
         },
         "retryAttemptedLogInterval": {
           "$comment": "group:advanced",
-          "default": "1",
+          "default": 1,
           "description": "Sets the interval to use for logging retry attempts",
           "title": "Retry Attempted Log Interval",
           "type": "number",

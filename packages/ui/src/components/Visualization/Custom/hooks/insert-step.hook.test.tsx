@@ -3,10 +3,20 @@ import { FunctionComponent, PropsWithChildren } from 'react';
 import { ITile } from '../../../../components/Catalog/Catalog.models';
 import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
 import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
+import { CamelComponentSchemaService } from '../../../../models/visualization/flows/support/camel-component-schema.service';
+import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
 import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
 import { CatalogModalContext } from '../../../../providers';
 import { EntitiesContext } from '../../../../providers/entities.provider';
 import { useInsertStep } from './insert-step.hook';
+
+const mockController = {
+  fromModel: jest.fn(),
+};
+
+jest.mock('@patternfly/react-topology', () => ({
+  useVisualizationController: () => mockController,
+}));
 
 describe('useInsertStep', () => {
   const camelResource = new CamelRouteResource();
@@ -34,12 +44,15 @@ describe('useInsertStep', () => {
   };
 
   const mockCompatibleComponents = (item: ITile) => ['log', 'to'].includes(item.type);
+  const getProcessorStepsPropertiesMock = jest.spyOn(CamelComponentSchemaService, 'getProcessorStepsProperties');
 
   beforeEach(() => {
-    mockVizNode = createVisualizationNode('test', {});
+    mockVizNode = createVisualizationNode('test', { processorName: 'test' });
     mockVizNode.addBaseEntityStep = jest.fn();
-    mockVizNode.getComponentSchema = jest.fn().mockReturnValue({ definition: {} });
+    mockVizNode.getNodeDefinition = jest.fn().mockReturnValue({});
+    mockVizNode.getChildren = jest.fn().mockReturnValue([mockVizNode]);
     jest.spyOn(camelResource, 'getCompatibleComponents').mockReturnValue(mockCompatibleComponents);
+    mockController.fromModel.mockClear();
   });
 
   afterEach(() => {
@@ -143,7 +156,31 @@ describe('useInsertStep', () => {
       AddStepMode.InsertSpecialChildStep,
       undefined,
     );
+    expect(getProcessorStepsPropertiesMock).toHaveBeenCalledWith(
+      (mockVizNode.data as CamelRouteVisualEntityData).processorName,
+    );
     expect(mockEntitiesContext.updateEntitiesFromCamelResource).toHaveBeenCalled();
+  });
+
+  it('should call controller.fromModel() when mode is InsertSpecialChildStep and conditions are met', async () => {
+    getProcessorStepsPropertiesMock.mockReturnValue([
+      { name: 'when', type: 'array-clause' },
+      { name: 'otherwise', type: 'array-clause' },
+    ]);
+
+    mockCatalogModalContext.getNewComponent.mockResolvedValue({
+      ...mockDefinedComponent,
+      name: 'when',
+    });
+
+    const { result } = renderHook(() => useInsertStep(mockVizNode, AddStepMode.InsertSpecialChildStep), { wrapper });
+
+    await result.current.onInsertStep();
+
+    expect(mockController.fromModel).toHaveBeenCalledWith({
+      nodes: [],
+      edges: [],
+    });
   });
 
   it('should return early when catalog modal returns no component', async () => {
@@ -176,7 +213,7 @@ describe('useInsertStep', () => {
 
   it('should pass component definition from component schema', async () => {
     const mockComponentDefinition = { id: 'existing-component', type: 'existing' };
-    mockVizNode.getComponentSchema = jest.fn().mockReturnValue({ definition: mockComponentDefinition });
+    mockVizNode.getNodeDefinition = jest.fn().mockReturnValue(mockComponentDefinition);
     mockCatalogModalContext.getNewComponent.mockResolvedValue(mockDefinedComponent);
 
     const { result } = renderHook(() => useInsertStep(mockVizNode, AddStepMode.InsertChildStep), { wrapper });
@@ -191,7 +228,7 @@ describe('useInsertStep', () => {
   });
 
   it('should handle undefined component schema', async () => {
-    mockVizNode.getComponentSchema = jest.fn().mockReturnValue(undefined);
+    mockVizNode.getNodeDefinition = jest.fn().mockReturnValue(undefined);
     mockCatalogModalContext.getNewComponent.mockResolvedValue(mockDefinedComponent);
 
     const { result } = renderHook(() => useInsertStep(mockVizNode, AddStepMode.InsertChildStep), { wrapper });
@@ -215,7 +252,7 @@ describe('useInsertStep', () => {
 
     const newMockVizNode = createVisualizationNode('new-test', {});
     newMockVizNode.addBaseEntityStep = jest.fn();
-    newMockVizNode.getComponentSchema = jest.fn().mockReturnValue({ definition: {} });
+    newMockVizNode.getNodeDefinition = jest.fn().mockReturnValue({});
 
     rerender({ vizNode: newMockVizNode, mode: AddStepMode.InsertChildStep });
 

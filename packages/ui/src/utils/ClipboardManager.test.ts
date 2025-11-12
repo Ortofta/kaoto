@@ -1,6 +1,6 @@
 import { ClipboardManager } from './ClipboardManager';
 import { updateIds } from './update-ids';
-import { IClipboardCopyObject } from '../components/Visualization/Custom/hooks/copy-step.hook';
+import { IClipboardCopyObject } from '../models/visualization/clipboard';
 import { SourceSchemaType } from '../models/camel/source-schema-type';
 
 // Mock the `updateIds` function
@@ -112,7 +112,7 @@ describe('ClipboardManager', () => {
 
       const result = await ClipboardManager.paste();
       expect(navigator.clipboard.read).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(updateIds(testClipboardObject));
+      expect(result).toEqual(testClipboardObject);
     });
 
     it('should fetch fm the KAOTO_MIME_TYPE content from the clipboard', async () => {
@@ -137,7 +137,7 @@ describe('ClipboardManager', () => {
 
       const result = await ClipboardManager.paste();
       expect(navigator.clipboard.read).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(updateIds(testClipboardObject));
+      expect(result).toEqual(testClipboardObject);
     });
 
     it('should return null if clipboard content is not Kaoto-specific', async () => {
