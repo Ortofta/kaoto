@@ -14,9 +14,9 @@
     limitations under the License.
 */
 import { AlertVariant, Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalVariant } from '@patternfly/react-core';
+import { ExportIcon } from '@patternfly/react-icons';
 import { FunctionComponent, useCallback } from 'react';
 
-import { ExportIcon } from '@patternfly/react-icons';
 import { useCanvas } from '../../../hooks/useCanvas';
 import { useDataMapper } from '../../../hooks/useDataMapper';
 import { useToggle } from '../../../hooks/useToggle';
@@ -44,7 +44,8 @@ export const DetachSchemaButton: FunctionComponent<DeleteSchemaProps> = ({
 
     if (result.validationStatus !== 'success') {
       const variant = result.validationStatus === 'warning' ? AlertVariant.warning : AlertVariant.danger;
-      sendAlert({ variant: variant, title: result.validationMessage });
+      const messages = result.errors ?? result.warnings ?? [];
+      sendAlert({ variant: variant, title: messages.join('; ') });
     } else if (!result.documentDefinition || !result.document) {
       sendAlert({ variant: AlertVariant.danger, title: 'Could not detach schema' });
     } else {

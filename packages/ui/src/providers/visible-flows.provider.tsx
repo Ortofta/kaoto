@@ -1,4 +1,5 @@
 import { createContext, FunctionComponent, PropsWithChildren, useContext, useEffect, useMemo, useReducer } from 'react';
+
 import { VisibleFlowsReducer, VisualFlowsApi } from '../models/visualization/flows/support/flows-visibility';
 import { initVisibleFlows, IVisibleFlows } from '../utils/init-visible-flows';
 import { isSameArray } from '../utils/is-same-array';
@@ -39,6 +40,7 @@ export const VisibleFlowsProvider: FunctionComponent<PropsWithChildren> = (props
     if (!hasSameIds) {
       visualFlowsApi.initVisibleFlows(visualEntitiesIds);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visualEntitiesIds, visualFlowsApi]);
 
   const value = useMemo(() => {

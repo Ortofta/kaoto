@@ -1,5 +1,6 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary, RestConfiguration } from '@kaoto/camel-catalog/types';
+
 import { restConfigurationSchema, restConfigurationStub } from '../../../stubs/rest-configuration';
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
 import { EntityType } from '../../camel/entities';
@@ -197,7 +198,8 @@ describe('CamelRestConfigurationVisualEntity', () => {
           restConfigurationDef,
           type: EntityType.RestConfiguration,
         },
-        icon: '',
+        catalogKind: CatalogKind.Entity,
+        name: 'restConfiguration',
         isGroup: true,
         path: 'restConfiguration',
         processorName: 'restConfiguration',
@@ -226,5 +228,13 @@ describe('CamelRestConfigurationVisualEntity', () => {
     const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
 
     expect(entity.toJSON()).toEqual(restConfigurationDef);
+  });
+
+  describe('getGroupIcons', () => {
+    it('should return empty array for rest configuration entity', () => {
+      const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
+
+      expect(entity.getGroupIcons()).toEqual([]);
+    });
   });
 });

@@ -2,11 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { FunctionComponent, PropsWithChildren } from 'react';
 import { useMoveStep } from './move-step.hook';
 import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
-import { EntitiesContext } from '../../../../providers/entities.provider';
-import { getVisualizationNodesFromGraph } from '../../../../utils/get-viznodes-from-graph';
-import { getPotentialPath } from '../../../../utils/get-potential-path';
 import { CamelRouteVisualEntity } from '../../../../models/visualization/flows/camel-route-visual-entity';
-import { camelRouteJson, camelRouteJsonWithDM } from '../../../../stubs/camel-route';
 import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
 import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
 import { SourceSchemaType } from '../../../../models/camel/source-schema-type';
@@ -218,9 +214,10 @@ describe('useMoveStep', () => {
       const dataMapperVizNodePasteBaseEntityStepSpy = jest.spyOn(dataMapperVizNode, 'pasteBaseEntityStep');
 
       const targetVizNode = {
+        data: {},
         getCopiedContent: jest.fn().mockReturnValue(targetVizNodeCopiedContent),
         pasteBaseEntityStep: jest.fn(),
-        getComponentSchema: jest.fn().mockReturnValue({ definition: { id: 'test' } }),
+        getNodeDefinition: jest.fn().mockReturnValue({ id: 'test' }),
       } as unknown as IVisualizationNode;
 
       mockGetPotentialPath.mockReturnValue('route.from.steps.1');
@@ -249,9 +246,10 @@ describe('useMoveStep', () => {
       const VizNodePasteBaseEntityStepSpy = jest.spyOn(vizNode, 'pasteBaseEntityStep');
 
       const targetVizNode = {
+        data: {},
         getCopiedContent: jest.fn().mockReturnValue(targetVizNodeCopiedContent),
         pasteBaseEntityStep: jest.fn(),
-        getComponentSchema: jest.fn().mockReturnValue({ definition: { id: 'test' } }),
+        getNodeDefinition: jest.fn().mockReturnValue({ id: 'test' }),
       } as unknown as IVisualizationNode;
 
       mockGetPotentialPath.mockReturnValue('route.from.steps.2');

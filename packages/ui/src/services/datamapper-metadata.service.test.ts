@@ -1,11 +1,10 @@
-import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
-import { createVisualizationNode } from '../models';
-import { CamelRouteVisualEntity } from '../models/visualization/flows/camel-route-visual-entity';
 import { BODY_DOCUMENT_ID, DocumentDefinition, DocumentDefinitionType, DocumentType } from '../models/datamapper';
-import { IDataMapperMetadata } from '../models/datamapper/metadata';
-import { IMetadataApi, EntitiesContextResult } from '../providers';
-import { XSLT_COMPONENT_NAME } from '../utils';
+import { IDataMapperMetadata, IFieldTypeOverride } from '../models/datamapper/metadata';
+import { TypeOverrideVariant } from '../models/datamapper/types';
+import { IMetadataApi } from '../providers';
+import { commonTypesJsonSchema, customerJsonSchema, orderJsonSchema } from '../stubs/datamapper/data-mapper';
 import { DataMapperMetadataService } from './datamapper-metadata.service';
+import { JsonSchemaDocumentService } from './json-schema-document.service';
 import { EMPTY_XSL } from './mapping-serializer.service';
 
 describe('DataMapperMetadataService', () => {
@@ -29,40 +28,16 @@ describe('DataMapperMetadataService', () => {
     jest.clearAllMocks();
   });
 
-  describe('getDataMapperMetadataId', () => {
-    it('should return the metadata id from the visualization node', () => {
-      const entity = new CamelRouteVisualEntity({
-        route: {
-          id: 'test-route',
-          from: { uri: 'direct:start', steps: [] },
-        },
-      });
-      const vizNode = entity.toVizNode();
-
-      const metadataId = DataMapperMetadataService.getDataMapperMetadataId(vizNode);
-
-      expect(metadataId).toBe('test-route');
-    });
-
-    it('should return the id from a custom visualization node', () => {
-      const vizNode = createVisualizationNode('custom-id', {});
-      jest.spyOn(vizNode, 'getNodeDefinition').mockReturnValue({ id: 'custom-metadata-id' });
-
-      const metadataId = DataMapperMetadataService.getDataMapperMetadataId(vizNode);
-
-      expect(metadataId).toBe('custom-metadata-id');
-    });
-  });
-
   describe('createMetadata', () => {
     it('should create metadata with default values when no xsltPath is provided', () => {
       const metadata = DataMapperMetadataService.createMetadata();
 
       expect(metadata).toEqual({
-        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [], fieldTypeOverrides: [] },
         sourceParameters: {},
-        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [], fieldTypeOverrides: [] },
         xsltPath: '',
+        namespaceMap: {},
       });
     });
 
@@ -71,10 +46,11 @@ describe('DataMapperMetadataService', () => {
       const metadata = DataMapperMetadataService.createMetadata(xsltPath);
 
       expect(metadata).toEqual({
-        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [], fieldTypeOverrides: [] },
         sourceParameters: {},
-        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [], fieldTypeOverrides: [] },
         xsltPath: 'test-transform.xsl',
+        namespaceMap: {},
       });
     });
   });
@@ -138,96 +114,37 @@ describe('DataMapperMetadataService', () => {
   });
 
   describe('initializeDataMapperMetadata', () => {
-    it('should initialize metadata when XSLT step exists with document name', async () => {
-      const vizNode = createVisualizationNode('test-node', {});
-      const mockModel = {
-        id: 'test-metadata-id',
-        steps: [
-          {
-            to: { uri: `${XSLT_COMPONENT_NAME}:existing.xsl` },
-          },
-        ],
-      };
-      jest.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(mockModel);
-
-      const mockEntitiesContext = {
-        updateSourceCodeFromEntities: jest.fn(),
-      } as unknown as EntitiesContextResult;
-
+    it('should initialize metadata with provided xsltPath', async () => {
       const metadata = await DataMapperMetadataService.initializeDataMapperMetadata(
-        mockEntitiesContext,
-        vizNode,
         mockApi,
         'test-metadata-id',
+        'existing.xsl',
       );
 
       expect(metadata.xsltPath).toBe('existing.xsl');
       expect(mockApi.setMetadata).toHaveBeenCalledWith('test-metadata-id', metadata);
       expect(mockApi.saveResourceContent).toHaveBeenCalledWith('existing.xsl', EMPTY_XSL);
-      expect(mockEntitiesContext.updateSourceCodeFromEntities).not.toHaveBeenCalled();
     });
 
-    it('should create document name when XSLT step exists without document name', async () => {
-      const entity = new CamelRouteVisualEntity({
-        route: {
-          id: 'test-route',
-          from: {
-            uri: 'direct:start',
-            steps: [
-              {
-                step: {
-                  id: 'datamapper-1',
-                  steps: [{ to: { uri: XSLT_COMPONENT_NAME } } as ProcessorDefinition],
-                },
-              } as ProcessorDefinition,
-            ],
-          },
-        },
-      });
-      const vizNode = entity.toVizNode();
-      const mockEntitiesContext = {
-        updateSourceCodeFromEntities: jest.fn(),
-      } as unknown as EntitiesContextResult;
-
-      jest.spyOn(vizNode, 'getNodeDefinition').mockReturnValue({
-        id: 'datamapper-1',
-        steps: [{ to: { uri: XSLT_COMPONENT_NAME } }],
-      });
-      jest.spyOn(vizNode, 'updateModel');
-
+    it('should create metadata with default document definitions', async () => {
       const metadata = await DataMapperMetadataService.initializeDataMapperMetadata(
-        mockEntitiesContext,
-        vizNode,
         mockApi,
         'test-metadata-id',
+        'transform.xsl',
       );
 
-      expect(metadata.xsltPath).toBe('test-metadata-id.xsl');
-      expect(vizNode.updateModel).toHaveBeenCalled();
-      expect(mockEntitiesContext.updateSourceCodeFromEntities).toHaveBeenCalled();
-    });
-
-    it('should handle case when no XSLT step is found', async () => {
-      const entity = new CamelRouteVisualEntity({
-        route: {
-          id: 'test-route',
-          from: { uri: 'direct:start', steps: [] },
-        },
+      expect(metadata.sourceBody).toEqual({
+        type: DocumentDefinitionType.Primitive,
+        filePath: [],
+        fieldTypeOverrides: [],
       });
-      const vizNode = entity.toVizNode();
-      const mockEntitiesContext = {
-        updateSourceCodeFromEntities: jest.fn(),
-      } as unknown as EntitiesContextResult;
-
-      const metadata = await DataMapperMetadataService.initializeDataMapperMetadata(
-        mockEntitiesContext,
-        vizNode,
-        mockApi,
-        'test-metadata-id',
-      );
-
-      expect(metadata.xsltPath).toBe('');
-      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-metadata-id', metadata);
+      expect(metadata.sourceParameters).toEqual({});
+      expect(metadata.targetBody).toEqual({
+        type: DocumentDefinitionType.Primitive,
+        filePath: [],
+        fieldTypeOverrides: [],
+      });
+      expect(metadata.namespaceMap).toEqual({});
     });
   });
 
@@ -264,6 +181,108 @@ describe('DataMapperMetadataService', () => {
       spy.mockRestore();
     });
 
+    it('should load rootElementChoice when present in metadata', async () => {
+      const rootElementChoice = { namespaceUri: 'http://example.com/schema', name: 'CustomRoot' };
+      const metadata: IDataMapperMetadata = {
+        sourceBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['source.xsd'],
+          rootElementChoice,
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      mockApi.getResourceContent.mockImplementation(async (path: string) => {
+        if (path === 'source.xsd') return '<schema>source</schema>';
+        return undefined;
+      });
+
+      const result = await DataMapperMetadataService.loadDocuments(mockApi, metadata);
+
+      expect(result.sourceBody).toBeDefined();
+      expect(result.sourceBody.rootElementChoice).toEqual(rootElementChoice);
+    });
+
+    it('should handle missing rootElementChoice in metadata', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['source.xsd'] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      mockApi.getResourceContent.mockImplementation(async (path: string) => {
+        if (path === 'source.xsd') return '<schema>source</schema>';
+        return undefined;
+      });
+
+      const result = await DataMapperMetadataService.loadDocuments(mockApi, metadata);
+
+      expect(result.sourceBody).toBeDefined();
+      expect(result.sourceBody.rootElementChoice).toBeUndefined();
+    });
+
+    it('should restore JSON primary schema from metadata', async () => {
+      const metadata: IDataMapperMetadata = {
+        xsltPath: 'test.xsl',
+        sourceBody: {
+          type: DocumentDefinitionType.JSON_SCHEMA,
+          filePath: ['Order.schema.json', 'Customer.schema.json', 'CommonTypes.schema.json'],
+          rootElementChoice: { namespaceUri: '', name: 'Customer.schema.json' },
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+      };
+
+      mockApi.getResourceContent.mockImplementation((path) => {
+        if (path === 'Order.schema.json') return Promise.resolve(orderJsonSchema);
+        if (path === 'Customer.schema.json') return Promise.resolve(customerJsonSchema);
+        if (path === 'CommonTypes.schema.json') return Promise.resolve(commonTypesJsonSchema);
+        return Promise.resolve(undefined);
+      });
+
+      const result = await DataMapperMetadataService.loadDocuments(mockApi, metadata);
+
+      expect(result.sourceBody.rootElementChoice).toBeDefined();
+      expect(result.sourceBody.rootElementChoice?.name).toBe('Customer.schema.json');
+
+      const docResult = JsonSchemaDocumentService.createJsonSchemaDocument(result.sourceBody);
+      if (docResult.validationStatus !== 'success') {
+        throw new Error(`Validation failed: ${docResult.errors?.join('; ')}`);
+      }
+      const root = docResult.document!.fields[0];
+      const customerId = root.fields.find((f) => f.key === 'customerId');
+      expect(customerId).toBeDefined();
+    });
+
+    it('should handle metadata without rootElementChoice (backward compatibility)', async () => {
+      const metadata: IDataMapperMetadata = {
+        xsltPath: 'test.xsl',
+        sourceBody: {
+          type: DocumentDefinitionType.JSON_SCHEMA,
+          filePath: ['Order.schema.json', 'Customer.schema.json', 'CommonTypes.schema.json'],
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+      };
+
+      mockApi.getResourceContent.mockImplementation((path) => {
+        if (path === 'Order.schema.json') return Promise.resolve(orderJsonSchema);
+        if (path === 'Customer.schema.json') return Promise.resolve(customerJsonSchema);
+        if (path === 'CommonTypes.schema.json') return Promise.resolve(commonTypesJsonSchema);
+        return Promise.resolve(undefined);
+      });
+
+      const result = await DataMapperMetadataService.loadDocuments(mockApi, metadata);
+
+      expect(result.sourceBody.rootElementChoice).toBeUndefined();
+
+      const docResult = JsonSchemaDocumentService.createJsonSchemaDocument(result.sourceBody);
+      expect(docResult.validationStatus).toBe('success');
+    });
+
     it('should handle empty source parameters', async () => {
       const metadata: IDataMapperMetadata = {
         sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
@@ -297,34 +316,6 @@ describe('DataMapperMetadataService', () => {
       expect(consoleLogSpy).toHaveBeenCalled();
 
       consoleLogSpy.mockRestore();
-    });
-  });
-
-  describe('getXSLTDocumentName', () => {
-    it('should extract document name from XSLT step URI', () => {
-      const xsltStep = {
-        to: { uri: `${XSLT_COMPONENT_NAME}:transform.xsl` },
-      };
-
-      const documentName = DataMapperMetadataService.getXSLTDocumentName(xsltStep);
-
-      expect(documentName).toBe('transform.xsl');
-    });
-
-    it('should return undefined when xsltStep is undefined', () => {
-      const documentName = DataMapperMetadataService.getXSLTDocumentName();
-
-      expect(documentName).toBeUndefined();
-    });
-
-    it('should handle URI with only component name', () => {
-      const xsltStep = {
-        to: { uri: XSLT_COMPONENT_NAME },
-      };
-
-      const documentName = DataMapperMetadataService.getXSLTDocumentName(xsltStep);
-
-      expect(documentName).toBeUndefined();
     });
   });
 
@@ -400,6 +391,71 @@ describe('DataMapperMetadataService', () => {
 
       expect(metadata.sourceBody.type).toBe(DocumentDefinitionType.Primitive);
       expect(metadata.sourceBody.filePath).toEqual([]);
+    });
+
+    it('should persist rootElementChoice when provided', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+      const rootElementChoice = { namespaceUri: 'http://example.com/schema', name: 'CustomRoot' };
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'source.xsd': '<schema/>' },
+        rootElementChoice,
+      );
+
+      await DataMapperMetadataService.updateSourceBodyMetadata(mockApi, 'test-id', metadata, definition);
+
+      expect(metadata.sourceBody.type).toBe(DocumentDefinitionType.XML_SCHEMA);
+      expect(metadata.sourceBody.filePath).toEqual(['source.xsd']);
+      expect(metadata.sourceBody.rootElementChoice).toEqual(rootElementChoice);
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should not persist rootElementChoice when not provided', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'source.xsd': '<schema/>' },
+      );
+
+      await DataMapperMetadataService.updateSourceBodyMetadata(mockApi, 'test-id', metadata, definition);
+
+      expect(metadata.sourceBody.type).toBe(DocumentDefinitionType.XML_SCHEMA);
+      expect(metadata.sourceBody.rootElementChoice).toBeUndefined();
+    });
+
+    it('should persist JSON primary schema to metadata via rootElementChoice', async () => {
+      const metadata = DataMapperMetadataService.createMetadata('test.xsl');
+
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.JSON_SCHEMA,
+        BODY_DOCUMENT_ID,
+        {
+          'Order.schema.json': orderJsonSchema,
+          'Customer.schema.json': customerJsonSchema,
+          'CommonTypes.schema.json': commonTypesJsonSchema,
+        },
+        { namespaceUri: '', name: 'Customer.schema.json' },
+      );
+
+      await DataMapperMetadataService.updateSourceBodyMetadata(mockApi, 'test-id', metadata, definition);
+
+      expect(metadata.sourceBody.rootElementChoice).toBeDefined();
+      expect(metadata.sourceBody.rootElementChoice?.name).toBe('Customer.schema.json');
     });
   });
 
@@ -720,6 +776,580 @@ describe('DataMapperMetadataService', () => {
       expect(metadata.sourceBody.filePath).toEqual(['source.xsd']);
 
       consoleLogSpy.mockRestore();
+    });
+  });
+
+  describe('setFieldTypeOverride()', () => {
+    it('should add field type override to source body', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['source.xsd'], fieldTypeOverrides: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap: { ns0: 'http://example.com/source' },
+      };
+      const override: IFieldTypeOverride = {
+        path: '/ns0:Root/Field',
+        type: 'ns0:CustomType',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      };
+
+      await DataMapperMetadataService.setFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.SOURCE_BODY,
+        undefined,
+        override,
+      );
+
+      expect(metadata.sourceBody.fieldTypeOverrides).toHaveLength(1);
+      expect(metadata.sourceBody.fieldTypeOverrides?.[0]).toEqual(override);
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should update existing field type override when path matches', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['source.xsd'],
+          fieldTypeOverrides: [
+            {
+              path: '/ns0:Root/Field',
+              type: 'ns0:OldType',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+          ],
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap: { ns0: 'http://example.com/source' },
+      };
+      const newOverride: IFieldTypeOverride = {
+        path: '/ns0:Root/Field',
+        type: 'ns0:NewType',
+        originalType: 'ns0:OldType',
+        variant: TypeOverrideVariant.FORCE,
+      };
+
+      await DataMapperMetadataService.setFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.SOURCE_BODY,
+        undefined,
+        newOverride,
+      );
+
+      expect(metadata.sourceBody.fieldTypeOverrides).toHaveLength(1);
+      expect(metadata.sourceBody.fieldTypeOverrides?.[0].type).toBe('ns0:NewType');
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should add field type override to target body', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['target.xsd'], fieldTypeOverrides: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap: { ns1: 'http://example.com/target' },
+      };
+      const override: IFieldTypeOverride = {
+        path: '/ns1:Order/ShipTo',
+        type: 'ns1:ExtendedShipTo',
+        originalType: 'ns1:ShipTo',
+        variant: TypeOverrideVariant.SAFE,
+      };
+
+      await DataMapperMetadataService.setFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.TARGET_BODY,
+        undefined,
+        override,
+      );
+
+      expect(metadata.targetBody.fieldTypeOverrides).toHaveLength(1);
+      expect(metadata.targetBody.fieldTypeOverrides?.[0]).toEqual(override);
+    });
+
+    it('should add field type override to source parameter', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {
+          param1: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['param1.xsd'], fieldTypeOverrides: [] },
+        },
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+      const override: IFieldTypeOverride = {
+        path: '/ns0:Config/Setting',
+        type: 'xs:string',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      };
+
+      await DataMapperMetadataService.setFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.PARAM,
+        'param1',
+        override,
+      );
+
+      expect(metadata.sourceParameters['param1'].fieldTypeOverrides).toHaveLength(1);
+      expect(metadata.sourceParameters['param1'].fieldTypeOverrides?.[0]).toEqual(override);
+    });
+
+    it('should initialize fieldTypeOverrides if undefined', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['source.xsd'] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+      const override: IFieldTypeOverride = {
+        path: '/ns0:Root/Field',
+        type: 'ns0:CustomType',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      };
+
+      await DataMapperMetadataService.setFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.SOURCE_BODY,
+        undefined,
+        override,
+      );
+
+      expect(metadata.sourceBody.fieldTypeOverrides).toBeDefined();
+      expect(metadata.sourceBody.fieldTypeOverrides).toHaveLength(1);
+    });
+
+    it('should handle non-existent parameter gracefully', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+      const override: IFieldTypeOverride = {
+        path: '/ns0:Field',
+        type: 'xs:string',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      };
+
+      await DataMapperMetadataService.setFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.PARAM,
+        'nonexistent',
+        override,
+      );
+
+      expect(mockApi.setMetadata).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('removeFieldTypeOverride()', () => {
+    it('should remove field type override from source body', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['source.xsd'],
+          fieldTypeOverrides: [
+            {
+              path: '/ns0:Root/Field1',
+              type: 'ns0:Type1',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+            {
+              path: '/ns0:Root/Field2',
+              type: 'ns0:Type2',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+          ],
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      await DataMapperMetadataService.removeFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.SOURCE_BODY,
+        undefined,
+        '/ns0:Root/Field1',
+      );
+
+      expect(metadata.sourceBody.fieldTypeOverrides).toHaveLength(1);
+      expect(metadata.sourceBody.fieldTypeOverrides?.[0].path).toBe('/ns0:Root/Field2');
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should remove field type override from target body', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['target.xsd'],
+          fieldTypeOverrides: [
+            {
+              path: '/ns1:Order/ShipTo',
+              type: 'ns1:ExtendedShipTo',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+          ],
+        },
+        xsltPath: 'transform.xsl',
+      };
+
+      await DataMapperMetadataService.removeFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.TARGET_BODY,
+        undefined,
+        '/ns1:Order/ShipTo',
+      );
+
+      expect(metadata.targetBody.fieldTypeOverrides).toHaveLength(0);
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should remove field type override from source parameter', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {
+          param1: {
+            type: DocumentDefinitionType.XML_SCHEMA,
+            filePath: ['param1.xsd'],
+            fieldTypeOverrides: [
+              {
+                path: '/ns0:Config/Setting',
+                type: 'xs:string',
+                originalType: 'xs:anyType',
+                variant: TypeOverrideVariant.SAFE,
+              },
+            ],
+          },
+        },
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      await DataMapperMetadataService.removeFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.PARAM,
+        'param1',
+        '/ns0:Config/Setting',
+      );
+
+      expect(metadata.sourceParameters['param1'].fieldTypeOverrides).toHaveLength(0);
+    });
+
+    it('should handle non-existent path gracefully', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['source.xsd'],
+          fieldTypeOverrides: [
+            {
+              path: '/ns0:Root/Field',
+              type: 'ns0:Type',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+          ],
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      await DataMapperMetadataService.removeFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.SOURCE_BODY,
+        undefined,
+        '/ns0:NonExistent',
+      );
+
+      expect(metadata.sourceBody.fieldTypeOverrides).toHaveLength(1);
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should handle undefined fieldTypeOverrides gracefully', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['source.xsd'] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      await DataMapperMetadataService.removeFieldTypeOverride(
+        mockApi,
+        'test-id',
+        metadata,
+        DocumentType.SOURCE_BODY,
+        undefined,
+        '/ns0:Root/Field',
+      );
+
+      expect(mockApi.setMetadata).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getFieldTypeOverrides()', () => {
+    it('should return field type overrides for source body', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['source.xsd'],
+          fieldTypeOverrides: [
+            {
+              path: '/ns0:Root/Field1',
+              type: 'ns0:Type1',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+            {
+              path: '/ns0:Root/Field2',
+              type: 'ns0:Type2',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+          ],
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      const overrides = DataMapperMetadataService.getFieldTypeOverrides(metadata, DocumentType.SOURCE_BODY);
+
+      expect(overrides).toHaveLength(2);
+      expect(overrides[0]).toEqual({
+        path: '/ns0:Root/Field1',
+        type: 'ns0:Type1',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      });
+      expect(overrides[1]).toEqual({
+        path: '/ns0:Root/Field2',
+        type: 'ns0:Type2',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      });
+    });
+
+    it('should return field type overrides for target body', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['target.xsd'],
+          fieldTypeOverrides: [
+            {
+              path: '/ns1:Order/ShipTo',
+              type: 'ns1:ExtendedShipTo',
+              originalType: 'xs:anyType',
+              variant: TypeOverrideVariant.SAFE,
+            },
+          ],
+        },
+        xsltPath: 'transform.xsl',
+      };
+
+      const overrides = DataMapperMetadataService.getFieldTypeOverrides(metadata, DocumentType.TARGET_BODY);
+
+      expect(overrides).toHaveLength(1);
+      expect(overrides[0]).toEqual({
+        path: '/ns1:Order/ShipTo',
+        type: 'ns1:ExtendedShipTo',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      });
+    });
+
+    it('should return field type overrides for source parameter', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {
+          param1: {
+            type: DocumentDefinitionType.XML_SCHEMA,
+            filePath: ['param1.xsd'],
+            fieldTypeOverrides: [
+              {
+                path: '/ns0:Config/Setting',
+                type: 'xs:string',
+                originalType: 'xs:anyType',
+                variant: TypeOverrideVariant.SAFE,
+              },
+            ],
+          },
+        },
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      const overrides = DataMapperMetadataService.getFieldTypeOverrides(metadata, DocumentType.PARAM, 'param1');
+
+      expect(overrides).toHaveLength(1);
+      expect(overrides[0]).toEqual({
+        path: '/ns0:Config/Setting',
+        type: 'xs:string',
+        originalType: 'xs:anyType',
+        variant: TypeOverrideVariant.SAFE,
+      });
+    });
+
+    it('should return empty array when fieldTypeOverrides is undefined', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.XML_SCHEMA, filePath: ['source.xsd'] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      const overrides = DataMapperMetadataService.getFieldTypeOverrides(metadata, DocumentType.SOURCE_BODY);
+
+      expect(overrides).toEqual([]);
+    });
+
+    it('should return empty array when fieldTypeOverrides is empty', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: {
+          type: DocumentDefinitionType.XML_SCHEMA,
+          filePath: ['source.xsd'],
+          fieldTypeOverrides: [],
+        },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      const overrides = DataMapperMetadataService.getFieldTypeOverrides(metadata, DocumentType.SOURCE_BODY);
+
+      expect(overrides).toEqual([]);
+    });
+
+    it('should return empty array for non-existent parameter', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      const overrides = DataMapperMetadataService.getFieldTypeOverrides(metadata, DocumentType.PARAM, 'nonexistent');
+
+      expect(overrides).toEqual([]);
+    });
+  });
+
+  describe('setNamespaceMap()', () => {
+    it('should set the namespace map', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap: {},
+      };
+      const namespaceMap = {
+        ns0: 'http://example.com/source',
+        ns1: 'http://example.com/target',
+      };
+
+      await DataMapperMetadataService.setNamespaceMap(mockApi, 'test-id', metadata, namespaceMap);
+
+      expect(metadata.namespaceMap).toEqual(namespaceMap);
+      expect(mockApi.setMetadata).toHaveBeenCalledWith('test-id', metadata);
+    });
+
+    it('should replace existing namespace map', async () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap: { old: 'http://old.com' },
+      };
+      const newNamespaceMap = {
+        ns0: 'http://new.com',
+      };
+
+      await DataMapperMetadataService.setNamespaceMap(mockApi, 'test-id', metadata, newNamespaceMap);
+
+      expect(metadata.namespaceMap).toEqual(newNamespaceMap);
+      expect(metadata.namespaceMap).not.toHaveProperty('old');
+    });
+  });
+
+  describe('getNamespaceMap()', () => {
+    it('should return namespace map when it exists', () => {
+      const namespaceMap = {
+        ns0: 'http://example.com/source',
+        ns1: 'http://example.com/target',
+      };
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap,
+      };
+
+      const result = DataMapperMetadataService.getNamespaceMap(metadata);
+
+      expect(result).toEqual(namespaceMap);
+    });
+
+    it('should return empty object when namespace map is undefined', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+      };
+
+      const result = DataMapperMetadataService.getNamespaceMap(metadata);
+
+      expect(result).toEqual({});
+    });
+
+    it('should return empty object when namespace map is empty', () => {
+      const metadata: IDataMapperMetadata = {
+        sourceBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        sourceParameters: {},
+        targetBody: { type: DocumentDefinitionType.Primitive, filePath: [] },
+        xsltPath: 'transform.xsl',
+        namespaceMap: {},
+      };
+
+      const result = DataMapperMetadataService.getNamespaceMap(metadata);
+
+      expect(result).toEqual({});
     });
   });
 });

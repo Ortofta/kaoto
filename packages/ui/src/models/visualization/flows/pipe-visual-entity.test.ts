@@ -1,11 +1,12 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary, Pipe } from '@kaoto/camel-catalog/types';
 import { cloneDeep } from 'lodash';
+
 import { pipeJson } from '../../../stubs/pipe';
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
-import { DefinedComponent } from '../../camel-catalog-index';
 import { EntityType } from '../../camel/entities';
 import { SourceSchemaType } from '../../camel/source-schema-type';
+import { DefinedComponent } from '../../camel-catalog-index';
 import { CatalogKind } from '../../catalog-kind';
 import { IKameletDefinition } from '../../kamelets-catalog';
 import { AddStepMode } from '../base-visual-entity';
@@ -258,7 +259,8 @@ describe('Pipe', () => {
         mode: AddStepMode.ReplaceStep,
         data: {
           path: 'source',
-          icon: '/src/assets/components/log.svg',
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
         },
       });
 
@@ -278,7 +280,8 @@ describe('Pipe', () => {
         mode: AddStepMode.AppendStep,
         data: {
           path: 'steps.0',
-          icon: '/src/assets/components/log.svg',
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
         },
       });
 
@@ -299,7 +302,8 @@ describe('Pipe', () => {
         mode: AddStepMode.PrependStep,
         data: {
           path: 'steps.0',
-          icon: '/src/assets/components/log.svg',
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
         },
       });
 
@@ -320,7 +324,8 @@ describe('Pipe', () => {
         mode: AddStepMode.PrependStep,
         data: {
           path: 'sink',
-          icon: '/src/assets/components/log.svg',
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
         },
       });
 
@@ -347,7 +352,8 @@ describe('Pipe', () => {
         mode: AddStepMode.AppendStep,
         data: {
           path: 'steps.0',
-          icon: '/src/assets/components/log.svg',
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
         },
       });
 
@@ -430,7 +436,11 @@ describe('Pipe', () => {
     it.each(['source', 'sink', 'steps.1', '#'])(
       `should return the correct interaction for the '%s' processor`,
       (path) => {
-        const result = pipeVisualEntity.getNodeInteraction({ path });
+        const result = pipeVisualEntity.getNodeInteraction({
+          path,
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
+        });
         expect(result).toMatchSnapshot();
       },
     );
@@ -641,7 +651,8 @@ describe('Pipe', () => {
         mode: AddStepMode.AppendStep,
         data: {
           path: 'steps.0',
-          icon: '/src/assets/components/log.svg',
+          catalogKind: CatalogKind.Kamelet,
+          name: 'log-action',
         },
       });
 

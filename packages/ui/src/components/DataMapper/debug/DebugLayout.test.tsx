@@ -1,16 +1,17 @@
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { FunctionComponent, PropsWithChildren, RefObject, useEffect } from 'react';
+
+import { useCanvas } from '../../../hooks/useCanvas';
+import { useDataMapper } from '../../../hooks/useDataMapper';
+import { useMappingLinks } from '../../../hooks/useMappingLinks';
+import { MappingTree } from '../../../models/datamapper/mapping';
+import { IMappingLink, NodeReference } from '../../../models/datamapper/visualization';
 import { DataMapperProvider } from '../../../providers/datamapper.provider';
 import { DataMapperCanvasProvider } from '../../../providers/datamapper-canvas.provider';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { DebugLayout } from './DebugLayout';
-import { FunctionComponent, MutableRefObject, PropsWithChildren, useEffect } from 'react';
-import { useDataMapper } from '../../../hooks/useDataMapper';
-import { useCanvas } from '../../../hooks/useCanvas';
-import { MappingSerializerService } from '../../../services/mapping-serializer.service';
-import { MappingTree } from '../../../models/datamapper/mapping';
-import { shipOrderToShipOrderXslt, TestUtil } from '../../../stubs/datamapper/data-mapper';
-import { IMappingLink, NodeReference } from '../../../models/datamapper/visualization';
-import { useMappingLinks } from '../../../hooks/useMappingLinks';
 import { MappingLinksService } from '../../../services/mapping-links.service';
+import { MappingSerializerService } from '../../../services/mapping-serializer.service';
+import { shipOrderToShipOrderXslt, TestUtil } from '../../../stubs/datamapper/data-mapper';
+import { DebugLayout } from './DebugLayout';
 
 describe('DebugLayout', () => {
   afterAll(() => {
@@ -57,7 +58,9 @@ describe('DebugLayout', () => {
       </DataMapperProvider>,
     );
     await screen.findAllByText('ShipOrder');
-    const targetNodes = screen.getAllByTestId(/node-target-.*/);
+    const targetDocuments = screen.queryAllByTestId(/^document-doc-targetBody-.*/);
+    const targetFields = screen.queryAllByTestId(/^node-target-.*/);
+    const targetNodes = [...targetDocuments, ...targetFields];
     expect(targetNodes.length).toEqual(21);
     expect(mappingLinks.length).toEqual(11);
     expect(mappingLinks.filter((link) => link.isSelected).length).toEqual(0);
@@ -66,7 +69,7 @@ describe('DebugLayout', () => {
   });
 
   it('should register selected node reference', async () => {
-    let selectedNodeReference: MutableRefObject<NodeReference> | null = null;
+    let selectedNodeReference: RefObject<NodeReference> | null = null;
     const LoadMappings: FunctionComponent<PropsWithChildren> = ({ children }) => {
       const { mappingTree, setMappingTree, sourceParameterMap, setSourceBodyDocument, setTargetBodyDocument } =
         useDataMapper();
@@ -106,7 +109,7 @@ describe('DebugLayout', () => {
       expect(selectedNodeReference?.current.path).toMatch(/targetBody:Body:\/\/fx-ShipOrder-.*\/fx-OrderId-.*/);
     });
 
-    const sourceOrderId = await screen.findByTestId(/node-source-selected-fx-OrderId-.*/);
+    const sourceOrderId = await screen.findByTestId(/node-source-fx-OrderId-.*/);
     act(() => {
       fireEvent.click(sourceOrderId);
     });

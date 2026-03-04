@@ -1,17 +1,19 @@
-import { DocumentService } from './document.service';
-
-import { TestUtil, cartJsonSchema, multipleElementsXsd } from '../stubs/datamapper/data-mapper';
 import {
+  BODY_DOCUMENT_ID,
+  DocumentDefinition,
   DocumentDefinitionType,
   DocumentType,
+  IField,
   IParentType,
   PathSegment,
   PrimitiveDocument,
   RootElementOption,
 } from '../models/datamapper';
-import { XmlSchemaDocument } from './xml-schema-document.service';
-import { JsonSchemaDocument } from './json-schema-document.service';
 import { IMetadataApi } from '../providers';
+import { cartJsonSchema, multipleElementsXsd, TestUtil } from '../stubs/datamapper/data-mapper';
+import { DocumentService } from './document.service';
+import { JsonSchemaDocument } from './json-schema-document.model';
+import { XmlSchemaDocument } from './xml-schema-document.model';
 
 describe('DocumentService', () => {
   const sourceDoc = TestUtil.createSourceOrderDoc();
@@ -82,9 +84,9 @@ describe('DocumentService', () => {
       );
 
       expect(result.validationStatus).toBe('error');
-      expect(result.validationMessage).toBeDefined();
+      expect(result.errors?.length).toBeGreaterThan(0);
       expect(result.document).toBeUndefined();
-      expect(result.documentDefinition).toBeUndefined();
+      expect(result.documentDefinition).toBeDefined();
     });
 
     it('should create a JSON schema document', async () => {
@@ -123,7 +125,7 @@ describe('DocumentService', () => {
       );
 
       expect(result.validationStatus).toBe('error');
-      expect(result.validationMessage).toBeDefined();
+      expect(result.errors?.length).toBeGreaterThan(0);
       expect(result.document).toBeUndefined();
       expect(result.documentDefinition).toBeUndefined();
     });
@@ -142,9 +144,9 @@ describe('DocumentService', () => {
       );
 
       expect(result.validationStatus).toBe('error');
-      expect(result.validationMessage).toBe('Could not create a document from schema file(s)');
+      expect(result.errors![0]).toBe("There's no top level Element in the schema");
       expect(result.document).toBeUndefined();
-      expect(result.documentDefinition).toBeUndefined();
+      expect(result.documentDefinition).toBeDefined();
     });
   });
 
@@ -157,7 +159,7 @@ describe('DocumentService', () => {
       );
       expect(result.validationStatus).toBe('success');
       expect(result.document instanceof PrimitiveDocument).toBeTruthy();
-      expect(result.document?.documentId).toEqual('Body');
+      expect(result.document?.documentId).toEqual('test');
       expect(result.documentDefinition).toBeDefined();
       expect(result.documentDefinition?.documentType).toBe(DocumentType.SOURCE_BODY);
       expect(result.documentDefinition?.definitionType).toBe(DocumentDefinitionType.Primitive);
@@ -195,6 +197,79 @@ describe('DocumentService', () => {
     });
   });
 
+  describe('hasChildren()', () => {
+    it('should return false for attributes even with namedTypeFragmentRefs', async () => {
+      const mockApi = {
+        getResourceContent: jest.fn().mockResolvedValue(`<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                   <xs:complexType name="TestType">
+                     <xs:attribute name="testAttr" type="xs:string" />
+                   </xs:complexType>
+                   <xs:element name="test" type="TestType" />
+                 </xs:schema>`),
+      };
+
+      const result = await DocumentService.createDocument(
+        mockApi as unknown as IMetadataApi,
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        'test',
+        ['test.xsd'],
+      );
+
+      expect(result.validationStatus).toBe('success');
+      const doc = result.document;
+      expect(doc).toBeDefined();
+
+      // Find an attribute field
+      const findAttribute = (fields: IField[]): IField | null => {
+        for (const field of fields) {
+          if (field.isAttribute) return field;
+          if (field.fields?.length > 0) {
+            const found = findAttribute(field.fields);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const attributeField = findAttribute(doc?.fields || []);
+      if (attributeField) {
+        // Attributes should never have children, regardless of type references
+        expect(DocumentService.hasChildren(attributeField)).toBeFalsy();
+      }
+    });
+
+    it('should return true for elements with child fields', () => {
+      // sourceDoc.fields[0] is ShipOrder element which has child fields
+      expect(DocumentService.hasChildren(sourceDoc.fields[0])).toBeTruthy();
+    });
+
+    it('should return false for elements without children', async () => {
+      const mockApi = {
+        getResourceContent: jest.fn().mockResolvedValue(`<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                   <xs:element name="simpleElement" type="xs:string" />
+                 </xs:schema>`),
+      };
+
+      const result = await DocumentService.createDocument(
+        mockApi as unknown as IMetadataApi,
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        'test',
+        ['test.xsd'],
+      );
+
+      expect(result.validationStatus).toBe('success');
+      const doc = result.document;
+      expect(doc).toBeDefined();
+
+      if (doc && doc.fields.length > 0) {
+        const simpleField = doc.fields[0];
+        expect(DocumentService.hasChildren(simpleField)).toBeFalsy();
+      }
+    });
+  });
+
   describe('isCollectionField()', () => {
     it('', () => {
       expect(DocumentService.isCollectionField(sourceDoc.fields[0])).toBeFalsy();
@@ -225,9 +300,9 @@ describe('DocumentService', () => {
       );
 
       expect(result.validationStatus).toBe('error');
-      expect(result.validationMessage).toContain('Could not create a document from schema file(s)');
+      expect(result.errors![0]).toContain("There's no top level Element in the schema");
       expect(result.document).toBeUndefined();
-      expect(result.documentDefinition).toBeUndefined();
+      expect(result.documentDefinition).toBeDefined();
     });
 
     it('should handle malformed JSON for JSON schema', async () => {
@@ -244,7 +319,7 @@ describe('DocumentService', () => {
       );
 
       expect(result.validationStatus).toBe('error');
-      expect(result.validationMessage).toBeDefined();
+      expect(result.errors!.length).toBeGreaterThan(0);
       expect(result.document).toBeUndefined();
       expect(result.documentDefinition).toBeUndefined();
     });
@@ -274,11 +349,28 @@ describe('DocumentService', () => {
   describe('createDocument() with multiple files', () => {
     it('should handle multiple schema files', async () => {
       const mockApi = {
-        getResourceContent: jest.fn().mockResolvedValueOnce(`<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        getResourceContent: jest
+          .fn()
+          .mockResolvedValueOnce(
+            `<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/ns1" xmlns:tns="http://example.com/ns1">
                      <xs:element name="test1" type="xs:string" />
-                   </xs:schema>`).mockResolvedValueOnce(`<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                     <xs:complexType name="CustomType1">
+                       <xs:sequence>
+                         <xs:element name="field1" type="xs:string" />
+                       </xs:sequence>
+                     </xs:complexType>
+                   </xs:schema>`,
+          )
+          .mockResolvedValueOnce(
+            `<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/ns2" xmlns:tns="http://example.com/ns2">
                      <xs:element name="test2" type="xs:string" />
-                   </xs:schema>`),
+                     <xs:complexType name="CustomType2">
+                       <xs:sequence>
+                         <xs:element name="field2" type="xs:string" />
+                       </xs:sequence>
+                     </xs:complexType>
+                   </xs:schema>`,
+          ),
       };
 
       const result = await DocumentService.createDocument(
@@ -298,7 +390,9 @@ describe('DocumentService', () => {
 
   describe('getRootElementQName()', () => {
     it('should return null for non-XML schema documents', () => {
-      const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, 'test');
+      const primitiveDoc = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, 'test'),
+      );
       const qName = DocumentService.getRootElementQName(primitiveDoc);
       expect(qName).toBeNull();
     });
@@ -331,7 +425,9 @@ describe('DocumentService', () => {
 
   describe('updateRootElement()', () => {
     it('should return original document for non-XML schema documents', () => {
-      const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, 'test');
+      const primitiveDoc = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, 'test'),
+      );
       const rootElementOption: RootElementOption = {
         name: 'Test',
         namespaceUri: 'http://test.com',
@@ -385,14 +481,14 @@ describe('DocumentService', () => {
         DocumentDefinitionType.Primitive,
         'sourceTest',
       );
-      expect(sourceResult.document?.documentId).toEqual('Body');
+      expect(sourceResult.document?.documentId).toEqual('sourceTest');
 
       const targetResult = DocumentService.createPrimitiveDocument(
         DocumentType.TARGET_BODY,
         DocumentDefinitionType.Primitive,
         'targetTest',
       );
-      expect(targetResult.document?.documentId).toEqual('Body');
+      expect(targetResult.document?.documentId).toEqual('targetTest');
 
       const paramResult = DocumentService.createPrimitiveDocument(
         DocumentType.PARAM,
@@ -427,7 +523,9 @@ describe('DocumentService', () => {
     };
 
     it('should rename a primitive document', () => {
-      const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, 'test');
+      const primitiveDoc = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, 'test'),
+      );
 
       DocumentService.renameDocument(primitiveDoc, 'renamedTest');
       expect(primitiveDoc).toBeDefined();
@@ -485,6 +583,51 @@ describe('DocumentService', () => {
       expect(originalDocument.path.documentId).toBe('renamedTest');
 
       testFieldPath(originalDocument, 'renamedTest');
+    });
+  });
+
+  describe('removeSchemaFile()', () => {
+    it('should delegate to XmlSchemaDocumentService for XML schemas', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        {
+          'test.xsd': `<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="test" type="xs:string" />
+</xs:schema>`,
+        },
+      );
+
+      const result = DocumentService.removeSchemaFile(definition, 'test.xsd');
+      expect(result.validationStatus).toBe('error');
+      expect(result.errors).toBeDefined();
+    });
+
+    it('should delegate to JsonSchemaDocumentService for JSON schemas', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.JSON_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'test.json': '{"type": "object"}' },
+      );
+
+      const result = DocumentService.removeSchemaFile(definition, 'test.json');
+      expect(result.validationStatus).toBe('error');
+      expect(result.errors).toBeDefined();
+    });
+
+    it('should return error for unsupported definition types', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.Primitive,
+        BODY_DOCUMENT_ID,
+      );
+
+      const result = DocumentService.removeSchemaFile(definition, 'test.txt');
+      expect(result.validationStatus).toBe('error');
+      expect(result.errors).toBeDefined();
     });
   });
 });

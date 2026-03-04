@@ -1,19 +1,18 @@
 import { Pipe } from '@kaoto/camel-catalog/types';
+import { isDefined } from '@kaoto/forms';
+
 import { getCamelRandomId } from '../../../camel-utils/camel-random-id';
 import {
   getArrayProperty,
   getCustomSchemaFromPipe,
   getValue,
-  isDefined,
-  NodeIconResolver,
-  NodeIconType,
   setValue,
   updatePipeFromCustomSchema,
 } from '../../../utils';
-import { DefinedComponent } from '../../camel-catalog-index';
 import { EntityType } from '../../camel/entities';
 import { PipeStep } from '../../camel/entities/pipe-overrides';
 import { SourceSchemaType } from '../../camel/source-schema-type';
+import { DefinedComponent } from '../../camel-catalog-index';
 import { CatalogKind } from '../../catalog-kind';
 import { KaotoSchemaDefinition } from '../../kaoto-schema';
 import {
@@ -234,10 +233,11 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
 
   toVizNode(): IVisualizationNode {
     const pipeGroupNode = createVisualizationNode(this.id, {
+      catalogKind: CatalogKind.Entity,
+      name: this.type,
       path: this.getRootPath(),
       entity: this,
       isGroup: true,
-      icon: NodeIconResolver.getIcon(this.type, NodeIconType.Entity),
     });
 
     const sourceNode = this.getVizNodeFromStep(this.pipe.spec!.source, 'source', true);
@@ -295,17 +295,14 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
   }
 
   private getVizNodeFromStep(step: PipeStep, path: string, isRoot = false): IVisualizationNode {
-    const kameletDefinition = KameletSchemaService.getKameletCatalogEntry(step);
     const isPlaceholder = step?.ref?.name === undefined;
-    const icon = isPlaceholder
-      ? NodeIconResolver.getPlaceholderIcon()
-      : (kameletDefinition?.metadata.annotations['camel.apache.org/kamelet.icon'] ?? NodeIconResolver.getUnknownIcon());
 
     const data: IVisualizationNodeData = {
+      catalogKind: CatalogKind.Kamelet,
+      name: step?.ref?.name ?? 'placeholder',
       path,
       entity: isRoot ? this : undefined,
       isPlaceholder,
-      icon,
     };
 
     return createVisualizationNode(path, data);
@@ -337,5 +334,9 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
     }
 
     return schema;
+  }
+
+  getGroupIcons(): { icon: string; title: string }[] {
+    return [];
   }
 }

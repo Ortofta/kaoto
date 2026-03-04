@@ -1,5 +1,6 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary, ErrorHandlerDeserializer, NoErrorHandler } from '@kaoto/camel-catalog/types';
+
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
 import { EntityType } from '../../camel/entities';
 import { SourceSchemaType } from '../../camel/source-schema-type';
@@ -172,7 +173,8 @@ describe('CamelErrorHandlerVisualEntity', () => {
           errorHandlerDef,
           type: EntityType.ErrorHandler,
         },
-        icon: '',
+        catalogKind: CatalogKind.Entity,
+        name: 'errorHandler',
         isGroup: true,
         path: 'errorHandler',
         processorName: 'errorHandler',
@@ -191,5 +193,12 @@ describe('CamelErrorHandlerVisualEntity', () => {
     const entity = new CamelErrorHandlerVisualEntity(errorHandlerDef);
 
     expect(entity.toJSON()).toEqual(errorHandlerDef);
+  });
+
+  describe('getGroupIcons', () => {
+    it('should return empty array for error handler entity', () => {
+      const entity = new CamelErrorHandlerVisualEntity(errorHandlerDef);
+      expect(entity.getGroupIcons()).toEqual([]);
+    });
   });
 });

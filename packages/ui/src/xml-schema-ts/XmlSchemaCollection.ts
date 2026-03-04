@@ -1,26 +1,23 @@
-import type { QName } from './QName';
-import type { SchemaKey } from './SchemaKey';
-import type { TypeReceiver } from './TypeReceiver';
+import * as Constants from './constants';
+import { ExtensionRegistry } from './extensions/ExtensionRegistry';
 import type { XmlSchemaFacet } from './facet/XmlSchemaFacet';
-import type { XmlSchemaType } from './XmlSchemaType';
-import type { CollectionURIResolver } from './resolver/CollectionURIResolver';
-import type { URIResolver } from './resolver/URIResolver';
-import type { NamespacePrefixList } from './utils/NamespacePrefixList';
-
-import { XmlSchema } from './XmlSchema';
+import { XmlSchemaFractionDigitsFacet } from './facet/XmlSchemaFractionDigitsFacet';
 import { XmlSchemaMaxInclusiveFacet } from './facet/XmlSchemaMaxInclusiveFacet';
 import { XmlSchemaMinInclusiveFacet } from './facet/XmlSchemaMinInclusiveFacet';
 import { XmlSchemaPatternFacet } from './facet/XmlSchemaPatternFacet';
 import { XmlSchemaWhiteSpaceFacet } from './facet/XmlSchemaWhiteSpaceFacet';
-import { XmlSchemaSimpleTypeRestriction } from './simple/XmlSchemaSimpleTypeRestriction';
-import { XmlSchemaSimpleTypeList } from './simple/XmlSchemaSimpleTypeList';
-import { SchemaBuilder } from './SchemaBuilder';
-import { XmlSchemaSimpleType } from './simple/XmlSchemaSimpleType';
-import { ExtensionRegistry } from './extensions/ExtensionRegistry';
-import * as Constants from './constants';
+import type { QName } from './QName';
 import { DefaultURIResolver } from './resolver/DefaultURIResolver';
-import { XmlSchemaFractionDigitsFacet } from './facet/XmlSchemaFractionDigitsFacet';
+import { SchemaBuilder } from './SchemaBuilder';
+import type { SchemaKey } from './SchemaKey';
+import { XmlSchemaSimpleType } from './simple/XmlSchemaSimpleType';
+import { XmlSchemaSimpleTypeList } from './simple/XmlSchemaSimpleTypeList';
+import { XmlSchemaSimpleTypeRestriction } from './simple/XmlSchemaSimpleTypeRestriction';
+import type { TypeReceiver } from './TypeReceiver';
+import type { NamespacePrefixList } from './utils/NamespacePrefixList';
 import { QNameMap, SchemaKeyMap } from './utils/ObjectMap';
+import { XmlSchema } from './XmlSchema';
+import type { XmlSchemaType } from './XmlSchemaType';
 
 export class XmlSchemaCollection {
   baseUri: string | null;
@@ -31,7 +28,7 @@ export class XmlSchemaCollection {
 
   private knownNamespaceMap: Record<string, XmlSchema>;
   private namespaceContext: NamespacePrefixList | null;
-  private schemaResolver: URIResolver;
+  private schemaResolver: DefaultURIResolver;
   private schemas: SchemaKeyMap<XmlSchema>;
   constructor() {
     this.baseUri = null;
@@ -95,7 +92,7 @@ export class XmlSchemaCollection {
    * @return the type object, or null.
    */
   getTypeByQName(schemaTypeName: QName) {
-    const uri = schemaTypeName.getNamespaceURI();
+    const uri = schemaTypeName.getNamespaceURI() ?? '';
     for (const entry of this.schemas.entries()) {
       if (entry[0].getNamespace() === uri) {
         const type = entry[1].getTypeByQName(schemaTypeName);
@@ -131,6 +128,15 @@ export class XmlSchemaCollection {
 
   getXmlSchemas() {
     return Array.from(this.schemas.values());
+  }
+
+  getUserSchemas(): XmlSchema[] {
+    const standardNamespaces = new Set(['http://www.w3.org/2001/XMLSchema', 'http://www.w3.org/XML/1998/namespace']);
+
+    return Array.from(this.schemas.values()).filter((schema) => {
+      const targetNs = schema.getTargetNamespace();
+      return !targetNs || !standardNamespaces.has(targetNs);
+    });
   }
 
   init(): void {
@@ -379,7 +385,7 @@ export class XmlSchemaCollection {
     this.stack.push(pKey);
   }
 
-  read(content: string, validator: (schema: XmlSchema) => void): XmlSchema {
+  read(content: string, validator: (schema: XmlSchema) => void, uri?: string): XmlSchema {
     const parser = new DOMParser();
     const document = parser.parseFromString(content, 'text/xml');
     const error = document.querySelector('parsererror');
@@ -388,7 +394,7 @@ export class XmlSchemaCollection {
         `XML Parser Error: ${error.textContent ?? 'The XML schema file had a parse error, but there was no reason provided'}`,
       );
     const builder = new SchemaBuilder(this, validator);
-    return builder.build(document);
+    return builder.build(document, uri);
   }
 
   /**
@@ -413,8 +419,7 @@ export class XmlSchemaCollection {
    */
   setBaseUri(baseUri: string) {
     this.baseUri = baseUri;
-    const target = (this.schemaResolver as CollectionURIResolver)?.setCollectionBaseURI;
-    target && target(baseUri);
+    this.schemaResolver.setCollectionBaseURI(baseUri);
   }
 
   setExtReg(extReg: ExtensionRegistry) {
@@ -445,7 +450,7 @@ export class XmlSchemaCollection {
    *
    * @param schemaResolver resolver
    */
-  setSchemaResolver(schemaResolver: URIResolver) {
+  setSchemaResolver(schemaResolver: DefaultURIResolver) {
     this.schemaResolver = schemaResolver;
   }
 

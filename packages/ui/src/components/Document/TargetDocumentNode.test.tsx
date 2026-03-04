@@ -1,11 +1,18 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { FunctionComponent, PropsWithChildren } from 'react';
-import { BODY_DOCUMENT_ID, DocumentType, PrimitiveDocument } from '../../models/datamapper/document';
+
+import {
+  BODY_DOCUMENT_ID,
+  DocumentDefinition,
+  DocumentDefinitionType,
+  DocumentType,
+  PrimitiveDocument,
+} from '../../models/datamapper/document';
 import { DocumentTree } from '../../models/datamapper/document-tree';
 import { DocumentTreeNode } from '../../models/datamapper/document-tree-node';
 import { DocumentNodeData } from '../../models/datamapper/visualization';
-import { DataMapperCanvasProvider } from '../../providers/datamapper-canvas.provider';
 import { DataMapperProvider } from '../../providers/datamapper.provider';
+import { DataMapperCanvasProvider } from '../../providers/datamapper-canvas.provider';
 import { TreeParsingService } from '../../services/tree-parsing.service';
 import { TreeUIService } from '../../services/tree-ui.service';
 import { VisualizationService } from '../../services/visualization.service';
@@ -71,7 +78,9 @@ describe('TargetDocumentNode', () => {
   });
 
   it('should render a primitive document node', () => {
-    const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+    const document = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
 
@@ -163,7 +172,9 @@ describe('TargetDocumentNode', () => {
   });
 
   it('should render with draggable indicator for primitive document nodes', () => {
-    const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+    const document = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
 
@@ -195,7 +206,9 @@ describe('TargetDocumentNode', () => {
   });
 
   it('should render correct test-id when selected', () => {
-    const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+    const document = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(document);
     const tree = new DocumentTree(documentNodeData);
 
@@ -235,7 +248,7 @@ describe('TargetDocumentNode', () => {
         });
       });
 
-      const expandIcon = screen.getByTestId(`expand-target-icon-${tree.root.nodeData.title}`);
+      const expandIcon = screen.getByTestId(`expand-icon-${tree.root.nodeData.title}`);
       expect(expandIcon).toBeInTheDocument();
 
       act(() => {
@@ -262,8 +275,8 @@ describe('TargetDocumentNode', () => {
         });
       });
 
-      const expandIcon = screen.queryByTestId(`expand-target-icon-${leafNode!.nodeData.title}`);
-      const collapseIcon = screen.queryByTestId(`collapse-target-icon-${leafNode!.nodeData.title}`);
+      const expandIcon = screen.queryByTestId(`expand-icon-${leafNode!.nodeData.title}`);
+      const collapseIcon = screen.queryByTestId(`collapse-icon-${leafNode!.nodeData.title}`);
 
       expect(expandIcon).not.toBeInTheDocument();
       expect(collapseIcon).not.toBeInTheDocument();
@@ -291,10 +304,10 @@ describe('TargetDocumentNode', () => {
         });
       });
 
-      const expandIcon = screen.getByTestId(`expand-target-icon-${tree.root.nodeData.title}`);
+      const expandIcon = screen.getByTestId(`expand-icon-${tree.root.nodeData.title}`);
       expect(expandIcon).toBeInTheDocument();
 
-      const collapseIcon = screen.queryByTestId(`collapse-target-icon-${tree.root.nodeData.title}`);
+      const collapseIcon = screen.queryByTestId(`collapse-icon-${tree.root.nodeData.title}`);
       expect(collapseIcon).not.toBeInTheDocument();
     });
 
@@ -320,10 +333,10 @@ describe('TargetDocumentNode', () => {
         });
       });
 
-      const collapseIcon = screen.getByTestId(`collapse-target-icon-${tree.root.nodeData.title}`);
+      const collapseIcon = screen.getByTestId(`collapse-icon-${tree.root.nodeData.title}`);
       expect(collapseIcon).toBeInTheDocument();
 
-      const expandIcon = screen.queryByTestId(`expand-target-icon-${tree.root.nodeData.title}`);
+      const expandIcon = screen.queryByTestId(`expand-icon-${tree.root.nodeData.title}`);
       expect(expandIcon).not.toBeInTheDocument();
     });
 
@@ -351,7 +364,7 @@ describe('TargetDocumentNode', () => {
         });
       });
 
-      const expandIcon = screen.getByTestId(`expand-target-icon-${tree.root.nodeData.title}`);
+      const expandIcon = screen.getByTestId(`expand-icon-${tree.root.nodeData.title}`);
 
       act(() => {
         fireEvent.click(expandIcon);
@@ -366,7 +379,9 @@ describe('TargetDocumentNode', () => {
 
   describe('Selection', () => {
     it('should render as selected when node is in selected mapping', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -383,12 +398,13 @@ describe('TargetDocumentNode', () => {
         fireEvent.click(nodeContainer);
       });
 
-      const selectedNode = screen.getByTestId(`node-target-selected-${documentNodeData.id}`);
-      expect(selectedNode).toBeInTheDocument();
+      expect(nodeContainer).toHaveAttribute('data-selected', 'true');
     });
 
     it('should apply selected-container class when selected', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -411,7 +427,9 @@ describe('TargetDocumentNode', () => {
     });
 
     it('should call toggleSelectedNodeReference when clicking field', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -428,8 +446,7 @@ describe('TargetDocumentNode', () => {
         fireEvent.click(nodeContainer);
       });
 
-      const selectedNode = screen.getByTestId(`node-target-selected-${documentNodeData.id}`);
-      expect(selectedNode).toBeInTheDocument();
+      expect(nodeContainer).toHaveAttribute('data-selected', 'true');
 
       act(() => {
         fireEvent.click(nodeContainer);
@@ -468,7 +485,9 @@ describe('TargetDocumentNode', () => {
 
   describe('Node Reference', () => {
     it('should register node reference with correct path', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -485,7 +504,9 @@ describe('TargetDocumentNode', () => {
     });
 
     it('should update node reference when changed', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -530,7 +551,9 @@ describe('TargetDocumentNode', () => {
     });
 
     it('should show TargetNodeActions for primitive document nodes', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -706,7 +729,7 @@ describe('TargetDocumentNode', () => {
         { wrapper },
       );
 
-      const expandIcon = screen.getByTestId(`expand-target-icon-${tree.root.nodeData.title}`);
+      const expandIcon = screen.getByTestId(`expand-icon-${tree.root.nodeData.title}`);
 
       act(() => {
         fireEvent.click(expandIcon);
@@ -717,7 +740,9 @@ describe('TargetDocumentNode', () => {
     });
 
     it('should stop propagation on field click', () => {
-      const document = new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID);
+      const document = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const documentNodeData = new DocumentNodeData(document);
       const tree = new DocumentTree(documentNodeData);
 
@@ -754,8 +779,8 @@ describe('TargetDocumentNode', () => {
       });
 
       // Should not have expand/collapse icons
-      expect(screen.queryByTestId(`expand-target-icon-${leafNode!.nodeData.title}`)).not.toBeInTheDocument();
-      expect(screen.queryByTestId(`collapse-target-icon-${leafNode!.nodeData.title}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`expand-icon-${leafNode!.nodeData.title}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`collapse-icon-${leafNode!.nodeData.title}`)).not.toBeInTheDocument();
 
       // Clicking the node should still work for selection
       const nodeContainer = screen.getByTestId(`node-target-${leafNode!.nodeData.id}`);
@@ -764,7 +789,7 @@ describe('TargetDocumentNode', () => {
       });
 
       // Node should be selected
-      expect(screen.getByTestId(`node-target-selected-${leafNode!.nodeData.id}`)).toBeInTheDocument();
+      expect(nodeContainer).toHaveAttribute('data-selected', 'true');
     });
   });
 

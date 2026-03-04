@@ -10,6 +10,7 @@ import {
 } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import { FunctionComponent, PropsWithChildren, useContext } from 'react';
+
 import { useReloadContext } from '../../hooks/useReloadContext/useReloadContext';
 import { SettingsContext } from '../../providers/settings.provider';
 
@@ -32,7 +33,8 @@ export const LoadDefaultCatalog: FunctionComponent<PropsWithChildren<ILoadDefaul
       <EmptyState
         headingLevel="h4"
         icon={ExclamationCircleIcon}
-        titleText="The Catalog couldn't be loaded"
+        status="danger"
+        titleText="The catalog couldn't be loaded"
         variant={EmptyStateVariant.lg}
         data-testid="load-default-catalog"
       >

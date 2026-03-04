@@ -66,7 +66,7 @@ declare global {
       closeStepConfigurationTab(): Chainable<JQuery<Element>>;
       closeCatalogModal(): Chainable<JQuery<Element>>;
       removeNodeByName(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
-      quickAppend(nodeIndex?: number): Chainable<JQuery<Element>>;
+      quickAppendStep(path: string): Chainable<JQuery<Element>>;
       selectDuplicateNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       selectMoveBeforeNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       selectMoveAfterNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
@@ -81,6 +81,7 @@ declare global {
       selectPrependNode(inputName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       selectRemoveGroup(groupName: string, nodeIndex?: number): Chainable<JQuery<Element>>;
       performNodeAction(nodeName: string, action: ActionType, nodeIndex?: number): Chainable<JQuery<Element>>;
+      forcePerformNodeAction(nodeName: string, action: ActionType, nodeIndex?: number): Chainable<JQuery<Element>>;
       checkNodeExist(inputName: string, nodesCount: number): Chainable<JQuery<Element>>;
       checkEdgeExists(scope: string, sourceName: string, targetName: string): Chainable<JQuery<Element>>;
       deleteBranch(branchIndex: number): Chainable<JQuery<Element>>;
@@ -95,7 +96,8 @@ declare global {
       checkDarkMode(): Chainable<JQuery<Element>>;
       switchCodeToXml(): Chainable<JQuery<Element>>;
       switchCodeToYaml(): Chainable<JQuery<Element>>;
-      DnD(sourceNode: string, targetNode: string): Chainable<JQuery<Element>>;
+      DnDOnNode(sourceNode: string, targetNode: string): Chainable<JQuery<Element>>;
+      DnDOnEdge(sourceNode: string, targetEdge: string): Chainable<JQuery<Element>>;
       // nodeConfiguration
       interactWithConfigInputObject(inputName: string, value?: string): Chainable<JQuery<Element>>;
       interactWithExpressionInputObject(inputName: string, value?: string, index?: number): Chainable<JQuery<Element>>;
@@ -143,8 +145,8 @@ declare global {
       editorAddText(line: number, text: string): Chainable<JQuery<Element>>;
       uploadFixture(fixture: string): Chainable<JQuery<Element>>;
       editorDeleteLine(line: number, repeatCount: number): Chainable<JQuery<Element>>;
+      getMonacoValue(): Chainable<{ sourceCode: string; eol: string }>;
       checkCodeSpanLine(spanText: string, linesCount?: number): Chainable<JQuery<Element>>;
-      checkMultipleCodeSpanEntry(spanText: string, linesCount: number): Chainable<JQuery<Element>>;
       checkMultiLineContent(text: string[]): Chainable<JQuery<Element>>;
       editorClickUndoXTimes(repeatCount: number): Chainable<JQuery<Element>>;
       editorClickRedoXTimes(repeatCount: number): Chainable<JQuery<Element>>;

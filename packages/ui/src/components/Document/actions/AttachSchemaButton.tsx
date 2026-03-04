@@ -13,6 +13,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+import { Typeahead, TypeaheadItem } from '@kaoto/forms';
 import {
   Alert,
   Button,
@@ -31,10 +32,9 @@ import {
   StackItem,
   TextInput,
 } from '@patternfly/react-core';
-import { FunctionComponent, useCallback, useContext, useMemo, useState } from 'react';
-import { Typeahead, TypeaheadItem } from '@kaoto/forms';
-
 import { FileImportIcon, ImportIcon } from '@patternfly/react-icons';
+import { FunctionComponent, useCallback, useContext, useMemo, useState } from 'react';
+
 import { useCanvas } from '../../../hooks/useCanvas';
 import { useDataMapper } from '../../../hooks/useDataMapper';
 import {
@@ -43,10 +43,11 @@ import {
   DocumentType,
   RootElementOption,
   SCHEMA_FILE_NAME_PATTERN,
-  SCHEMA_FILE_NAME_PATTERN_SOURCE_BODY,
+  SCHEMA_FILE_NAME_PATTERN_XML,
 } from '../../../models/datamapper/document';
 import { MetadataContext } from '../../../providers';
 import { DataMapperMetadataService } from '../../../services/datamapper-metadata.service';
+import { DataMapperStepService } from '../../../services/datamapper-step.service';
 import { DocumentService } from '../../../services/document.service';
 
 type AttachSchemaProps = {
@@ -74,13 +75,25 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
   const [createDocumentResult, setCreateDocumentResult] = useState<CreateDocumentResult | null>(null);
 
   const actionName = hasSchema ? 'Update' : 'Attach';
-  const fileNamePattern =
-    documentType === DocumentType.SOURCE_BODY ? SCHEMA_FILE_NAME_PATTERN_SOURCE_BODY : SCHEMA_FILE_NAME_PATTERN;
+
+  const fileNamePattern = useMemo(() => {
+    if (documentType === DocumentType.SOURCE_BODY) {
+      return DataMapperStepService.supportsJsonBody() ? SCHEMA_FILE_NAME_PATTERN : SCHEMA_FILE_NAME_PATTERN_XML;
+    }
+    return SCHEMA_FILE_NAME_PATTERN;
+  }, [documentType]);
 
   const documentTypeLabel = useMemo(() => {
     if (documentType === DocumentType.PARAM) return `Parameter: ${documentId}`;
     return documentType === DocumentType.SOURCE_BODY ? 'Source' : 'Target';
   }, [documentId, documentType]);
+
+  const showJsonSchemaOption = useMemo(() => {
+    if (documentType === DocumentType.SOURCE_BODY) {
+      return DataMapperStepService.supportsJsonBody();
+    }
+    return true;
+  }, [documentType]);
 
   const onModalOpen = useCallback(() => {
     setIsWarningModalOpen(false);
@@ -103,23 +116,28 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
     const fileExtension = pathsArray[0].toLowerCase().substring(pathsArray[0].lastIndexOf('.'));
     if (documentType === DocumentType.SOURCE_BODY) {
       if (fileExtension === '.json') {
-        setCreateDocumentResult({
-          validationStatus: 'error',
-          validationMessage:
-            'JSON source body is not supported at this moment. For the source body, only XML schema file (.xml, .xsd) is supported. In order to use JSON data, It must be either source parameter or target',
-        });
-        return;
+        if (!DataMapperStepService.supportsJsonBody()) {
+          setCreateDocumentResult({
+            validationStatus: 'error',
+            errors: [
+              'JSON source body is not supported. The xslt-saxon component requires the useJsonBody parameter which is not available in this Camel version. Please use parameter for JSON source.',
+            ],
+          });
+          return;
+        }
       } else if (!['.xml', '.xsd'].includes(fileExtension)) {
         setCreateDocumentResult({
           validationStatus: 'error',
-          validationMessage: `Unknown file extension '${fileExtension}'. Only XML schema file (.xml, .xsd) is supported.`,
+          errors: [`Unknown file extension '${fileExtension}'. Only XML schema file (.xml, .xsd) is supported.`],
         });
         return;
       }
     } else if (!['.json', '.xsd', '.xml'].includes(fileExtension)) {
       setCreateDocumentResult({
         validationStatus: 'error',
-        validationMessage: `Unknown file extension '${fileExtension}'. Either XML schema (.xsd, .xml) or JSON schema (.json) file is supported.`,
+        errors: [
+          `Unknown file extension '${fileExtension}'. Either XML schema (.xsd, .xml) or JSON schema (.json) file is supported.`,
+        ],
       });
       return;
     }
@@ -152,7 +170,7 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
 
   const onCommit = useCallback(async () => {
     if (!createDocumentResult?.document || !createDocumentResult.documentDefinition) {
-      setCreateDocumentResult({ validationStatus: 'error', validationMessage: 'Please select a schema file first' });
+      setCreateDocumentResult({ validationStatus: 'error', errors: ['Please select a schema file first'] });
       return;
     }
 
@@ -164,7 +182,7 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
       /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (error: any) {
       const cause = error['message'] ? ': ' + error['message'] : '';
-      setCreateDocumentResult({ validationStatus: 'error', validationMessage: `Cannot attach the schema ${cause}` });
+      setCreateDocumentResult({ validationStatus: 'error', errors: [`Cannot attach the schema ${cause}`] });
     } finally {
       setIsLoading(false);
     }
@@ -209,6 +227,10 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
       filePaths.length > 0 && createDocumentResult?.validationStatus === 'success' && createDocumentResult?.document
     );
   }, [filePaths.length, createDocumentResult]);
+
+  const validationMessage = useMemo(() => {
+    return (createDocumentResult?.errors ?? createDocumentResult?.warnings ?? []).join('; ');
+  }, [createDocumentResult]);
 
   return (
     <>
@@ -258,7 +280,7 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
                       data-testid="attach-schema-modal-text-helper"
                       variant={createDocumentResult.validationStatus}
                     >
-                      {createDocumentResult.validationMessage}
+                      {validationMessage}
                     </HelperTextItem>
                   </HelperText>
                 </FormHelperText>
@@ -277,7 +299,7 @@ export const AttachSchemaButton: FunctionComponent<AttachSchemaProps> = ({
                     onChange={() => setSelectedSchemaType(DocumentDefinitionType.XML_SCHEMA)}
                   />
                 </InputGroupItem>
-                {documentType !== DocumentType.SOURCE_BODY && (
+                {showJsonSchemaOption && (
                   <InputGroupItem>
                     <Radio
                       id="option-json-schema"
@@ -402,7 +424,7 @@ const RootElementSelect: FunctionComponent<RootElementSelectProps> = ({ createDo
     return createDocumentResult.rootElementOptions.map((option) => ({
       name: option.name,
       value: option.name,
-      description: `Namespace URI: ${option.namespaceUri}`,
+      description: option.namespaceUri ? `Namespace URI: ${option.namespaceUri}` : undefined,
     }));
   }, [createDocumentResult?.rootElementOptions]);
 

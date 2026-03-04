@@ -1,7 +1,8 @@
-import { getParsedValue } from './get-parsed-value';
+import { isDefined } from '@kaoto/forms';
+
 import { ICamelElementLookupResult } from '../models/visualization/flows/support/camel-component-types';
+import { getParsedValue } from './get-parsed-value';
 import { getValue } from './get-value';
-import { isDefined } from './is-defined';
 
 export type ParsedParameters = Record<string, string | boolean | number>;
 
@@ -62,6 +63,12 @@ export class CamelUriHelper {
     }, {} as ParsedParameters);
   }
 
+  private static readonly REGEX_EXPRESSION = /^\s*(\{\{.*\}\}|\$\{.*\})\s*$/;
+
+  private static isExpression(value: string): boolean {
+    return this.REGEX_EXPRESSION.test(value);
+  }
+
   private static createQueryString(parameters: ParsedParameters): string {
     if (!parameters || Object.keys(parameters).length === 0) {
       return '';
@@ -69,7 +76,11 @@ export class CamelUriHelper {
 
     return Object.keys(parameters)
       .filter((key) => parameters[key] !== undefined)
-      .map((key) => `${key}=${encodeURIComponent(parameters[key].toString())}`)
+      .map((key) => {
+        const rawValue = parameters[key].toString();
+        const value = this.isExpression(rawValue) ? rawValue : encodeURIComponent(rawValue);
+        return `${key}=${value}`;
+      })
       .join('&');
   }
 

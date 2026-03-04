@@ -1,4 +1,5 @@
 import { ProcessorDefinition, RouteDefinition } from '@kaoto/camel-catalog/types';
+
 import { RootNodeMapper } from '../root-node-mapper';
 import { noopNodeMapper } from './testing/noop-node-mapper';
 import { WhenNodeMapper } from './when-node-mapper';
@@ -45,6 +46,7 @@ describe('WhenNodeMapper', () => {
       routeDefinition,
     );
 
-    expect(vizNode.getChildren()).toHaveLength(1);
+    expect(vizNode.getChildren()).toHaveLength(2);
+    expect(vizNode.getChildren()?.[1].data.isPlaceholder).toBe(true);
   });
 });

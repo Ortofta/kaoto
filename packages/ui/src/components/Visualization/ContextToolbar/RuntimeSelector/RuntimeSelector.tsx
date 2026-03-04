@@ -1,5 +1,8 @@
+import './RuntimeSelector.scss';
+
 import { Icon, Menu, MenuContainer, MenuContent, MenuItem, MenuList, MenuToggle } from '@patternfly/react-core';
 import { FunctionComponent, ReactElement, useCallback, useRef, useState } from 'react';
+
 import camelLogo from '../../../../assets/camel-logo.svg';
 import quarkusLogo from '../../../../assets/quarkus-logo.svg';
 import redhatLogo from '../../../../assets/redhat-logo.svg';
@@ -7,32 +10,31 @@ import springBootLogo from '../../../../assets/springboot-logo.svg';
 import { useLocalStorage } from '../../../../hooks';
 import { useRuntimeContext } from '../../../../hooks/useRuntimeContext/useRuntimeContext';
 import { LocalStorageKeys } from '../../../../models';
-import './RuntimeSelector.scss';
 
 const SPACE_REGEX = /\s/g;
 const getIcon = (name: string) => {
   if (name.includes('redhat')) {
     return (
       <Icon>
-        <img src={redhatLogo} />
+        <img src={redhatLogo} alt="Red Hat logo" />
       </Icon>
     );
   } else if (name.includes('Quarkus')) {
     return (
       <Icon>
-        <img src={quarkusLogo} />
+        <img src={quarkusLogo} alt="Quarkus logo" />
       </Icon>
     );
   } else if (name.replace(SPACE_REGEX, '').includes('SpringBoot')) {
     return (
       <Icon>
-        <img src={springBootLogo} />
+        <img src={springBootLogo} alt="Spring Boot logo" />
       </Icon>
     );
   } else {
     return (
       <Icon>
-        <img src={camelLogo} />
+        <img src={camelLogo} alt="Apache Camel logo" />
       </Icon>
     );
   }

@@ -10,11 +10,12 @@ import {
 } from '@kie-tools-core/editor/dist/api';
 import { Notification } from '@kie-tools-core/notifications/dist/api';
 import { WorkspaceEdit } from '@kie-tools-core/workspace/dist/api';
-import { RefObject, createRef } from 'react';
+import { createRef, RefObject } from 'react';
 import { RouterProvider } from 'react-router-dom';
+
+import { CatalogLoaderProvider } from '../dynamic-catalog/catalog.provider';
 import { CatalogKind, StepUpdateAction } from '../models';
 import { AbstractSettingsAdapter } from '../models/settings';
-import { CatalogLoaderProvider } from '../providers/catalog.provider';
 import { EntitiesProvider } from '../providers/entities.provider';
 import { ReloadProvider } from '../providers/reload.provider';
 import { RuntimeProvider } from '../providers/runtime.provider';
@@ -30,7 +31,7 @@ import { KaotoEditorChannelApi } from './KaotoEditorChannelApi';
 import { kaotoEditorRouter } from './KaotoEditorRouter';
 
 export class KaotoEditorApp implements Editor {
-  protected editorRef: RefObject<SourceCodeBridgeProviderRef>;
+  protected editorRef: RefObject<SourceCodeBridgeProviderRef | null>;
   af_isReact = true;
   af_componentId = 'kaoto-editor';
   af_componentTitle = 'Kaoto Editor';

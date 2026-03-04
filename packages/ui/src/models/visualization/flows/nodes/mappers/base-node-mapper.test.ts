@@ -1,4 +1,6 @@
 import { ProcessorDefinition, RouteDefinition } from '@kaoto/camel-catalog/types';
+
+import { CatalogKind } from '../../../../catalog-kind';
 import { ICamelElementLookupResult } from '../../support/camel-component-types';
 import { RootNodeMapper } from '../root-node-mapper';
 import { BaseNodeMapper } from './base-node-mapper';
@@ -29,7 +31,8 @@ describe('BaseNodeMapper', () => {
       expect(vizNode).toBeDefined();
       expect(vizNode.data).toMatchObject({
         path,
-        icon: expect.any(String),
+        catalogKind: CatalogKind.Component,
+        name: 'timer',
         processorName: 'from',
         componentName: 'timer',
       });
@@ -47,9 +50,10 @@ describe('BaseNodeMapper', () => {
       };
 
       const vizNode = mapper.getVizNodeFromProcessor(path, componentLookup, routeDefinition);
-      expect(vizNode.getChildren()).toHaveLength(2);
+      expect(vizNode.getChildren()).toHaveLength(3);
       expect(vizNode.getChildren()?.[0].data.path).toBe('from.steps.0.log');
       expect(vizNode.getChildren()?.[1].data.path).toBe('from.steps.1.to');
+      expect(vizNode.getChildren()?.[2].data.isPlaceholder).toBe(true);
     });
 
     it('should return a VisualizationNode with special children', () => {
@@ -71,8 +75,9 @@ describe('BaseNodeMapper', () => {
       };
 
       const vizNode = mapper.getVizNodeFromProcessor(path, componentLookup, routeDefinition);
-      expect(vizNode.getChildren()).toHaveLength(1);
+      expect(vizNode.getChildren()).toHaveLength(2);
       expect(vizNode.getChildren()?.[0].data.path).toBe('from.steps.0.doTry');
+      expect(vizNode.getChildren()?.[1].data.isPlaceholder).toBe(true);
 
       const doTryNode = vizNode.getChildren()?.[0];
       expect(doTryNode?.getChildren()).toHaveLength(4);

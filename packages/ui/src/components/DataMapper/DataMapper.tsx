@@ -14,15 +14,22 @@
     limitations under the License.
 */
 import { FunctionComponent, useCallback, useContext, useEffect, useState } from 'react';
+
 import { DataMapperControl } from '../../components/DataMapper/DataMapperControl';
+import { Loading } from '../../components/Loading';
+import { IVisualizationNode } from '../../models';
+import {
+  DocumentDefinition,
+  DocumentDefinitionType,
+  DocumentInitializationModel,
+  DocumentType,
+} from '../../models/datamapper/document';
+import { IDataMapperMetadata } from '../../models/datamapper/metadata';
+import { EntitiesContext, MetadataContext } from '../../providers';
 import { DataMapperProvider } from '../../providers/datamapper.provider';
 import { DataMapperCanvasProvider } from '../../providers/datamapper-canvas.provider';
-import { DocumentDefinition, DocumentInitializationModel, DocumentType } from '../../models/datamapper/document';
-import { IVisualizationNode } from '../../models';
-import { EntitiesContext, MetadataContext } from '../../providers';
 import { DataMapperMetadataService } from '../../services/datamapper-metadata.service';
-import { IDataMapperMetadata } from '../../models/datamapper/metadata';
-import { Loading } from '../../components/Loading';
+import { DataMapperStepService } from '../../services/datamapper-step.service';
 
 export interface IDataMapperProps {
   vizNode?: IVisualizationNode;
@@ -31,7 +38,7 @@ export interface IDataMapperProps {
 export const DataMapper: FunctionComponent<IDataMapperProps> = ({ vizNode }) => {
   const entitiesContext = useContext(EntitiesContext)!;
   const ctx = useContext(MetadataContext)!;
-  const metadataId = vizNode && DataMapperMetadataService.getDataMapperMetadataId(vizNode);
+  const metadataId = vizNode && DataMapperStepService.getDataMapperMetadataId(vizNode);
   const [metadata, setMetadata] = useState<IDataMapperMetadata>();
   const [documentInitializationModel, setDocumentInitializationModel] = useState<DocumentInitializationModel>();
   const [initialXsltFile, setInitialXsltFile] = useState<string>();
@@ -42,7 +49,8 @@ export const DataMapper: FunctionComponent<IDataMapperProps> = ({ vizNode }) => 
     const initialize = async () => {
       let meta = await ctx.getMetadata<IDataMapperMetadata>(metadataId);
       if (!meta) {
-        meta = await DataMapperMetadataService.initializeDataMapperMetadata(entitiesContext, vizNode, ctx, metadataId);
+        const xsltPath = DataMapperStepService.initializeXsltStep(vizNode, metadataId, entitiesContext);
+        meta = await DataMapperMetadataService.initializeDataMapperMetadata(ctx, metadataId, xsltPath);
       }
       setMetadata(meta);
       const initModel = await DataMapperMetadataService.loadDocuments(ctx, meta);
@@ -60,6 +68,13 @@ export const DataMapper: FunctionComponent<IDataMapperProps> = ({ vizNode }) => 
       switch (definition.documentType) {
         case DocumentType.SOURCE_BODY:
           DataMapperMetadataService.updateSourceBodyMetadata(ctx, metadataId, metadata, definition);
+          if (vizNode) {
+            DataMapperStepService.setUseJsonBody(
+              vizNode,
+              definition.definitionType === DocumentDefinitionType.JSON_SCHEMA,
+              entitiesContext,
+            );
+          }
           break;
         case DocumentType.TARGET_BODY:
           DataMapperMetadataService.updateTargetBodyMetadata(ctx, metadataId, metadata, definition);
@@ -69,12 +84,12 @@ export const DataMapper: FunctionComponent<IDataMapperProps> = ({ vizNode }) => 
             ctx,
             metadataId,
             metadata,
-            definition.name!,
+            definition.name,
             definition,
           );
       }
     },
-    [ctx, metadata, metadataId],
+    [ctx, metadata, metadataId, vizNode, entitiesContext],
   );
 
   const onDeleteParameter = useCallback(
@@ -101,11 +116,23 @@ export const DataMapper: FunctionComponent<IDataMapperProps> = ({ vizNode }) => 
     [ctx, metadata],
   );
 
-  return !metadataId ? (
-    <>No associated DataMapper step was provided.</>
-  ) : isLoading ? (
-    <Loading />
-  ) : (
+  const onUpdateNamespaceMap = useCallback(
+    (namespaceMap: Record<string, string>) => {
+      if (!metadataId || !metadata) return;
+      DataMapperMetadataService.setNamespaceMap(ctx, metadataId, metadata, namespaceMap);
+    },
+    [ctx, metadata, metadataId],
+  );
+
+  if (!metadataId) {
+    return <>No associated DataMapper step was provided.</>;
+  }
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  return (
     <DataMapperProvider
       documentInitializationModel={documentInitializationModel}
       onUpdateDocument={onUpdateDocument}
@@ -113,6 +140,7 @@ export const DataMapper: FunctionComponent<IDataMapperProps> = ({ vizNode }) => 
       onRenameParameter={onRenameParameter}
       initialXsltFile={initialXsltFile}
       onUpdateMappings={onUpdateMappings}
+      onUpdateNamespaceMap={onUpdateNamespaceMap}
     >
       <DataMapperCanvasProvider>
         <DataMapperControl />

@@ -18,7 +18,7 @@ Cypress.Commands.add('openGroupConfigurationTab', (group: string, groupIndex?: n
 
 Cypress.Commands.add('toggleExpandGroup', (groupName: string) => {
   cy.get(`span[title="${groupName}"]`).click({ force: true });
-  cy.get(`[data-testid="step-toolbar-button-collapse"]`).click({ force: true });
+  cy.get(`[data-testid="${groupName}|step-toolbar-button-collapse"]`).click({ force: true });
 });
 
 Cypress.Commands.add('closeStepConfigurationTab', () => {
@@ -39,9 +39,8 @@ Cypress.Commands.add('removeNodeByName', (nodeName: string, nodeIndex?: number) 
   cy.wait(1000);
 });
 
-Cypress.Commands.add('quickAppend', (nodeIndex?: number) => {
-  nodeIndex = nodeIndex ?? 0;
-  cy.get('[data-testid="quick-append-step"]').eq(nodeIndex).click({ force: true });
+Cypress.Commands.add('quickAppendStep', (path: string) => {
+  cy.get(`[data-testid="placeholder-node__${path}"]`).click({ force: true });
 });
 
 Cypress.Commands.add('selectDuplicateNode', (nodeName: string, nodeIndex?: number) => {
@@ -126,8 +125,62 @@ Cypress.Commands.add('closeCatalogModal', () => {
 
 Cypress.Commands.add('performNodeAction', (nodeName: string, action: ActionType, nodeIndex?: number) => {
   nodeIndex = nodeIndex ?? 0;
-  cy.get(`foreignObject[data-nodelabel="${nodeName}"]`).eq(nodeIndex).rightclick({ force: true });
-  cy.get(`[data-testid="context-menu-item-${action}"]`).click();
+  const nodeSelector = `foreignObject[data-nodelabel="${nodeName}"]`;
+  const menuItemSelector = `[data-testid="context-menu-item-${action}"]`;
+
+  // Get the node and ensure it's visible
+  cy.get(nodeSelector).eq(nodeIndex).should('be.visible');
+
+  // Wrap the retry logic
+  cy.wrap(null).then(() => {
+    // Right-click the node (query fresh from DOM)
+    cy.get(nodeSelector).eq(nodeIndex).rightclick({ force: true });
+
+    // Check if menu appeared, if not, right-click again
+    cy.wait(200).then(() => {
+      cy.get('body').then(($body) => {
+        if ($body.find(menuItemSelector).length === 0) {
+          cy.log('Context menu not visible, retrying right-click...');
+          // Query fresh from DOM again
+          cy.get(nodeSelector).eq(nodeIndex).rightclick({ force: true });
+          cy.wait(200);
+        }
+      });
+    });
+  });
+
+  // Now the menu should be visible, click it
+  cy.get(menuItemSelector).should('be.visible').click();
+});
+
+Cypress.Commands.add('forcePerformNodeAction', (nodeName: string, action: ActionType, nodeIndex?: number) => {
+  nodeIndex = nodeIndex ?? 0;
+  const nodeSelector = `foreignObject[data-nodelabel="${nodeName}"]`;
+  const menuItemSelector = `[data-testid="context-menu-item-${action}"]`;
+
+  // Get the node and ensure it's visible
+  cy.get(nodeSelector).eq(nodeIndex).should('be.visible');
+
+  // Wrap the retry logic
+  cy.wait(200).then(() => {
+    // Right-click the node (query fresh from DOM)
+    cy.get(nodeSelector).eq(nodeIndex).rightclick({ force: true });
+
+    // Check if menu appeared, if not, right-click again with retries
+    for (let i = 0; i < 10; i++) {
+      cy.get('body').then(($body) => {
+        if ($body.find(menuItemSelector).length === 0) {
+          cy.log('Context menu not visible, retrying right-click...');
+          cy.wait(500);
+          cy.get(nodeSelector).eq(nodeIndex).rightclick({ force: true });
+        } else {
+          return;
+        }
+      });
+    }
+  });
+  // Now the menu should be visible, click it
+  cy.get(menuItemSelector).should('be.visible').click();
 });
 
 Cypress.Commands.add('checkNodeExist', (inputName, nodesCount) => {
@@ -213,10 +266,18 @@ Cypress.Commands.add('checkLightMode', () => {
   cy.get('html').should('not.have.class', 'pf-v6-theme-dark');
 });
 
-Cypress.Commands.add('DnD', (sourceNodeName: string, targetNodeName: string) => {
+Cypress.Commands.add('DnDOnNode', (sourceNodeName: string, targetNodeName: string) => {
   const sourceNode = cy.get(`[data-testid="${sourceNodeName}"]`);
   const targetNode = cy.get(`[data-testid="${targetNodeName}"]`);
 
-  sourceNode.realMouseDown({ button: 'left', position: 'center' }).realMouseMove(0, 0, { position: 'center' });
+  sourceNode.realMouseDown({ button: 'left', position: 'topLeft' }).realMouseMove(0, 0, { position: 'center' });
   targetNode.realMouseMove(0, 0, { position: 'center' }).realMouseUp();
+});
+
+Cypress.Commands.add('DnDOnEdge', (sourceNodeName: string, targetEdgeName: string) => {
+  const sourceNode = cy.get(`[data-testid="${sourceNodeName}"]`);
+  const targetEdge = cy.get(`[data-id="${targetEdgeName}"]`);
+
+  sourceNode.realMouseDown({ button: 'left', position: 'topLeft' }).realMouseMove(0, 0, { position: 'center' });
+  targetEdge.realMouseMove(0, 0, { position: 'center' }).realMouseUp({ position: 'center' });
 });

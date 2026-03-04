@@ -1,49 +1,47 @@
-import { Exception } from '@kaoto/camel-catalog/types';
 import { Button } from '@patternfly/react-core';
 import { ImageIcon } from '@patternfly/react-icons';
-import { toPng } from 'html-to-image';
+import { useVisualizationController } from '@patternfly/react-topology';
+import { useContext, useState } from 'react';
 
-export const defaultTooltipText = 'Export as image';
+import { EntitiesContext } from '../../../../providers/entities.provider';
+import { LayoutType } from '../../Canvas/canvas.models';
+import { HiddenCanvas } from './HiddenCanvas';
 
 export function FlowExportImage() {
+  const controller = useVisualizationController();
+  const [isExporting, setIsExporting] = useState(false);
+  const entitiesContext = useContext(EntitiesContext);
+
   const onClick = () => {
-    const node = document.querySelector<HTMLElement>('.pf-topology-container') ?? undefined;
-    exportToPng('image', node);
+    setIsExporting(true);
   };
 
-  const exportToPng = (name: string, element: HTMLElement | undefined, isDark?: boolean) => {
-    if (element) {
-      toPng(element, {
-        cacheBust: true,
-        backgroundColor: isDark ? '#0f1214' : '#f0f0f0',
-        filter: (node) => {
-          {
-            /**  Filter @patternfly/react-topology controls */
-            return !node?.classList?.contains('pf-v6-c-toolbar__group');
-          }
-        },
-      })
-        .then((dataUrl: string) => {
-          const link = document.createElement('a');
-          link.download = `${name}.png`;
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch((err: Exception) => {
-          console.error(err);
-        });
-    } else {
-      console.error('exportToPng called but element is undefined');
-    }
+  const handleExportComplete = () => {
+    setIsExporting(false);
   };
+
+  if (!entitiesContext) return null;
+
+  const currentLayout = controller.getGraph().getLayout() as LayoutType | undefined;
 
   return (
-    <Button
-      icon={<ImageIcon />}
-      title="Export as image"
-      onClick={onClick}
-      variant="control"
-      data-testid="exportImageButton"
-    />
+    <>
+      <Button
+        icon={<ImageIcon />}
+        onClick={onClick}
+        variant="control"
+        data-testid="exportImageButton"
+        isDisabled={isExporting}
+        isLoading={isExporting}
+      />
+
+      {isExporting && (
+        <HiddenCanvas
+          entities={entitiesContext.visualEntities}
+          layout={currentLayout}
+          onComplete={handleExportComplete}
+        />
+      )}
+    </>
   );
 }

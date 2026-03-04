@@ -1,24 +1,20 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary } from '@kaoto/camel-catalog/types';
+import { screen, waitFor } from '@testing-library/dom';
+import { act, render } from '@testing-library/react';
 
-import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
-
-import {
-  CamelCatalogService,
-  CatalogKind,
-  ICamelComponentDefinition,
-  ICamelProcessorDefinition,
-  IKameletDefinition,
-} from '../../models';
+import { CatalogContext } from '../../dynamic-catalog/catalog.provider';
+import { IDynamicCatalogRegistry } from '../../dynamic-catalog/models';
+import { CatalogKind, ICamelComponentDefinition, ICamelProcessorDefinition, IKameletDefinition } from '../../models';
+import { getFirstCatalogMap } from '../../stubs/test-load-catalog';
 import { ITile } from '../Catalog';
 import { PropertiesModal } from './PropertiesModal';
-import { getFirstCatalogMap } from '../../stubs/test-load-catalog';
 
 describe('PropertiesModal', () => {
   let componentCatalogMap: Record<string, ICamelComponentDefinition>;
   let kameletCatalogMap: Record<string, IKameletDefinition>;
   let modelCatalogMap: Record<string, ICamelProcessorDefinition>;
+  let mockCatalogRegistry: IDynamicCatalogRegistry;
 
   beforeAll(async () => {
     const catalogsMap = await getFirstCatalogMap(catalogLibrary as CatalogLibrary);
@@ -33,14 +29,25 @@ describe('PropertiesModal', () => {
     modelCatalogMap = catalogsMap.modelCatalogMap;
     modelCatalogMap.asn1.properties = {};
 
-    CamelCatalogService.setCatalogKey(CatalogKind.Component, componentCatalogMap);
-    CamelCatalogService.setCatalogKey(CatalogKind.Kamelet, kameletCatalogMap);
-    CamelCatalogService.setCatalogKey(CatalogKind.Processor, modelCatalogMap);
-    CamelCatalogService.setCatalogKey(CatalogKind.Pattern, catalogsMap.patternCatalogMap);
-    CamelCatalogService.setCatalogKey(CatalogKind.Language, catalogsMap.languageCatalog);
-    CamelCatalogService.setCatalogKey(CatalogKind.Dataformat, catalogsMap.dataformatCatalog);
-    CamelCatalogService.setCatalogKey(CatalogKind.Loadbalancer, catalogsMap.loadbalancerCatalog);
-    CamelCatalogService.setCatalogKey(CatalogKind.Entity, catalogsMap.entitiesCatalog);
+    // Create mock catalog registry
+    mockCatalogRegistry = {
+      getEntity: jest.fn(async (kind: CatalogKind, key: string) => {
+        switch (kind) {
+          case CatalogKind.Component:
+            return componentCatalogMap[key];
+          case CatalogKind.Processor:
+            return modelCatalogMap[key];
+          case CatalogKind.Pattern:
+            return catalogsMap.patternCatalogMap[key];
+          case CatalogKind.Entity:
+            return catalogsMap.entitiesCatalog[key];
+          case CatalogKind.Kamelet:
+            return kameletCatalogMap[key];
+          default:
+            return undefined;
+        }
+      }),
+    } as unknown as IDynamicCatalogRegistry;
   });
 
   describe('Component tile', () => {
@@ -55,7 +62,14 @@ describe('PropertiesModal', () => {
 
     it('renders component properties table correctly', async () => {
       // modal uses React portals so baseElement needs to be used here
-      const { baseElement } = render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />);
+      const { baseElement } = await act(async () =>
+        render(
+          <CatalogContext.Provider value={mockCatalogRegistry}>
+            <PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />
+          </CatalogContext.Provider>,
+        ),
+      );
+      await waitFor(() => expect(screen.queryByText('Loading properties...')).not.toBeInTheDocument());
       // info
       expect(baseElement.getElementsByClassName('pf-v6-c-modal-box__title-text').item(0)).toHaveTextContent('Atom');
       expect(screen.getByTestId('properties-modal-description')).toHaveTextContent('Poll Atom RSS feeds.');
@@ -78,8 +92,10 @@ describe('PropertiesModal', () => {
       //tab 1
       expect(screen.getByTestId('tab-1')).toHaveTextContent('Endpoint Options (24)');
       //table1
-      screen.getByTestId('tab-1').click();
-      await new Promise(process.nextTick);
+      await act(async () => {
+        screen.getByTestId('tab-1').click();
+        await new Promise(process.nextTick);
+      });
       expect(screen.getByTestId('tab-1-table-0-properties-modal-table-caption')).toHaveTextContent(
         'path parameters (1)',
       );
@@ -118,8 +134,10 @@ describe('PropertiesModal', () => {
       //tab 2
       expect(screen.getByTestId('tab-2')).toHaveTextContent('Message Headers (1)');
       //headers
-      screen.getByTestId('tab-2').click();
-      await new Promise(process.nextTick);
+      await act(async () => {
+        screen.getByTestId('tab-2').click();
+        await new Promise(process.nextTick);
+      });
       expect(screen.getByTestId('tab-2-table-0-header-name')).toHaveTextContent('name');
       expect(screen.getByTestId('tab-2-table-0-header-description')).toHaveTextContent('description');
       expect(screen.getByTestId('tab-2-table-0-header-default')).toHaveTextContent('default');
@@ -144,9 +162,16 @@ describe('PropertiesModal', () => {
       tags: ['document', '4.0.0'],
     };
 
-    it('renders property modal correctly', () => {
+    it('renders property modal correctly', async () => {
       // modal uses React portals so baseElement needs to be used here
-      const { baseElement } = render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />);
+      const { baseElement } = await act(async () =>
+        render(
+          <CatalogContext.Provider value={mockCatalogRegistry}>
+            <PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />
+          </CatalogContext.Provider>,
+        ),
+      );
+      await waitFor(() => expect(screen.queryByText('Loading properties...')).not.toBeInTheDocument());
       // info
       expect(baseElement.getElementsByClassName('pf-v6-c-modal-box__title-text').item(0)).toHaveTextContent('Asterisk');
       expect(screen.getByTestId('properties-modal-description')).toHaveTextContent(
@@ -166,9 +191,16 @@ describe('PropertiesModal', () => {
       tags: ['document'],
     };
 
-    it('renders property modal correctly', () => {
+    it('renders property modal correctly', async () => {
       // modal uses React portals so baseElement needs to be used here
-      const { baseElement } = render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />);
+      const { baseElement } = await act(async () =>
+        render(
+          <CatalogContext.Provider value={mockCatalogRegistry}>
+            <PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />
+          </CatalogContext.Provider>,
+        ),
+      );
+      await waitFor(() => expect(screen.queryByText('Loading properties...')).not.toBeInTheDocument());
       // info
       expect(baseElement.getElementsByClassName('pf-v6-c-modal-box__title-text').item(0)).toHaveTextContent('Api Key');
       expect(screen.getByTestId('properties-modal-description')).toHaveTextContent(
@@ -200,9 +232,16 @@ describe('PropertiesModal', () => {
       tags: ['document', '4.0.0'],
     };
 
-    it('renders property modal correctly', () => {
+    it('renders property modal correctly', async () => {
       // modal uses React portals so baseElement needs to be used here
-      const { baseElement } = render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />);
+      const { baseElement } = await act(async () =>
+        render(
+          <CatalogContext.Provider value={mockCatalogRegistry}>
+            <PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />
+          </CatalogContext.Provider>,
+        ),
+      );
+      await waitFor(() => expect(screen.queryByText('Loading properties...')).not.toBeInTheDocument());
       // info
       expect(baseElement.getElementsByClassName('pf-v6-c-modal-box__title-text').item(0)).toHaveTextContent(
         'ASN.1 File',
@@ -224,9 +263,16 @@ describe('PropertiesModal', () => {
       tags: ['source'],
     };
 
-    it('renders property modal correctly', () => {
+    it('renders property modal correctly', async () => {
       // modal uses React portals so baseElement needs to be used here
-      const { baseElement } = render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />);
+      const { baseElement } = await act(async () =>
+        render(
+          <CatalogContext.Provider value={mockCatalogRegistry}>
+            <PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />
+          </CatalogContext.Provider>,
+        ),
+      );
+      await waitFor(() => expect(screen.queryByText('Loading properties...')).not.toBeInTheDocument());
       // info
       expect(baseElement.getElementsByClassName('pf-v6-c-modal-box__title-text').item(0)).toHaveTextContent(
         'AWS DynamoDB Streams Source',
@@ -271,39 +317,22 @@ describe('PropertiesModal', () => {
       tags: ['source', '4.0.0-RC1'],
     };
 
-    it('renders property modal correctly', () => {
+    it('renders property modal correctly', async () => {
       // modal uses React portals so baseElement needs to be used here
-      const { baseElement } = render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />);
+      const { baseElement } = await act(async () =>
+        render(
+          <CatalogContext.Provider value={mockCatalogRegistry}>
+            <PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />
+          </CatalogContext.Provider>,
+        ),
+      );
+      await waitFor(() => expect(screen.queryByText('Loading properties...')).not.toBeInTheDocument());
       // info
       expect(baseElement.getElementsByClassName('pf-v6-c-modal-box__title-text').item(0)).toHaveTextContent(
         'NATS Sink',
       );
       expect(screen.getByTestId('properties-modal-description')).toHaveTextContent('Send data to NATS topics.');
       expect(screen.getByTestId('empty-state')).toHaveTextContent('No properties found for nats-sink');
-    });
-  });
-
-  describe('Unknown tile', () => {
-    const tile: ITile = {
-      type: 'tile-type',
-      name: 'tile-name',
-      title: 'tile-title',
-      description: 'tile-description',
-      tags: ['tag1', 'tag2'],
-      headerTags: ['header-tag1', 'header-tag2'],
-    };
-
-    // it suppresses error in the console.log since it is expected
-    const consoleErrorFn = jest.spyOn(console, 'error').mockImplementation(() => jest.fn());
-
-    afterAll(() => {
-      consoleErrorFn.mockRestore();
-    });
-
-    it('fires error for property modal', () => {
-      expect(() => render(<PropertiesModal tile={tile} isModalOpen onClose={jest.fn()} />)).toThrow(
-        'Unknown CatalogKind during rendering modal: tile-type',
-      );
     });
   });
 });

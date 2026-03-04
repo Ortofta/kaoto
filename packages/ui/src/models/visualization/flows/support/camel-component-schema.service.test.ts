@@ -1,9 +1,10 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary, ProcessorDefinition } from '@kaoto/camel-catalog/types';
+
 import { getFirstCatalogMap } from '../../../../stubs/test-load-catalog';
 import { DATAMAPPER_ID_PREFIX, XSLT_COMPONENT_NAME } from '../../../../utils';
-import { ICamelComponentDefinition } from '../../../camel-components-catalog';
 import { SourceSchemaType } from '../../../camel/source-schema-type';
+import { ICamelComponentDefinition } from '../../../camel-components-catalog';
 import { CatalogKind } from '../../../catalog-kind';
 import { NodeLabelType } from '../../../settings/settings.model';
 import { IClipboardCopyObject } from '../../clipboard';
@@ -563,6 +564,23 @@ describe('CamelComponentSchemaService', () => {
       ['interceptSendToEndpoint', [{ name: 'steps', type: 'branch' }]],
       ['onException', [{ name: 'steps', type: 'branch' }]],
       ['onCompletion', [{ name: 'steps', type: 'branch' }]],
+      [
+        'rest',
+        [
+          { name: 'get', type: 'array-clause' },
+          { name: 'post', type: 'array-clause' },
+          { name: 'put', type: 'array-clause' },
+          { name: 'delete', type: 'array-clause' },
+          { name: 'patch', type: 'array-clause' },
+          { name: 'head', type: 'array-clause' },
+        ],
+      ],
+      ['get', [{ name: 'to', type: 'single-clause' }]],
+      ['post', [{ name: 'to', type: 'single-clause' }]],
+      ['put', [{ name: 'to', type: 'single-clause' }]],
+      ['delete', [{ name: 'to', type: 'single-clause' }]],
+      ['patch', [{ name: 'to', type: 'single-clause' }]],
+      ['head', [{ name: 'to', type: 'single-clause' }]],
     ] as [string, CamelProcessorStepsProperties[]][])(
       `should return the steps properties for '%s'`,
       (processorName, result) => {
@@ -755,6 +773,26 @@ describe('CamelComponentSchemaService', () => {
       expect(CamelComponentSchemaService.getComponentDefinitionFromUri('kamelet:beer-source')).toEqual({
         uri: 'kamelet:beer-source',
       });
+    });
+  });
+
+  describe('canBeDisabled', () => {
+    it('should allow disabling DataMapper', () => {
+      const result = CamelComponentSchemaService.canBeDisabled(DATAMAPPER_ID_PREFIX);
+
+      expect(result).toBe(true);
+    });
+
+    it('should allow disabling processors that define disabled in schema', () => {
+      const result = CamelComponentSchemaService.canBeDisabled('log' as keyof ProcessorDefinition);
+
+      expect(result).toBe(true);
+    });
+
+    it('should not allow disabling processors without disabled property', () => {
+      const result = CamelComponentSchemaService.canBeDisabled('from' as keyof ProcessorDefinition);
+
+      expect(result).toBe(false);
     });
   });
 });

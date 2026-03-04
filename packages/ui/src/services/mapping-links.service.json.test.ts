@@ -1,12 +1,9 @@
-import { MappingLinksService } from './mapping-links.service';
-import {
-  accountJsonSchema,
-  cartJsonSchema,
-  shipOrderJsonSchema,
-  shipOrderJsonXslt,
-} from '../stubs/datamapper/data-mapper';
+import { renderHook } from '@testing-library/react';
+import { RefObject, useRef } from 'react';
+
 import {
   BODY_DOCUMENT_ID,
+  DocumentDefinition,
   DocumentDefinitionType,
   DocumentType,
   IDocument,
@@ -14,11 +11,17 @@ import {
 } from '../models/datamapper/document';
 import { MappingTree } from '../models/datamapper/mapping';
 import { NodeReference } from '../models/datamapper/visualization';
-import { MappingSerializerService } from './mapping-serializer.service';
-import { MutableRefObject, RefObject, useRef } from 'react';
-import { renderHook } from '@testing-library/react';
-import { JsonSchemaDocument, JsonSchemaDocumentService } from './json-schema-document.service';
 import { mockRandomValues } from '../stubs';
+import {
+  accountJsonSchema,
+  cartJsonSchema,
+  shipOrderJsonSchema,
+  shipOrderJsonXslt,
+} from '../stubs/datamapper/data-mapper';
+import { JsonSchemaDocument } from './json-schema-document.model';
+import { JsonSchemaDocumentService } from './json-schema-document.service';
+import { MappingLinksService } from './mapping-links.service';
+import { MappingSerializerService } from './mapping-serializer.service';
 
 describe('MappingLinksService : JSON', () => {
   let cartParamDoc: JsonSchemaDocument;
@@ -26,30 +29,47 @@ describe('MappingLinksService : JSON', () => {
   let targetDoc: JsonSchemaDocument;
   let paramsMap: Map<string, IDocument>;
   let mappingTree: MappingTree;
-  const dummySourceBodyDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+  const dummySourceBodyDoc = new PrimitiveDocument(
+    new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+  );
 
   beforeAll(() => {
     mockRandomValues();
   });
 
   beforeEach(() => {
-    accountParamDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
+    const accountDefinition = new DocumentDefinition(
       DocumentType.PARAM,
+      DocumentDefinitionType.JSON_SCHEMA,
       'Account',
-      accountJsonSchema,
+      { 'Account.json': accountJsonSchema },
     );
-    cartParamDoc = JsonSchemaDocumentService.createJsonSchemaDocument(DocumentType.PARAM, 'Cart', cartJsonSchema);
-    const orderSequenceParamDoc = new PrimitiveDocument(DocumentType.PARAM, 'OrderSequence');
+    const accountResult = JsonSchemaDocumentService.createJsonSchemaDocument(accountDefinition);
+    expect(accountResult.validationStatus).toBe('success');
+    accountParamDoc = accountResult.document as JsonSchemaDocument;
+    const cartDefinition = new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.JSON_SCHEMA, 'Cart', {
+      'Cart.json': cartJsonSchema,
+    });
+    const cartResult = JsonSchemaDocumentService.createJsonSchemaDocument(cartDefinition);
+    expect(cartResult.validationStatus).toBe('success');
+    cartParamDoc = cartResult.document as JsonSchemaDocument;
+    const orderSequenceParamDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.Primitive, 'OrderSequence'),
+    );
     paramsMap = new Map<string, IDocument>([
       ['OrderSequence', orderSequenceParamDoc],
       ['Account', accountParamDoc],
       ['Cart', cartParamDoc],
     ]);
-    targetDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
+    const targetDefinition = new DocumentDefinition(
       DocumentType.TARGET_BODY,
-      'ShipOrder',
-      shipOrderJsonSchema,
+      DocumentDefinitionType.JSON_SCHEMA,
+      BODY_DOCUMENT_ID,
+      { 'ShipOrder.json': shipOrderJsonSchema },
     );
+    const targetResult = JsonSchemaDocumentService.createJsonSchemaDocument(targetDefinition);
+    expect(targetResult.validationStatus).toBe('success');
+    targetDoc = targetResult.document as JsonSchemaDocument;
     mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.JSON_SCHEMA);
     MappingSerializerService.deserialize(shipOrderJsonXslt, targetDoc, mappingTree, paramsMap);
   });
@@ -59,7 +79,9 @@ describe('MappingLinksService : JSON', () => {
       const links = MappingLinksService.extractMappingLinks(
         mappingTree,
         paramsMap,
-        new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID),
+        new PrimitiveDocument(
+          new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+        ),
       );
       expect(links.length).toEqual(13);
       expect(links[0].sourceNodePath).toMatch('fj-string-AccountId');
@@ -121,28 +143,30 @@ describe('MappingLinksService : JSON', () => {
   });
 
   describe('calculateMappingLinkCoordinates()', () => {
-    const nodeReferences: Map<string, MutableRefObject<NodeReference>> = new Map<
-      string,
-      MutableRefObject<NodeReference>
-    >();
+    const nodeReferences: Map<string, RefObject<NodeReference>> = new Map<string, RefObject<NodeReference>>();
 
     const mockRect = () => ({ a: 0, b: 0 });
+    const mockClosest = () => null;
+    const createMockHeaderRef = (): HTMLDivElement =>
+      ({
+        getBoundingClientRect: mockRect,
+        getClientRects: mockRect,
+        closest: mockClosest,
+      }) as unknown as HTMLDivElement;
+
     const createNodeReference = (path: string) => {
       const { result } = renderHook(() =>
         useRef<NodeReference>({
           path: path,
           isSource: !path.startsWith('target'),
           containerRef: null,
-          headerRef: {
-            getBoundingClientRect: mockRect,
-            getClientRects: mockRect,
-          } as unknown as HTMLDivElement,
+          headerRef: createMockHeaderRef(),
         }),
       );
       nodeReferences.set(path, result.current);
     };
 
-    const getNodeReference = (path: string): MutableRefObject<NodeReference> => {
+    const getNodeReference = (path: string): RefObject<NodeReference> => {
       if (!nodeReferences.has(path)) createNodeReference(path);
       return nodeReferences.get(path)!;
     };

@@ -1,7 +1,16 @@
 import { act, renderHook } from '@testing-library/react';
+
 import { useSourceCodeStore } from '../store';
 import { EventNotifier } from '../utils';
 import { useUndoRedo } from './undo-redo.hook';
+
+const mockController = {
+  fromModel: jest.fn(),
+};
+
+jest.mock('@patternfly/react-topology', () => ({
+  useVisualizationController: () => mockController,
+}));
 
 describe('useUndoRedo', () => {
   it('should return initial state', () => {
@@ -49,6 +58,11 @@ describe('useUndoRedo', () => {
       result.current.undo();
     });
 
+    expect(mockController.fromModel).toHaveBeenCalledTimes(1);
+    expect(mockController.fromModel).toHaveBeenCalledWith({
+      nodes: [],
+      edges: [],
+    });
     expect(eventNotifierSpy).toHaveBeenCalledWith('code:updated', { code: '', path: '' });
   });
 
@@ -69,6 +83,11 @@ describe('useUndoRedo', () => {
       result.current.redo();
     });
 
+    expect(mockController.fromModel).toHaveBeenCalledTimes(2);
+    expect(mockController.fromModel).toHaveBeenLastCalledWith({
+      nodes: [],
+      edges: [],
+    });
     expect(eventNotifierSpy).toHaveBeenCalledWith('code:updated', { code: 'new code', path: '' });
   });
 });

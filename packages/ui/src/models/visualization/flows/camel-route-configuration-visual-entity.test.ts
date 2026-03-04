@@ -1,8 +1,12 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary, RouteConfigurationDefinition } from '@kaoto/camel-catalog/types';
+
 import { routeConfigurationStub } from '../../../stubs/route-configuration';
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
+import { EntityType } from '../../camel/entities';
+import { DefinedComponent } from '../../camel-catalog-index';
 import { CatalogKind } from '../../catalog-kind';
+import { AddStepMode } from '../base-visual-entity';
 import { AbstractCamelVisualEntity } from './abstract-camel-visual-entity';
 import { CamelCatalogService } from './camel-catalog.service';
 import { CamelRouteConfigurationVisualEntity } from './camel-route-configuration-visual-entity';
@@ -72,6 +76,11 @@ describe('CamelRouteConfigurationVisualEntity', () => {
     expect(superGetNodeLabelSpy).toHaveBeenCalled();
   });
 
+  it('should return "Add configuration" for placeholder path', () => {
+    const entity = new CamelRouteConfigurationVisualEntity(routeConfigurationDef);
+    expect(entity.getNodeLabel('routeConfiguration.placeholder')).toEqual('Add configuration');
+  });
+
   it('should return tooltip content', () => {
     const entity = new CamelRouteConfigurationVisualEntity(routeConfigurationDef);
 
@@ -103,6 +112,22 @@ describe('CamelRouteConfigurationVisualEntity', () => {
     entity.getNodeSchema(CamelRouteConfigurationVisualEntity.ROOT_PATH);
 
     expect(catalogServiceSpy).toHaveBeenCalledWith(CatalogKind.Entity, 'routeConfiguration');
+  });
+
+  describe('removeStep', () => {
+    it('should clean up empty arrays after removing step', () => {
+      const defWithEmptyIntercept: { routeConfiguration: RouteConfigurationDefinition } = {
+        routeConfiguration: {
+          intercept: [],
+          onException: [{ onException: { id: 'exc-1' } }],
+        },
+      };
+      const entity = new CamelRouteConfigurationVisualEntity(defWithEmptyIntercept);
+      entity.removeStep('routeConfiguration.onException.0');
+      // After removal, empty arrays should be set to undefined
+      expect(defWithEmptyIntercept.routeConfiguration.intercept).toBeUndefined();
+      expect(defWithEmptyIntercept.routeConfiguration.onException).toBeUndefined();
+    });
   });
 
   describe('updateModel', () => {
@@ -137,7 +162,13 @@ describe('CamelRouteConfigurationVisualEntity', () => {
   it('return no interactions for ROOT_PATH', () => {
     const entity = new CamelRouteConfigurationVisualEntity(routeConfigurationDef);
 
-    expect(entity.getNodeInteraction({ path: CamelRouteConfigurationVisualEntity.ROOT_PATH })).toEqual({
+    expect(
+      entity.getNodeInteraction({
+        catalogKind: CatalogKind.Entity,
+        name: EntityType.RouteConfiguration,
+        path: CamelRouteConfigurationVisualEntity.ROOT_PATH,
+      }),
+    ).toEqual({
       canHavePreviousStep: false,
       canHaveNextStep: false,
       canHaveChildren: false,
@@ -165,10 +196,32 @@ describe('CamelRouteConfigurationVisualEntity', () => {
       .mockReturnValueOnce(mockInteractions);
 
     const entity = new CamelRouteConfigurationVisualEntity(routeConfigurationDef);
-    const result = entity.getNodeInteraction({ path: 'another path' });
+    const result = entity.getNodeInteraction({
+      catalogKind: CatalogKind.Entity,
+      name: EntityType.RouteConfiguration,
+      path: 'another path',
+    });
 
     expect(superGetNodeInteractionSpy).toHaveBeenCalled();
     expect(result).toEqual(mockInteractions);
+  });
+
+  describe('addStep', () => {
+    it('should strip placeholder from path when adding step', () => {
+      const entity = new CamelRouteConfigurationVisualEntity(routeConfigurationDef);
+      const superAddStepSpy = jest.spyOn(AbstractCamelVisualEntity.prototype, 'addStep');
+
+      entity.addStep({
+        definedComponent: { type: CatalogKind.Processor, name: 'intercept' } as DefinedComponent,
+        mode: AddStepMode.InsertSpecialChildStep,
+        data: { path: 'routeConfiguration.placeholder', catalogKind: CatalogKind.Entity, name: 'routeConfiguration' },
+        targetProperty: 'intercept',
+      });
+
+      expect(superAddStepSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ path: 'routeConfiguration' }) }),
+      );
+    });
   });
 
   describe('getNodeValidationText', () => {
@@ -202,7 +255,8 @@ describe('CamelRouteConfigurationVisualEntity', () => {
 
       expect(vizNode.data).toEqual({
         entity,
-        icon: '',
+        catalogKind: CatalogKind.Entity,
+        name: 'routeConfiguration',
         isGroup: true,
         path: 'routeConfiguration',
         processorName: 'routeConfiguration',

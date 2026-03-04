@@ -1,6 +1,7 @@
 import { CanvasFormTabsProvider } from '@kaoto/forms';
 import { act, fireEvent, render } from '@testing-library/react';
 import { FunctionComponent, PropsWithChildren } from 'react';
+
 import { CamelRouteResource } from '../../../models/camel';
 import { EntityType } from '../../../models/camel/entities';
 import { mockRandomValues } from '../../../stubs';
@@ -22,37 +23,43 @@ describe('CanvasSideBar', () => {
     Provider = TestProvidersWrapper({ camelResource }).Provider;
   });
 
-  it('does not render anything if there is no selectedNode', () => {
-    const wrapper = render(
-      <CanvasFormTabsProvider>
-        <CanvasSideBar selectedNode={undefined} onClose={() => {}} />
-      </CanvasFormTabsProvider>,
+  it('does not render anything if there is no selectedNode', async () => {
+    const wrapper = await act(async () =>
+      render(
+        <CanvasFormTabsProvider>
+          <CanvasSideBar selectedNode={undefined} onClose={() => {}} />
+        </CanvasFormTabsProvider>,
+      ),
     );
 
     expect(wrapper.container).toBeEmptyDOMElement();
   });
 
-  it('displays selected node information', () => {
-    const wrapper = render(
-      <Provider>
-        <CanvasFormTabsProvider>
-          <CanvasSideBar selectedNode={selectedNode} onClose={() => {}} />
-        </CanvasFormTabsProvider>
-      </Provider>,
+  it('displays selected node information', async () => {
+    const wrapper = await act(async () =>
+      render(
+        <Provider>
+          <CanvasFormTabsProvider>
+            <CanvasSideBar selectedNode={selectedNode} onClose={() => {}} />
+          </CanvasFormTabsProvider>
+        </Provider>,
+      ),
     );
 
     expect(wrapper.asFragment()).toMatchSnapshot();
   });
 
-  it('should propagate onClose callback', () => {
+  it('should propagate onClose callback', async () => {
     const onCloseSpy = jest.fn();
 
-    const wrapper = render(
-      <Provider>
-        <CanvasFormTabsProvider>
-          <CanvasSideBar selectedNode={selectedNode} onClose={onCloseSpy} />
-        </CanvasFormTabsProvider>
-      </Provider>,
+    const wrapper = await act(async () =>
+      render(
+        <Provider>
+          <CanvasFormTabsProvider>
+            <CanvasSideBar selectedNode={selectedNode} onClose={onCloseSpy} />
+          </CanvasFormTabsProvider>
+        </Provider>,
+      ),
     );
 
     act(() => {

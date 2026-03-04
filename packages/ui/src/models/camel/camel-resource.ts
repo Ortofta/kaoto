@@ -1,6 +1,6 @@
 import { CamelYamlDsl, Integration, Kamelet, KameletBinding, Pipe } from '@kaoto/camel-catalog/types';
-import { TileFilter } from '../../components/Catalog';
 
+import { TileFilter } from '../../components/Catalog';
 import { AddStepMode, BaseVisualCamelEntity, IVisualizationNodeData } from '../visualization/base-visual-entity';
 import { BeansEntity } from '../visualization/metadata';
 import { RouteTemplateBeansEntity } from '../visualization/metadata/routeTemplateBeansEntity';
@@ -27,8 +27,6 @@ export interface CamelResource {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     definition?: any,
   ): TileFilter | undefined;
-
-  sortFn?: (a: unknown, b: unknown) => number;
 }
 
 export enum SerializerType {

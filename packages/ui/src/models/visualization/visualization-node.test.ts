@@ -1,7 +1,10 @@
 import { cloneDeep } from 'lodash';
+
 import { camelRouteJson } from '../../stubs/camel-route';
 import { SourceSchemaType } from '../camel';
+import { CatalogKind } from '../catalog-kind';
 import { NodeLabelType } from '../settings';
+import { IClipboardCopyObject } from '../visualization/clipboard';
 import {
   AddStepMode,
   BaseVisualCamelEntity,
@@ -11,13 +14,12 @@ import {
 } from './base-visual-entity';
 import { CamelRouteVisualEntity } from './flows';
 import { createVisualizationNode } from './visualization-node';
-import { IClipboardCopyObject } from '../visualization/clipboard';
 
 describe('VisualizationNode', () => {
   let node: IVisualizationNode;
 
   beforeEach(() => {
-    node = createVisualizationNode('test', {});
+    node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
   });
 
   it('should create a node with the given id', () => {
@@ -29,7 +31,12 @@ describe('VisualizationNode', () => {
       const visualEntity = new CamelRouteVisualEntity(camelRouteJson);
       const getNodeTitleSpy = jest.spyOn(visualEntity, 'getNodeTitle');
 
-      node = createVisualizationNode('test', { path: 'route.from.steps.2.to', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'route.from.steps.2.to',
+        entity: visualEntity,
+      });
 
       expect(node.getNodeTitle()).toEqual('direct');
       expect(getNodeTitleSpy).toHaveBeenCalledWith('route.from.steps.2.to');
@@ -42,7 +49,7 @@ describe('VisualizationNode', () => {
 
   it('should return the base entity ID', () => {
     const visualEntity = new CamelRouteVisualEntity(camelRouteJson);
-    node = createVisualizationNode('test', { entity: visualEntity });
+    node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log', entity: visualEntity });
 
     expect(node.getId()).toEqual('route-8888');
   });
@@ -53,7 +60,12 @@ describe('VisualizationNode', () => {
       getNodeSchema: getNodeSchemaSpy,
     } as unknown as BaseVisualCamelEntity;
 
-    node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+    node = createVisualizationNode('test', {
+      catalogKind: CatalogKind.Component,
+      name: 'log',
+      path: 'test-path',
+      entity: visualEntity,
+    });
     node.getNodeSchema();
 
     expect(getNodeSchemaSpy).toHaveBeenCalledWith(node.data.path);
@@ -65,7 +77,12 @@ describe('VisualizationNode', () => {
       getNodeDefinition: getNodeDefinitionSpy,
     } as unknown as BaseVisualCamelEntity;
 
-    node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+    node = createVisualizationNode('test', {
+      catalogKind: CatalogKind.Component,
+      name: 'log',
+      path: 'test-path',
+      entity: visualEntity,
+    });
     node.getNodeDefinition();
 
     expect(getNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path);
@@ -77,7 +94,12 @@ describe('VisualizationNode', () => {
       getOmitFormFields: getOmitFormFieldsSpy,
     } as unknown as BaseVisualCamelEntity;
 
-    node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+    node = createVisualizationNode('test', {
+      catalogKind: CatalogKind.Component,
+      name: 'log',
+      path: 'test-path',
+      entity: visualEntity,
+    });
     node.getOmitFormFields();
 
     expect(getOmitFormFieldsSpy).toHaveBeenCalled();
@@ -90,7 +112,12 @@ describe('VisualizationNode', () => {
         getNodeLabel: getNodeLabelSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'test-path',
+        entity: visualEntity,
+      });
       const label = node.getNodeLabel(NodeLabelType.Id);
 
       expect(getNodeLabelSpy).toHaveBeenCalledWith(node.data.path, NodeLabelType.Id);
@@ -98,7 +125,7 @@ describe('VisualizationNode', () => {
     });
 
     it('should return the id when the underlying BaseVisualCamelEntity is not defined', () => {
-      node = createVisualizationNode('test', {});
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
       const label = node.getNodeLabel();
 
       expect(label).toEqual(node.id);
@@ -112,7 +139,12 @@ describe('VisualizationNode', () => {
         getTooltipContent: getTooltipContentSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'test-path',
+        entity: visualEntity,
+      });
       const content = node.getTooltipContent();
 
       expect(getTooltipContentSpy).toHaveBeenCalledWith(node.data.path);
@@ -120,7 +152,7 @@ describe('VisualizationNode', () => {
     });
 
     it('should return the id when the underlying BaseVisualCamelEntity is not defined', () => {
-      node = createVisualizationNode('test', {});
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
       const content = node.getTooltipContent();
 
       expect(content).toEqual(node.id);
@@ -134,7 +166,12 @@ describe('VisualizationNode', () => {
       getNodeSchema: getNodeSchemaSpy,
     } as unknown as BaseVisualCamelEntity;
 
-    const rootNode = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+    const rootNode = createVisualizationNode('test', {
+      catalogKind: CatalogKind.Component,
+      name: 'log',
+      path: 'test-path',
+      entity: visualEntity,
+    });
     node.setParentNode(rootNode);
 
     /** Act */
@@ -151,7 +188,12 @@ describe('VisualizationNode', () => {
       getNodeDefinition: getNodeDefinitionSpy,
     } as unknown as BaseVisualCamelEntity;
 
-    const rootNode = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+    const rootNode = createVisualizationNode('test', {
+      catalogKind: CatalogKind.Component,
+      name: 'log',
+      path: 'test-path',
+      entity: visualEntity,
+    });
     node.setParentNode(rootNode);
 
     /** Act */
@@ -175,7 +217,12 @@ describe('VisualizationNode', () => {
         updateModel: updateModelSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'test-path',
+        entity: visualEntity,
+      });
       node.updateModel('test-value');
 
       expect(updateModelSpy).toHaveBeenCalledWith(node.data.path, 'test-value');
@@ -188,7 +235,11 @@ describe('VisualizationNode', () => {
         updateModel: updateModelSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      const rootNode = createVisualizationNode('test', { entity: visualEntity });
+      const rootNode = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        entity: visualEntity,
+      });
       node.setParentNode(rootNode);
 
       /** Act */
@@ -200,28 +251,28 @@ describe('VisualizationNode', () => {
   });
 
   it('should set the parent node', () => {
-    const parentNode = createVisualizationNode('parent', {});
+    const parentNode = createVisualizationNode('parent', { catalogKind: CatalogKind.Component, name: 'log' });
     node.setParentNode(parentNode);
 
     expect(node.getParentNode()).toEqual(parentNode);
   });
 
   it('should set the previous node', () => {
-    const previousNode = createVisualizationNode('previous', {});
+    const previousNode = createVisualizationNode('previous', { catalogKind: CatalogKind.Component, name: 'log' });
     node.setPreviousNode(previousNode);
 
     expect(node.getPreviousNode()).toEqual(previousNode);
   });
 
   it('should set the next node', () => {
-    const nextNode = createVisualizationNode('next', {});
+    const nextNode = createVisualizationNode('next', { catalogKind: CatalogKind.Component, name: 'log' });
     node.setNextNode(nextNode);
 
     expect(node.getNextNode()).toEqual(nextNode);
   });
 
   it('should add a child', () => {
-    const child = createVisualizationNode('child', {});
+    const child = createVisualizationNode('child', { catalogKind: CatalogKind.Component, name: 'log' });
     node.addChild(child);
 
     expect(node.getChildren()).toEqual([child]);
@@ -244,7 +295,7 @@ describe('VisualizationNode', () => {
       const visualEntity = {
         getNodeInteraction: getNodeInteractionSpy,
       } as unknown as BaseVisualCamelEntity;
-      node = createVisualizationNode('test', { entity: visualEntity });
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log', entity: visualEntity });
       const expectedNodeInteraction = node.getNodeInteraction();
 
       expect(getNodeInteractionSpy).toHaveBeenCalledWith(node.data);
@@ -252,14 +303,14 @@ describe('VisualizationNode', () => {
     });
 
     it('should return DISABLED_NODE_INTERACTION when there is no underlying base entity', () => {
-      node = createVisualizationNode('test', {});
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
       expect(node.getNodeInteraction()).toEqual(DISABLED_NODE_INTERACTION);
     });
   });
 
   describe('removeChild', () => {
     it('should remove a child', () => {
-      const child = createVisualizationNode('child', {});
+      const child = createVisualizationNode('child', { catalogKind: CatalogKind.Component, name: 'log' });
       node.addChild(child);
       child.removeChild();
 
@@ -268,7 +319,7 @@ describe('VisualizationNode', () => {
     });
 
     it('should not error when removing a non-existing child', () => {
-      const child = createVisualizationNode('child', {});
+      const child = createVisualizationNode('child', { catalogKind: CatalogKind.Component, name: 'log' });
       child.removeChild();
 
       expect(node.getChildren()).toBeUndefined();
@@ -293,14 +344,15 @@ describe('VisualizationNode', () => {
       expect(node.getChildren()?.[0].getNodeLabel()).toEqual('timer');
       expect(node.getChildren()?.[1].getNodeLabel()).toEqual('choice');
       expect(node.getChildren()?.[2].getNodeLabel()).toEqual('direct');
-      expect(node.getChildren()).toHaveLength(3);
+      expect(node.getChildren()).toHaveLength(4);
+      expect(node.getChildren()?.[3].data.isPlaceholder).toBe(true);
       expect(fromNode!.getChildren()).toHaveLength(0);
     });
   });
 
   describe('getNodeValidationText', () => {
     it('should return undefined when the underlying BaseVisualCamelEntity is not defined', () => {
-      node = createVisualizationNode('test', {});
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
       const validationText = node.getNodeValidationText();
 
       expect(validationText).toBeUndefined();
@@ -312,7 +364,12 @@ describe('VisualizationNode', () => {
         getNodeValidationText: getNodeValidationTextSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'test-path',
+        entity: visualEntity,
+      });
       const validationText = node.getNodeValidationText();
 
       expect(getNodeValidationTextSpy).toHaveBeenCalledWith(node.data.path);
@@ -322,7 +379,7 @@ describe('VisualizationNode', () => {
 
   describe('getCopiedContent', () => {
     it('should return undefined when the underlying BaseVisualCamelEntity is not defined', () => {
-      node = createVisualizationNode('test', {});
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
       const copiedContent = node.getCopiedContent();
 
       expect(copiedContent).toBeUndefined();
@@ -334,7 +391,12 @@ describe('VisualizationNode', () => {
         getCopiedContent: getCopiedContentSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'test-path',
+        entity: visualEntity,
+      });
       const copiedContent = node.getCopiedContent();
 
       expect(getCopiedContentSpy).toHaveBeenCalledWith(node.data.path);
@@ -353,7 +415,7 @@ describe('VisualizationNode', () => {
     };
 
     it('should return undefined when the underlying BaseVisualCamelEntity is not defined', () => {
-      node = createVisualizationNode('test', {});
+      node = createVisualizationNode('test', { catalogKind: CatalogKind.Component, name: 'log' });
       const copiedContent = node.pasteBaseEntityStep(clipboardContent, AddStepMode.InsertChildStep);
 
       expect(copiedContent).toBeUndefined();
@@ -365,7 +427,12 @@ describe('VisualizationNode', () => {
         pasteStep: pasteStepSpy,
       } as unknown as BaseVisualCamelEntity;
 
-      node = createVisualizationNode('test', { path: 'test-path', entity: visualEntity });
+      node = createVisualizationNode('test', {
+        catalogKind: CatalogKind.Component,
+        name: 'log',
+        path: 'test-path',
+        entity: visualEntity,
+      });
 
       /** call paste on set-header node */
       node!.pasteBaseEntityStep(clipboardContent, AddStepMode.InsertChildStep);
@@ -400,8 +467,37 @@ describe('VisualizationNode', () => {
       expect(node.getChildren()?.[2].getNodeLabel()).toEqual('log');
       expect(node.getChildren()?.[3].getNodeLabel()).toEqual('choice');
       expect(node.getChildren()?.[4].getNodeLabel()).toEqual('direct');
-      expect(node.getChildren()).toHaveLength(5);
+      expect(node.getChildren()).toHaveLength(6);
+      expect(node.getChildren()?.[5].data.isPlaceholder).toBe(true);
       expect(fromNode!.getChildren()).toHaveLength(0);
+    });
+  });
+
+  describe('getGroupIcons', () => {
+    it('should delegate to base entity', () => {
+      const mockEntity = {
+        getGroupIcons: jest.fn().mockReturnValue([{ icon: 'play', title: 'Enabled' }]),
+      } as unknown as BaseVisualCamelEntity;
+
+      const node = createVisualizationNode('test-node', {
+        entity: mockEntity,
+        catalogKind: CatalogKind.Entity,
+        name: 'test',
+        path: 'route',
+      });
+
+      expect(node.getGroupIcons()).toEqual([{ icon: 'play', title: 'Enabled' }]);
+      expect(mockEntity.getGroupIcons).toHaveBeenCalled();
+    });
+
+    it('should return empty array when entity is undefined', () => {
+      const node = createVisualizationNode('test-node', {
+        catalogKind: CatalogKind.Entity,
+        name: 'test',
+        path: 'route',
+      });
+
+      expect(node.getGroupIcons()).toEqual([]);
     });
   });
 });

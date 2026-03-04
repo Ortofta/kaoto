@@ -1,6 +1,6 @@
 {
   "name": "kaoto",
-  "version": "2.9.0-dev",
+  "version": "2.10.0-dev",
   "description": "Kaoto - The Integration Designer for Apache Camel",
   "repository": "https://github.com/KaotoIO/kaoto",
   "author": "The Kaoto Team",
@@ -15,13 +15,14 @@
     "@patternfly/react-icons": "6.4.0",
     "@patternfly/react-table": "6.4.0",
     "@patternfly/react-topology": "6.4.0",
-    "axios": "1.12.2",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "prettier": "3.6.2",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "prettier": "3.7.4",
     "typescript": "5.5.4"
   },
   "scripts": {
+    "prepare": "husky",
+    "husky:fix": "git config core.hooksPath .husky",
     "version": "lerna version",
     "publish": "lerna publish from-package"
   },
@@ -35,6 +36,17 @@
     "fast-xml-parser": "^5.0.9",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0"
+  },
+  "lint-staged": {
+    "packages/ui/src/**/*.{ts,tsx,js,jsx}": [
+      "yarn workspace @kaoto/kaoto lint:fix"
+    ],
+    "packages/ui/src/**/*.{css,scss}": [
+      "yarn workspace @kaoto/kaoto lint:style:fix"
+    ],
+    "packages/**/*.{ts,tsx,js,jsx,css,scss,md,json,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "packageManager": "yarn@4.9.4"
 }

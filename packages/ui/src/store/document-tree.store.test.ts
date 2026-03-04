@@ -1,8 +1,14 @@
-import { BODY_DOCUMENT_ID, DocumentType, PrimitiveDocument } from '../models/datamapper/document';
+import {
+  BODY_DOCUMENT_ID,
+  DocumentDefinition,
+  DocumentDefinitionType,
+  DocumentType,
+  PrimitiveDocument,
+} from '../models/datamapper/document';
 import { DocumentTree } from '../models/datamapper/document-tree';
 import { DocumentNodeData } from '../models/datamapper/visualization';
 import { TreeParsingService } from '../services/tree-parsing.service';
-import { XmlSchemaDocument } from '../services/xml-schema-document.service';
+import { XmlSchemaDocument } from '../services/xml-schema-document.model';
 import { TestUtil } from '../stubs/datamapper/data-mapper';
 import { useDocumentTreeStore } from './document-tree.store';
 
@@ -76,7 +82,9 @@ describe('useDocumentTreeStore', () => {
     });
 
     it('should not include primitive nodes in expansion state', () => {
-      const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+      const primitiveDoc = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+      );
       const primitiveDocNode = new DocumentNodeData(primitiveDoc);
       const primitiveTree = new DocumentTree(primitiveDocNode);
 
@@ -89,25 +97,36 @@ describe('useDocumentTreeStore', () => {
       expect(keys).toEqual(['sourceBody:Body://']);
     });
 
-    /** This test needs to be skipped while the datamapper uses random IDs */
-    it.skip('should keep the existing expansion state for matchign keys', () => {
+    it('should keep the existing expansion state for matching keys', () => {
+      // First parse the tree to get actual node paths with real IDs
+      TreeParsingService.parseTree(tree);
+      useDocumentTreeStore.getState().updateTreeExpansion(tree);
+
+      // Get the actual paths from the tree after initial expansion
+      const initialState = useDocumentTreeStore.getState().expansionState[tree.documentId];
+      const paths = Object.keys(initialState);
+
+      // Find a path that has children (not root or leaf)
+      const rootPath = paths[0]; // 'sourceBody:Body://'
+      const childPath = paths[1]; // First child path (with random ID)
+
+      // Set custom expansion state: root expanded (true), child collapsed (false)
       useDocumentTreeStore.setState({
         expansionState: {
-          ['doc-sourceBody-Body']: {
-            ['sourceBody:Body://']: true,
-            ['sourceBody:Body://fxShipOrder-1234']: false,
+          [tree.documentId]: {
+            [rootPath]: true,
+            [childPath]: false,
           },
         },
       });
 
+      // Call updateTreeExpansion again - should preserve existing states
       useDocumentTreeStore.getState().updateTreeExpansion(tree);
       const state = useDocumentTreeStore.getState().expansionState[tree.documentId];
 
-      expect(state).toEqual({
-        'sourceBody:Body://': true,
-        'sourceBody:Body://fx-ShipOrder-1234': false,
-        // Other keys
-      });
+      // Verify that the custom states were preserved for matching keys
+      expect(state[rootPath]).toBe(true);
+      expect(state[childPath]).toBe(false);
     });
   });
 });

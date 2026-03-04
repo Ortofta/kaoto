@@ -3,9 +3,9 @@ import {
   KameletBinding as KameletBindingType,
   Pipe as PipeType,
 } from '@kaoto/camel-catalog/types';
+
 import { TileFilter } from '../../components/Catalog';
 import { YamlCamelResourceSerializer } from '../../serializers';
-import { createCamelPropertiesSorter } from '../../utils';
 import { IKameletDefinition } from '../kamelets-catalog';
 import { AddStepMode, BaseVisualCamelEntity, IVisualizationNodeData } from '../visualization/base-visual-entity';
 import { MetadataEntity } from '../visualization/metadata';
@@ -30,8 +30,6 @@ export enum CamelKResourceKinds {
 export const CAMEL_K_K8S_API_VERSION_V1 = 'camel.apache.org/v1';
 
 export abstract class CamelKResource implements CamelResource {
-  static readonly PARAMETERS_ORDER = ['apiVersion', 'kind', 'metadata', 'spec', 'source', 'steps', 'sink'];
-  readonly sortFn = createCamelPropertiesSorter(CamelKResource.PARAMETERS_ORDER) as (a: unknown, b: unknown) => number;
   protected resource: CamelKType;
   private metadata?: MetadataEntity;
 

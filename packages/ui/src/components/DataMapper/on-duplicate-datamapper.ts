@@ -1,9 +1,11 @@
 import { Step } from '@kaoto/camel-catalog/types';
-import { DataMapperMetadataService } from '../../services/datamapper-metadata.service';
-import { IMetadataApi } from '../../providers';
+
 import { IVisualizationNode } from '../../models';
 import { IDataMapperMetadata } from '../../models/datamapper/metadata';
 import { IClipboardCopyObject } from '../../models/visualization/clipboard';
+import { IMetadataApi } from '../../providers';
+import { DataMapperMetadataService } from '../../services/datamapper-metadata.service';
+import { DataMapperStepService } from '../../services/datamapper-step.service';
 import { clearXsltUri, setXsltUri } from './datamapper-utils';
 
 export const onDuplicateDataMapper = async (
@@ -25,7 +27,7 @@ export const onDuplicateDataMapper = async (
     return parameters.content;
   }
 
-  const originalMetadataId = DataMapperMetadataService.getDataMapperMetadataId(parameters.sourceVizNode);
+  const originalMetadataId = DataMapperStepService.getDataMapperMetadataId(parameters.sourceVizNode);
 
   const originalMetadata = await api.getMetadata<IDataMapperMetadata>(originalMetadataId);
 

@@ -1,11 +1,13 @@
+import './CanvasForm.scss';
+
 import { Card, CardBody, CardHeader } from '@patternfly/react-core';
 import { FunctionComponent, useCallback, useContext, useEffect, useRef } from 'react';
+
 import { VisibleFlowsContext } from '../../../../providers';
 import { ErrorBoundary } from '../../../ErrorBoundary';
 import { Anchors } from '../../../registers/anchors';
 import { RenderingAnchor } from '../../../RenderingAnchor/RenderingAnchor';
 import { CanvasNode } from '../canvas.models';
-import './CanvasForm.scss';
 import { CanvasFormBody } from './CanvasFormBody';
 import { CanvasFormHeader } from './CanvasFormHeader';
 
@@ -34,11 +36,21 @@ export const CanvasForm: FunctionComponent<CanvasFormProps> = ({ selectedNode, o
     }
   }, [onClose, visualFlowsApi, vizNode]);
 
+  if (!vizNode) {
+    return null;
+  }
+
   return (
     <ErrorBoundary key={selectedNode.id} fallback={<p>This node cannot be configured yet</p>}>
       <Card className="canvas-form">
         <CardHeader>
-          <CanvasFormHeader nodeId={selectedNode.id} title={title} onClose={onCloseFn} nodeIcon={vizNode?.data?.icon} />
+          <CanvasFormHeader
+            nodeId={selectedNode.id}
+            title={title}
+            onClose={onCloseFn}
+            catalogKind={vizNode.data.catalogKind}
+            name={vizNode.data.name}
+          />
           <RenderingAnchor anchorTag={Anchors.CanvasFormHeader} vizNode={vizNode} />
         </CardHeader>
 

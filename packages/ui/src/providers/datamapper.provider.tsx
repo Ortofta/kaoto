@@ -13,25 +13,26 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
+import { Alert, AlertActionCloseButton, AlertGroup, AlertProps, AlertVariant } from '@patternfly/react-core';
 import { createContext, FunctionComponent, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Loading } from '../components/Loading';
-import { MappingTree } from '../models/datamapper/mapping';
+import { SendAlertProps } from '../models/datamapper';
 import {
   BODY_DOCUMENT_ID,
   DocumentDefinition,
+  DocumentDefinitionType,
   DocumentInitializationModel,
   DocumentType,
   IDocument,
   PrimitiveDocument,
 } from '../models/datamapper/document';
+import { MappingTree } from '../models/datamapper/mapping';
+import { NS_XML_SCHEMA, NS_XPATH_FUNCTIONS, NS_XSL } from '../models/datamapper/standard-namespaces';
 import { CanvasView } from '../models/datamapper/view';
-import { MappingSerializerService } from '../services/mapping-serializer.service';
-import { MappingService } from '../services/mapping.service';
 import { DocumentService } from '../services/document.service';
-import { Alert, AlertActionCloseButton, AlertGroup, AlertProps, AlertVariant } from '@patternfly/react-core';
-import { SendAlertProps } from '../models/datamapper';
-import { NS_XPATH_FUNCTIONS } from '../models/datamapper/xslt';
+import { MappingService } from '../services/mapping.service';
+import { MappingSerializerService } from '../services/mapping-serializer.service';
 
 export interface IDataMapperContext {
   isLoading: boolean;
@@ -75,6 +76,7 @@ type DataMapperProviderProps = PropsWithChildren & {
   onRenameParameter?: (oldName: string, newName: string) => void;
   initialXsltFile?: string;
   onUpdateMappings?: (xsltFile: string) => void;
+  onUpdateNamespaceMap?: (namespaceMap: Record<string, string>) => void;
 };
 
 export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
@@ -84,6 +86,7 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
   onRenameParameter,
   initialXsltFile,
   onUpdateMappings,
+  onUpdateNamespaceMap,
   children,
 }) => {
   const [debug, setDebug] = useState<boolean>(false);
@@ -93,10 +96,14 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
   const [sourceParameterMap, setSourceParameterMap] = useState<Map<string, IDocument>>(new Map<string, IDocument>());
   const [isSourceParametersExpanded, setSourceParametersExpanded] = useState<boolean>(true);
   const [sourceBodyDocument, setSourceBodyDocument] = useState<IDocument>(
-    new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID),
+    new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    ),
   );
   const [targetBodyDocument, setTargetBodyDocument] = useState<IDocument>(
-    new PrimitiveDocument(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID),
+    new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    ),
   );
 
   /**
@@ -104,7 +111,7 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
    * but also for the function calls in the xpath. We should prefill this from beginning.
    */
   const initialNamespaceMap = useMemo(() => {
-    return { fn: NS_XPATH_FUNCTIONS };
+    return { xs: NS_XML_SCHEMA, fn: NS_XPATH_FUNCTIONS, xsl: NS_XSL };
   }, []);
   const initialMappingTree = new MappingTree(
     DocumentType.TARGET_BODY,
@@ -130,6 +137,15 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
       }
     }
     mappingTree.documentDefinitionType = latestTargetBodyDocument.definitionType;
+
+    const metadataNamespaceMap = documentInitializationModel?.namespaceMap;
+
+    if (metadataNamespaceMap) {
+      mappingTree.namespaceMap = {
+        ...initialNamespaceMap,
+        ...metadataNamespaceMap,
+      };
+    }
 
     if (initialXsltFile) {
       const loaded = MappingSerializerService.deserialize(
@@ -172,14 +188,22 @@ export const DataMapperProvider: FunctionComponent<DataMapperProviderProps> = ({
     newMapping.namespaceMap = mappingTree.namespaceMap;
     setMappingTree(newMapping);
     onUpdateMappings?.(MappingSerializerService.serialize(newMapping, sourceParameterMap));
-  }, [mappingTree, onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
+    onUpdateNamespaceMap?.(newMapping.namespaceMap);
+  }, [mappingTree, onUpdateMappings, onUpdateNamespaceMap, sourceParameterMap, targetBodyDocument.definitionType]);
 
   const resetMappingTree = useCallback(() => {
     const newMapping = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, targetBodyDocument.definitionType);
     newMapping.namespaceMap = { ...initialNamespaceMap };
     setMappingTree(newMapping);
     onUpdateMappings?.(MappingSerializerService.serialize(newMapping, sourceParameterMap));
-  }, [initialNamespaceMap, onUpdateMappings, sourceParameterMap, targetBodyDocument.definitionType]);
+    onUpdateNamespaceMap?.(newMapping.namespaceMap);
+  }, [
+    initialNamespaceMap,
+    onUpdateMappings,
+    onUpdateNamespaceMap,
+    sourceParameterMap,
+    targetBodyDocument.definitionType,
+  ]);
 
   const renameSourceParameter = useCallback(
     (oldName: string, newName: string) => {

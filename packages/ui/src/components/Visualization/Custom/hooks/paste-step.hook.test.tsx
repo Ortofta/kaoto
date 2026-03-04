@@ -1,16 +1,18 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { IClipboardCopyObject } from '../../../../models/visualization/clipboard';
-import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
-import { ClipboardManager } from '../../../../utils/ClipboardManager';
-import { SourceSchemaType } from '../../../../models/camel/source-schema-type';
-import { usePasteStep } from './paste-step.hook';
 import { FunctionComponent, PropsWithChildren } from 'react';
-import { EntitiesContext } from '../../../../providers/entities.provider';
-import { CatalogModalContext } from '../../../../providers/catalog-modal.provider';
+
+import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
+import { CatalogKind } from '../../../../models';
 import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
-import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
+import { SourceSchemaType } from '../../../../models/camel/source-schema-type';
+import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
+import { IClipboardCopyObject } from '../../../../models/visualization/clipboard';
 import { CamelComponentSchemaService } from '../../../../models/visualization/flows/support/camel-component-schema.service';
 import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
+import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
+import { EntitiesContext } from '../../../../providers/entities.provider';
+import { ClipboardManager } from '../../../../utils/ClipboardManager';
+import { usePasteStep } from './paste-step.hook';
 
 const mockController = {
   fromModel: jest.fn(),
@@ -67,7 +69,7 @@ describe('usePasteStep', () => {
     jest.spyOn(navigator.permissions, 'query').mockResolvedValueOnce({ state: 'granted' } as PermissionStatus);
     jest.spyOn(ClipboardManager, 'paste').mockResolvedValueOnce(null);
 
-    const vizNode = createVisualizationNode('test', {});
+    const vizNode = createVisualizationNode('test', { catalogKind: CatalogKind.Processor, name: 'test' });
     const { result } = renderHook(() => usePasteStep(vizNode, AddStepMode.InsertChildStep), { wrapper });
 
     await waitFor(() => {
@@ -80,7 +82,7 @@ describe('usePasteStep', () => {
   it('should return the isCompatible true when clipboard-read permission returns rejected', async () => {
     jest.spyOn(navigator.permissions, 'query').mockRejectedValueOnce(new Error('Permission error'));
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const vizNode = createVisualizationNode('test', {});
+    const vizNode = createVisualizationNode('test', { catalogKind: CatalogKind.Processor, name: 'test' });
     const { result } = renderHook(() => usePasteStep(vizNode, AddStepMode.InsertChildStep), { wrapper });
     // Initially, isCompatible should be false
     expect(result.current.isCompatible).toBe(false);
@@ -103,7 +105,7 @@ describe('usePasteStep', () => {
     // Mock the ClipboardManager.paste() to return a valid content
     const pasteSpy = jest
       .spyOn(ClipboardManager, 'paste')
-      .mockImplementation(async () => Promise.resolve(copiedContent as IClipboardCopyObject));
+      .mockImplementation(async () => copiedContent as IClipboardCopyObject);
     // Mock the compatibility check to return true
     jest.spyOn(mockCatalogModalContext, 'checkCompatibility').mockReturnValue(true);
 
@@ -134,12 +136,13 @@ describe('usePasteStep', () => {
     } as unknown as IVisualizationNode;
 
     // Mock the ClipboardManager.paste() to return a content which isn't compatible
-    const pasteSpy = jest.spyOn(ClipboardManager, 'paste').mockImplementation(async () =>
-      Promise.resolve({
-        type: SourceSchemaType.Pipe,
-        name: 'log',
-        definition: { id: 'test', message: 'hello' },
-      } as IClipboardCopyObject),
+    const pasteSpy = jest.spyOn(ClipboardManager, 'paste').mockImplementation(
+      async () =>
+        ({
+          type: SourceSchemaType.Pipe,
+          name: 'log',
+          definition: { id: 'test', message: 'hello' },
+        }) as IClipboardCopyObject,
     );
 
     const { result } = renderHook(() => usePasteStep(mockVizNode, AddStepMode.AppendStep), { wrapper });
@@ -159,7 +162,11 @@ describe('usePasteStep', () => {
   });
 
   describe('onPasteStep', () => {
-    const mockChoiceVizNode = createVisualizationNode('choice', { processorName: 'choice' });
+    const mockChoiceVizNode = createVisualizationNode('choice', {
+      catalogKind: CatalogKind.Processor,
+      name: 'choice',
+      processorName: 'choice',
+    });
     mockChoiceVizNode.pasteBaseEntityStep = jest.fn();
 
     const getProcessorStepsPropertiesMock = jest.spyOn(CamelComponentSchemaService, 'getProcessorStepsProperties');
@@ -205,9 +212,13 @@ describe('usePasteStep', () => {
     });
 
     it('should call controller.fromModel() when mode is InsertSpecialChildStep and conditions are met', async () => {
-      mockChoiceVizNode.getChildren = jest
-        .fn()
-        .mockReturnValue([createVisualizationNode('test-when', { processorName: 'when' })]);
+      mockChoiceVizNode.getChildren = jest.fn().mockReturnValue([
+        createVisualizationNode('test-when', {
+          catalogKind: CatalogKind.Processor,
+          name: 'when',
+          processorName: 'when',
+        }),
+      ]);
 
       getProcessorStepsPropertiesMock.mockReturnValue([
         { name: 'when', type: 'array-clause' },

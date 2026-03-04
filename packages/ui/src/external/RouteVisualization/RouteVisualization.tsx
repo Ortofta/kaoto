@@ -1,9 +1,10 @@
 import { VisualizationProvider } from '@patternfly/react-topology';
-import React, { useContext, useEffect, useLayoutEffect, useMemo } from 'react';
+import { FunctionComponent, useContext, useEffect, useLayoutEffect, useMemo } from 'react';
+
 import { Visualization } from '../../components/Visualization';
 import { ControllerService } from '../../components/Visualization/Canvas/controller.service';
+import { CatalogLoaderProvider } from '../../dynamic-catalog/catalog.provider';
 import {
-  CatalogLoaderProvider,
   EntitiesContext,
   EntitiesProvider,
   ReloadProvider,
@@ -14,7 +15,7 @@ import {
 } from '../../providers';
 import { EventNotifier } from '../../utils';
 
-const VisibleFlowsVisualization: React.FC<{ className?: string }> = ({ className = '' }) => {
+const VisibleFlowsVisualization: FunctionComponent<{ className?: string }> = ({ className = '' }) => {
   const { visibleFlows, visualFlowsApi } = useContext(VisibleFlowsContext)!;
   const entitiesContext = useContext(EntitiesContext);
   const visualEntities = entitiesContext?.visualEntities ?? [];
@@ -26,7 +27,7 @@ const VisibleFlowsVisualization: React.FC<{ className?: string }> = ({ className
   return <Visualization className={`canvas-page ${className}`} entities={visualEntities} />;
 };
 
-const Viz: React.FC<{ catalogUrl: string; className?: string }> = ({ catalogUrl, className = '' }) => {
+const Viz: FunctionComponent<{ catalogUrl: string; className?: string }> = ({ catalogUrl, className = '' }) => {
   const controller = useMemo(() => ControllerService.createController(), []);
 
   return (

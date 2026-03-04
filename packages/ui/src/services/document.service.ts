@@ -1,3 +1,4 @@
+import { PathSegment } from '../models/datamapper';
 import {
   BODY_DOCUMENT_ID,
   CreateDocumentResult,
@@ -12,11 +13,11 @@ import {
   RootElementOption,
 } from '../models/datamapper/document';
 import { IMetadataApi } from '../providers';
-import { JsonSchemaDocumentService } from './json-schema-document.service';
-import { XmlSchemaDocument, XmlSchemaDocumentService } from './xml-schema-document.service';
-import { PathSegment } from '../models/datamapper';
-import { XPathService } from './xpath/xpath.service';
 import { DocumentUtilService } from './document-util.service';
+import { JsonSchemaDocumentService } from './json-schema-document.service';
+import { XmlSchemaDocument } from './xml-schema-document.model';
+import { XmlSchemaDocumentService } from './xml-schema-document.service';
+import { XPathService } from './xpath/xpath.service';
 
 interface InitialDocumentsSet {
   sourceBodyDocument?: IDocument;
@@ -63,35 +64,14 @@ export class DocumentService {
         schemaFilePaths,
       );
       if (!documentDefinition) {
-        return { validationStatus: 'error', validationMessage: 'Could not read schema file(s)' };
+        return { validationStatus: 'error', errors: ['Could not read schema file(s)'] };
       }
 
-      const document = DocumentService.doCreateDocumentFromDefinition(documentDefinition);
-      if (!document) {
-        return { validationStatus: 'error', validationMessage: 'Could not create a document from schema file(s)' };
-      }
-
-      const rootElementOptions: RootElementOption[] = [];
-      if (document instanceof XmlSchemaDocument) {
-        const options: RootElementOption[] = Array.from(document.xmlSchema.getElements().keys())
-          .filter((key) => !!key.getLocalPart())
-          .map((key) => {
-            return { namespaceUri: key.getNamespaceURI() || '', name: key.getLocalPart() };
-          }) as RootElementOption[];
-        rootElementOptions.push(...options);
-      }
-
-      return {
-        validationStatus: 'success',
-        validationMessage: 'Schema validation successful',
-        documentDefinition,
-        document,
-        rootElementOptions,
-      };
+      return DocumentService.doCreateDocumentFromDefinition(documentDefinition);
       /* eslint-disable @typescript-eslint/no-explicit-any */
     } catch (error: any) {
       const errorMessage = error?.message || 'Unknown validation error';
-      return { validationStatus: 'error', validationMessage: errorMessage };
+      return { validationStatus: 'error', errors: [errorMessage] };
     }
   }
 
@@ -109,8 +89,7 @@ export class DocumentService {
     documentId: string,
   ): CreateDocumentResult {
     const definition = new DocumentDefinition(documentType, schemaType, documentId);
-    const docId = documentType === DocumentType.PARAM ? definition.name! : BODY_DOCUMENT_ID;
-    const doc = new PrimitiveDocument(definition.documentType, docId);
+    const doc = new PrimitiveDocument(definition);
     return { validationStatus: 'success', documentDefinition: definition, document: doc };
   }
 
@@ -134,25 +113,49 @@ export class DocumentService {
     return new DocumentDefinition(documentType, definitionType, documentId, fileContents);
   }
 
-  private static doCreateDocumentFromDefinition(definition: DocumentDefinition): IDocument | null {
-    if (definition.definitionType === DocumentDefinitionType.Primitive) {
-      return new PrimitiveDocument(definition.documentType, DocumentType.PARAM ? definition.name! : BODY_DOCUMENT_ID);
+  private static doCreateDocumentFromDefinition(definition: DocumentDefinition): CreateDocumentResult {
+    switch (definition.definitionType) {
+      case DocumentDefinitionType.Primitive: {
+        const document = new PrimitiveDocument(definition);
+        return {
+          validationStatus: 'success',
+          documentDefinition: definition,
+          document,
+          rootElementOptions: [],
+        };
+      }
+      case DocumentDefinitionType.XML_SCHEMA:
+        return XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+      case DocumentDefinitionType.JSON_SCHEMA:
+        return JsonSchemaDocumentService.createJsonSchemaDocument(definition);
+      default:
+        return {
+          validationStatus: 'error',
+          errors: [`Unsupported definition type: ${definition.definitionType}`],
+        };
     }
-    if (!definition.definitionFiles || Object.keys(definition.definitionFiles).length === 0) return null;
-    const content = Object.values(definition.definitionFiles)[0];
-    const documentId = definition.documentType === DocumentType.PARAM ? definition.name! : BODY_DOCUMENT_ID;
+  }
+
+  /**
+   * Removes a schema file from the definition and re-creates the document with updated analysis.
+   * Delegates to {@link XmlSchemaDocumentService.removeSchemaFile} or
+   * {@link JsonSchemaDocumentService.removeSchemaFile} based on the definition type.
+   *
+   * @param definition - The current document definition containing schema files
+   * @param filePath - The key of the schema file to remove from {@link DocumentDefinition.definitionFiles}
+   * @returns A {@link CreateDocumentResult} with updated validation status, errors/warnings, and definition
+   */
+  static removeSchemaFile(definition: DocumentDefinition, filePath: string): CreateDocumentResult {
     switch (definition.definitionType) {
       case DocumentDefinitionType.XML_SCHEMA:
-        return XmlSchemaDocumentService.createXmlSchemaDocument(
-          definition.documentType,
-          documentId,
-          content,
-          definition.rootElementChoice,
-        );
+        return XmlSchemaDocumentService.removeSchemaFile(definition, filePath);
       case DocumentDefinitionType.JSON_SCHEMA:
-        return JsonSchemaDocumentService.createJsonSchemaDocument(definition.documentType, documentId, content);
+        return JsonSchemaDocumentService.removeSchemaFile(definition, filePath);
       default:
-        return null;
+        return {
+          validationStatus: 'error',
+          errors: [`removeSchemaFile is not supported for definition type: ${definition.definitionType}`],
+        };
     }
   }
 
@@ -173,18 +176,18 @@ export class DocumentService {
       sourceParameterMap: new Map<string, IDocument>(),
     };
     if (initModel.sourceBody) {
-      const document = DocumentService.doCreateDocumentFromDefinition(initModel.sourceBody);
-      if (document) answer.sourceBodyDocument = document;
+      const result = DocumentService.doCreateDocumentFromDefinition(initModel.sourceBody);
+      if (result.document) answer.sourceBodyDocument = result.document;
     }
     if (initModel.sourceParameters) {
       Object.entries(initModel.sourceParameters).forEach(([key, value]) => {
-        const document = DocumentService.doCreateDocumentFromDefinition(value);
-        answer.sourceParameterMap.set(key, document ? document : new PrimitiveDocument(DocumentType.PARAM, key));
+        const result = DocumentService.doCreateDocumentFromDefinition(value);
+        answer.sourceParameterMap.set(key, result.document ?? new PrimitiveDocument(value));
       });
     }
     if (initModel.targetBody) {
-      const document = DocumentService.doCreateDocumentFromDefinition(initModel.targetBody);
-      if (document) answer.targetBodyDocument = document;
+      const result = DocumentService.doCreateDocumentFromDefinition(initModel.targetBody);
+      if (result.document) answer.targetBodyDocument = result.document;
     }
     return answer;
   }
@@ -262,6 +265,8 @@ export class DocumentService {
   }
 
   static hasChildren(field: IField) {
+    // Attributes cannot have children in XML Schema
+    if (field.isAttribute) return false;
     return field.fields.length > 0 || field.namedTypeFragmentRefs.length > 0;
   }
 

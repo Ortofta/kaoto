@@ -1,5 +1,9 @@
-import { EMPTY_XSL, MappingSerializerService } from './mapping-serializer.service';
-import { BODY_DOCUMENT_ID, DocumentDefinitionType, DocumentType } from '../models/datamapper/document';
+import {
+  BODY_DOCUMENT_ID,
+  DocumentDefinition,
+  DocumentDefinitionType,
+  DocumentType,
+} from '../models/datamapper/document';
 import {
   ChooseItem,
   FieldItem,
@@ -10,19 +14,20 @@ import {
   ValueSelector,
   WhenItem,
 } from '../models/datamapper/mapping';
+import { NS_XSL } from '../models/datamapper/standard-namespaces';
 import { Types } from '../models/datamapper/types';
-
 import {
-  shipOrderToShipOrderXslt,
+  invoice850Xsd,
+  shipOrderToShipOrderCollectionIndexXslt,
   shipOrderToShipOrderInvalidForEachXslt,
+  shipOrderToShipOrderMultipleForEachXslt,
+  shipOrderToShipOrderXslt,
   TestUtil,
   x12850ForEachXslt,
-  invoice850Xsd,
-  shipOrderToShipOrderMultipleForEachXslt,
-  shipOrderToShipOrderCollectionIndexXslt,
 } from '../stubs/datamapper/data-mapper';
-import { XmlSchemaDocumentService, XmlSchemaField } from './xml-schema-document.service';
-import { NS_XSL } from '../models/datamapper/xslt';
+import { EMPTY_XSL, MappingSerializerService } from './mapping-serializer.service';
+import { XmlSchemaField } from './xml-schema-document.model';
+import { XmlSchemaDocumentService } from './xml-schema-document.service';
 
 describe('MappingSerializerService', () => {
   const sourceParameterMap = TestUtil.createParameterMap();
@@ -188,11 +193,15 @@ describe('MappingSerializerService', () => {
     });
 
     it('should deserialize a mapping on cached type fragment', () => {
-      const targetDoc850 = XmlSchemaDocumentService.createXmlSchemaDocument(
+      const definition850 = new DocumentDefinition(
         DocumentType.TARGET_BODY,
-        'Invoice.xsd',
-        invoice850Xsd,
+        DocumentDefinitionType.XML_SCHEMA,
+        'Invoice',
+        { 'Invoice.xsd': invoice850Xsd },
       );
+      const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition850);
+      expect(result.validationStatus).toBe('success');
+      const targetDoc850 = result.document!;
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
         x12850ForEachXslt,

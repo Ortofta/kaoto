@@ -1,7 +1,9 @@
 import { fireEvent, render } from '@testing-library/react';
-import { createVisualizationNode } from '../../../../models';
-import { ItemCopyStep } from './ItemCopyStep';
+
+import { CatalogKind, createVisualizationNode } from '../../../../models';
+import { EntityType } from '../../../../models/camel/entities';
 import { useCopyStep } from '../hooks/copy-step.hook';
+import { ItemCopyStep } from './ItemCopyStep';
 
 // Mock the `useCopyStep` hook
 jest.mock('../hooks/copy-step.hook', () => ({
@@ -9,7 +11,7 @@ jest.mock('../hooks/copy-step.hook', () => ({
 }));
 
 describe('ItemCopyStep', () => {
-  const vizNode = createVisualizationNode('test', {});
+  const vizNode = createVisualizationNode('test', { catalogKind: CatalogKind.Entity, name: EntityType.Route });
   const mockOnCopyStep = jest.fn();
   beforeEach(() => {
     // Mock the `useCopyStep` hook to return the `onCopyStep` function

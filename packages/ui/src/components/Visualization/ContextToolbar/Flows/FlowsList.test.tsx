@@ -1,4 +1,5 @@
 import { act, fireEvent, render } from '@testing-library/react';
+
 import { CamelRouteResource } from '../../../../models/camel';
 import { EntityType } from '../../../../models/camel/entities';
 import { VisualFlowsApi } from '../../../../models/visualization/flows/support/flows-visibility';
@@ -269,7 +270,7 @@ describe('FlowsList.tsx', () => {
     });
 
     expect(renameSpy).toHaveBeenCalledWith('route-1234', 'new-name');
-    expect(camelResource.getVisualEntities()[0].id).toEqual('new-name');
+    expect(camelResource.getVisualEntities()[1].id).toEqual('new-name');
     expect(updateEntitiesFromCamelResourceSpy).toHaveBeenCalledTimes(1);
   });
 

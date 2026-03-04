@@ -1,9 +1,10 @@
-import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
+import { ProcessorDefinition, To } from '@kaoto/camel-catalog/types';
 import { parse } from 'yaml';
+
 import { getCamelRandomId, getHexaDecimalRandomId } from '../../../../camel-utils/camel-random-id';
+import { XSLT_COMPONENT_NAME } from '../../../../utils';
 import { DefinedComponent } from '../../../camel-catalog-index';
 import { CatalogKind } from '../../../catalog-kind';
-import { XSLT_COMPONENT_NAME } from '../../../../utils';
 
 /**
  * CamelComponentDefaultService
@@ -44,7 +45,7 @@ export class CamelComponentDefaultService {
     }
   }
 
-  private static getDefaultValueFromComponent(componentName: string): object {
+  private static getDefaultValueFromComponent(componentName: string): { to: Exclude<To, string> } {
     switch (componentName) {
       case 'log':
         return parse(`
@@ -212,7 +213,13 @@ export class CamelComponentDefaultService {
       case 'patch' as keyof ProcessorDefinition:
       case 'post' as keyof ProcessorDefinition:
       case 'put' as keyof ProcessorDefinition:
-        return { id: getCamelRandomId(processorName) } as ProcessorDefinition;
+        return {
+          id: getCamelRandomId(processorName),
+          to: {
+            ...this.getDefaultValueFromComponent('direct').to,
+            parameters: { name: `operation-${getCamelRandomId(processorName)}` },
+          },
+        } as ProcessorDefinition;
 
       default:
         return {

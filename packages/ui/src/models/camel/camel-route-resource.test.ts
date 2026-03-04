@@ -1,8 +1,10 @@
 import { CamelYamlDsl, RouteConfigurationDefinition, RouteDefinition } from '@kaoto/camel-catalog/types';
+
 import { XMLMetadata } from '../../serializers';
 import { beansJson } from '../../stubs/beans';
 import { camelFromJson } from '../../stubs/camel-from';
 import { camelRouteJson, camelRouteYaml } from '../../stubs/camel-route';
+import { CatalogKind } from '../catalog-kind';
 import { AddStepMode } from '../visualization/base-visual-entity';
 import { CamelRouteVisualEntity } from '../visualization/flows/camel-route-visual-entity';
 import { NonVisualEntity } from '../visualization/flows/non-visual-entity';
@@ -13,7 +15,6 @@ import { SerializerType } from './camel-resource';
 import { CamelResourceFactory } from './camel-resource-factory';
 import { CamelRouteResource } from './camel-route-resource';
 import { EntityType } from './entities';
-import { EntityOrderingService } from './entity-ordering.service';
 import { SourceSchemaType } from './source-schema-type';
 
 describe('CamelRouteResource', () => {
@@ -218,43 +219,6 @@ describe('CamelRouteResource', () => {
 
       expect(resource.getVisualEntities()).toHaveLength(2);
       expect(resource.getVisualEntities()[0].id).toEqual(id);
-    });
-
-    it('should use EntityOrderingService for priority entity detection', () => {
-      const resource = new CamelRouteResource();
-      resource.addNewEntity(); // Add a regular route first
-
-      // Add a priority entity (should go to beginning)
-      const priorityId = resource.addNewEntity(EntityType.ErrorHandler);
-
-      // Add a non-priority entity (should go to end)
-      const nonPriorityId = resource.addNewEntity(EntityType.RestConfiguration);
-
-      const entities = resource.getVisualEntities();
-      expect(entities).toHaveLength(3);
-
-      // ErrorHandler should be first (priority)
-      expect(entities[0].id).toEqual(priorityId);
-      expect(entities[0].type).toBe(EntityType.ErrorHandler);
-
-      // Original route should be second
-      expect(entities[1].type).toBe(EntityType.Route);
-
-      // RestConfiguration should be last (non-priority)
-      expect(entities[2].id).toEqual(nonPriorityId);
-      expect(entities[2].type).toBe(EntityType.RestConfiguration);
-    });
-
-    it('should verify EntityOrderingService priority entity detection matches implementation', () => {
-      // Test that our service correctly identifies priority entities
-      expect(EntityOrderingService.isRuntimePriorityEntity(EntityType.OnException)).toBe(true);
-      expect(EntityOrderingService.isRuntimePriorityEntity(EntityType.ErrorHandler)).toBe(true);
-      expect(EntityOrderingService.isRuntimePriorityEntity(EntityType.OnCompletion)).toBe(true);
-
-      // Test that non-priority entities are correctly identified
-      expect(EntityOrderingService.isRuntimePriorityEntity(EntityType.Route)).toBe(false);
-      expect(EntityOrderingService.isRuntimePriorityEntity(EntityType.RestConfiguration)).toBe(false);
-      expect(EntityOrderingService.isRuntimePriorityEntity(EntityType.RouteConfiguration)).toBe(false);
     });
   });
 
@@ -670,9 +634,18 @@ describe('CamelRouteResource', () => {
       const filterSpy = jest.spyOn(CamelComponentFilterService, 'getCamelCompatibleComponents');
 
       const resource = CamelResourceFactory.createCamelResource(camelRouteYaml);
-      resource.getCompatibleComponents(AddStepMode.ReplaceStep, { path: 'from', label: 'timer' });
+      resource.getCompatibleComponents(AddStepMode.ReplaceStep, {
+        catalogKind: CatalogKind.Processor,
+        name: 'from',
+        path: 'from',
+        label: 'timer',
+      });
 
-      expect(filterSpy).toHaveBeenCalledWith(AddStepMode.ReplaceStep, { path: 'from', label: 'timer' }, undefined);
+      expect(filterSpy).toHaveBeenCalledWith(
+        AddStepMode.ReplaceStep,
+        { catalogKind: CatalogKind.Processor, name: 'from', path: 'from', label: 'timer' },
+        undefined,
+      );
     });
   });
 
@@ -740,8 +713,8 @@ describe('CamelRouteResource', () => {
 
     it('should maintain entity order after multiple operations', () => {
       const resource = new CamelRouteResource([
-        { from: { uri: 'direct:route1', steps: [] } },
         { routeConfiguration: { id: 'config1' } },
+        { from: { uri: 'direct:route1', steps: [] } },
       ]);
 
       const initialCount = resource.getVisualEntities().length;
@@ -751,10 +724,16 @@ describe('CamelRouteResource', () => {
       resource.addNewEntity(EntityType.OnException); // Priority entity
 
       const entities = resource.getVisualEntities();
-      expect(entities).toHaveLength(initialCount + 2);
 
-      // OnException should be at the beginning due to priority
-      expect(entities[0].type).toBe(EntityType.OnException);
+      const result = entities.map((entity) => entity.type);
+
+      expect(result).toEqual([
+        EntityType.RestConfiguration,
+        EntityType.OnException,
+        EntityType.RouteConfiguration,
+        EntityType.Route,
+      ]);
+      expect(entities).toHaveLength(initialCount + 2);
     });
 
     it('should handle getEntity with array input', () => {

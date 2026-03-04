@@ -3,6 +3,7 @@ import { CatalogLibrary } from '@kaoto/camel-catalog/types';
 import { ElementModel, GraphElement, Model, VisualizationProvider } from '@patternfly/react-topology';
 import { render } from '@testing-library/react';
 import { FunctionComponent, PropsWithChildren } from 'react';
+
 import {
   CamelCatalogService,
   CatalogKind,
@@ -11,14 +12,15 @@ import {
   NodeInteraction,
 } from '../../../../models';
 import { CamelRouteResource } from '../../../../models/camel';
+import { EntityType } from '../../../../models/camel/entities';
 import { camelRouteWithDisabledSteps, TestProvidersWrapper } from '../../../../stubs';
 import { getFirstCatalogMap } from '../../../../stubs/test-load-catalog';
 import { CanvasNode } from '../../Canvas';
 import { ControllerService } from '../../Canvas/controller.service';
 import { FlowService } from '../../Canvas/flow.service';
-import { NodeContextMenu } from './NodeContextMenu';
-import { usePasteStep } from '../hooks/paste-step.hook';
 import { useDuplicateStep } from '../hooks/duplicate-step.hook';
+import { usePasteStep } from '../hooks/paste-step.hook';
+import { NodeContextMenu } from './NodeContextMenu';
 
 // Mock the `usePasteStep` hook
 jest.mock('../hooks/paste-step.hook', () => ({
@@ -60,7 +62,7 @@ describe('NodeContextMenu', () => {
       canRemoveFlow: false,
       canBeDisabled: false,
     };
-    vizNode = createVisualizationNode('test', {});
+    vizNode = createVisualizationNode('test', { catalogKind: CatalogKind.Entity, name: EntityType.Route });
     jest.spyOn(vizNode, 'getNodeInteraction').mockReturnValue(nodeInteractions);
     element = {
       getData: () => {

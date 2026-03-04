@@ -1,10 +1,11 @@
 import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
-import { camelCaseToSpaces } from '@kaoto/forms';
-import { getArrayProperty, getValue, isDefined, setValue } from '../../../utils';
-import { NodeIconResolver, NodeIconType } from '../../../utils/node-icon-resolver';
-import { DefinedComponent } from '../../camel-catalog-index';
+import { camelCaseToSpaces, isDefined } from '@kaoto/forms';
+
+import { getArrayProperty, getValue, setValue } from '../../../utils';
 import { EntityType } from '../../camel/entities';
 import { SourceSchemaType } from '../../camel/source-schema-type';
+import { DefinedComponent } from '../../camel-catalog-index';
+import { CatalogKind } from '../../catalog-kind';
 import { KaotoSchemaDefinition } from '../../kaoto-schema';
 import { NodeLabelType } from '../../settings/settings.model';
 import {
@@ -222,7 +223,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     const processorName = (data as CamelRouteVisualEntityData).processorName;
     const canHavePreviousStep = CamelComponentSchemaService.canHavePreviousStep(processorName);
     const stepsProperties = CamelComponentSchemaService.getProcessorStepsProperties(processorName);
-    const canHaveChildren = stepsProperties.find((property) => property.type === 'branch') !== undefined;
+    const canHaveChildren = stepsProperties.some((property) => property.type === 'branch');
     const canHaveSpecialChildren = Object.keys(stepsProperties).length > 1;
     const canReplaceStep = CamelComponentSchemaService.canReplaceStep(processorName);
     const canRemoveStep = !CamelComponentSchemaService.DISABLED_REMOVE_STEPS.includes(processorName);
@@ -249,12 +250,17 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     return ModelValidationService.validateNodeStatus(schema, definition);
   }
 
+  getGroupIcons(): { icon: string; title: string }[] {
+    return [];
+  }
+
   toVizNode(): IVisualizationNode {
     const routeGroupNode = createVisualizationNode(this.getRootPath(), {
+      catalogKind: CatalogKind.Entity,
+      name: this.type,
       path: this.getRootPath(),
       entity: this,
       isGroup: true,
-      icon: NodeIconResolver.getIcon(this.type, NodeIconType.Entity),
       processorName: 'route',
     });
 
@@ -268,7 +274,8 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     );
 
     if (!this.getRootUri()) {
-      fromNode.data.icon = NodeIconResolver.getPlaceholderIcon();
+      fromNode.data.catalogKind = CatalogKind.Entity;
+      fromNode.data.name = 'placeholder';
     }
     routeGroupNode.addChild(fromNode);
 
@@ -287,6 +294,18 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     });
     fromNode.getChildren()?.splice(0);
     fromNode.data.isGroup = false;
+
+    const normalizeGroups = (node: IVisualizationNode) => {
+      const children = node.getChildren() ?? [];
+
+      if (node.data.isGroup && children.length === 0) {
+        node.data.isGroup = false;
+      }
+
+      children.forEach((child) => normalizeGroups(child));
+    };
+
+    normalizeGroups(routeGroupNode);
 
     return routeGroupNode;
   }
@@ -308,8 +327,8 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     }
 
     const pathArray = data.path.split('.');
-    const last = pathArray[pathArray.length - 1];
-    const penultimate = pathArray[pathArray.length - 2];
+    const last = pathArray.at(-1);
+    const penultimate = pathArray.at(-2);
 
     /**
      * If the last segment is a string and the penultimate is a number, it means the target is member of an array

@@ -16,6 +16,7 @@
 
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary } from '@kaoto/camel-catalog/types';
+
 import { CamelCatalogService, CamelRouteVisualEntity, CatalogKind } from '../../../models';
 import { EntityType } from '../../../models/camel/entities';
 import { EntityOrderingService } from '../../../models/camel/entity-ordering.service';
@@ -80,13 +81,11 @@ describe('ToXMLConverter', () => {
   it('Convert beans ', () => {
     const doc = domParser.parseFromString(
       `<camel xmlns="http://camel.apache.org/schema/spring">
-<beans>
-  <bean name="test" type="bean" destroyMethod="destroy" factoryBean="ff" builderClass="com.example.MyBean">
-    <properties>
-      <property key="1" value="2"/>
-    </properties>
-  </bean>
-</beans>
+<bean name="test" type="bean" destroyMethod="destroy" factoryBean="ff" builderClass="com.example.MyBean">
+  <properties>
+    <property key="1" value="2"/>
+  </properties>
+</bean>
 </camel>`,
       'application/xml',
     );
@@ -316,12 +315,10 @@ describe('ToXMLConverter', () => {
 
       expect(children[0].tagName).toBe('restConfiguration');
       expect(children[1].tagName).toBe('route');
-      expect(children[2].tagName).toBe('beans');
+      expect(children[2].tagName).toBe('bean');
 
-      const beansElement = children[2];
-      const beanElements = beansElement.querySelectorAll('bean');
-      expect(beanElements).toHaveLength(1);
-      expect(beanElements[0].getAttribute('name')).toBe('testBean');
+      const beanElement = children[2];
+      expect(beanElement.getAttribute('name')).toBe('testBean');
     });
 
     it('should maintain existing behavior for single entity types', () => {

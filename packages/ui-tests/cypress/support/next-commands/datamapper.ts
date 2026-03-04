@@ -7,7 +7,10 @@ Cypress.Commands.add('attachSourceBodySchema', (filePath: string) => {
   cy.get('[data-testid="attach-schema-file-input"]').attachFile(filePath);
   cy.get('[data-testid="attach-schema-modal-text"]').invoke('val').should('not.be.empty');
   cy.get('[data-testid="attach-schema-modal-btn-attach"]').click();
-  cy.get('[data-testid="expand-source-icon-Body"]').should('be.visible');
+  // Verify schema was attached by checking for child nodes in source body
+  cy.get('.source-panel').find('[data-testid^="node-source-"]').should('exist');
+  // Wait for panel heights to stabilize after schema attachment
+  cy.wait(100);
 });
 
 Cypress.Commands.add('attachTargetBodySchema', (filePath: string) => {
@@ -26,7 +29,10 @@ Cypress.Commands.add('attachTargetBodySchema', (filePath: string) => {
 
   cy.get('[data-testid="attach-schema-modal-btn-attach"]').click();
 
-  cy.get('[data-testid="expand-target-icon-Body"]').should('be.visible');
+  // Verify schema was attached by checking for child nodes in target body
+  cy.get('.target-panel').find('[data-testid^="node-target-"]').should('exist');
+  // Wait for panel heights to stabilize after schema attachment
+  cy.wait(100);
 });
 
 Cypress.Commands.add('addParameter', (name: string) => {
@@ -58,6 +64,8 @@ Cypress.Commands.add('attachParameterSchema', (name: string, filePath: string) =
   }
 
   cy.get('[data-testid="attach-schema-modal-btn-attach"]').click();
+  // Wait for panel heights to stabilize after schema attachment
+  cy.wait(100);
 });
 
 Cypress.Commands.add('detachParameterSchema', (name: string) => {
@@ -87,8 +95,9 @@ Cypress.Commands.add('resetMappings', () => {
 });
 
 Cypress.Commands.add('checkFieldSelected', (type: string, format: string, fieldName: string, selected: boolean) => {
-  cy.get(`[data-testid^="node-${type}-${format}-${fieldName}`).should(selected ? 'not.exist' : 'be.visible');
-  cy.get(`[data-testid^="node-${type}-selected-${format}-${fieldName}`).should(selected ? 'be.visible' : 'not.exist');
+  cy.get(`[data-testid^="node-${type}-${format}-${fieldName}"]`)
+    .should('be.visible')
+    .and('have.attr', 'data-selected', selected.toString());
 });
 
 Cypress.Commands.add('checkMappingLineSelected', (selected: boolean) => {
@@ -99,20 +108,46 @@ Cypress.Commands.add('countMappingLines', (num: number) => {
   cy.get('[data-testid^="mapping-link-"]').should('have.length', num);
 });
 
-Cypress.Commands.add('getDataMapperNode', (nodePath: string[]) => {
+// Internal helper - scopes queries to a specific panel
+// For document nodes (document-doc-*), navigates up to the expansion panel wrapper
+// to find child nodes since header and content are siblings in ExpansionPanel structure
+Cypress.Commands.add('getDataMapperNode', (nodePath: string[], panelClass?: string) => {
+  const panel = panelClass ? cy.get(panelClass) : cy;
+  const firstNode = nodePath[0];
+
+  // If the first node is a document, find it and navigate up to the expansion panel
+  // so we can find child nodes that are in the content area (sibling of header)
+  if (firstNode.startsWith('document-doc-')) {
+    const expansionPanel = panel.find(`[data-testid="${firstNode}"]`).closest('.expansion-panel');
+
+    return nodePath.slice(1).reduce((acc, nodeId) => {
+      return acc.find(`[data-testid^="${nodeId}"]`);
+    }, expansionPanel);
+  }
+
+  // For non-document nodes, use the original behavior
   return nodePath.slice(1).reduce(
     (acc, nodeId) => {
       return acc.find(`[data-testid^="${nodeId}"]`);
     },
-    cy.get(`[data-testid^="${nodePath[0]}"]`),
+    panel.find(`[data-testid="${nodePath[0]}"]`),
   );
+});
+
+// Public API - self-documenting panel-scoped commands
+Cypress.Commands.add('getDataMapperSourceNode', (nodePath: string[]) => {
+  return cy.getDataMapperNode(nodePath, '.source-panel');
+});
+
+Cypress.Commands.add('getDataMapperTargetNode', (nodePath: string[]) => {
+  return cy.getDataMapperNode(nodePath, '.target-panel');
 });
 
 Cypress.Commands.add('engageMapping', (sourceNodePath: string[], targetNodePath: string[], testXPath: string) => {
   const dataTransfer = new DataTransfer();
 
-  const sourceNode = cy.getDataMapperNode(sourceNodePath);
-  const targetNode = cy.getDataMapperNode(targetNodePath);
+  const sourceNode = cy.getDataMapperSourceNode(sourceNodePath);
+  const targetNode = cy.getDataMapperTargetNode(targetNodePath);
 
   sourceNode
     .find('[id^="draggable-"]')
@@ -134,7 +169,7 @@ Cypress.Commands.add('engageMapping', (sourceNodePath: string[], targetNodePath:
 
   targetNode.trigger('mouseup', { dataTransfer, force: true });
 
-  cy.getDataMapperNode(targetNodePath)
+  cy.getDataMapperTargetNode(targetNodePath)
     .find('[data-testid="transformation-xpath-input"]')
     .should('have.value', testXPath);
 });
@@ -142,7 +177,7 @@ Cypress.Commands.add('engageMapping', (sourceNodePath: string[], targetNodePath:
 Cypress.Commands.add(
   'engageForEachMapping',
   (sourceNodePath: string[], targetNodePath: string[], testXPath: string) => {
-    const targetNode = cy.getDataMapperNode(targetNodePath);
+    const targetNode = cy.getDataMapperTargetNode(targetNodePath);
     targetNode.find('[data-testid="transformation-actions-menu-toggle"]').first().click();
     cy.get('[data-testid="transformation-actions-foreach"]').click();
 

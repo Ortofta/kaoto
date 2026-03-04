@@ -1,6 +1,7 @@
 import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
-import { ArrowRightIcon, BoltIcon, DataSourceIcon, SyncAltIcon } from '@patternfly/react-icons';
+import { ArrowRightIcon, BoltIcon, DataSourceIcon, SpinnerIcon } from '@patternfly/react-icons';
 import { renderHook } from '@testing-library/react';
+
 import { CamelCatalogService, ComponentsCatalogTypes } from '../models';
 import { useProcessorIcon } from './processor-icon.hook';
 
@@ -9,7 +10,7 @@ describe('useProcessorIcon', () => {
     ['from', DataSourceIcon],
     ['to', ArrowRightIcon],
     ['toD', BoltIcon],
-    ['poll', SyncAltIcon],
+    ['poll', SpinnerIcon],
   ] as const;
 
   it.each(TEST_CASES)('returns an icon and description for processorName="%s"', (name, icon) => {

@@ -45,13 +45,16 @@ jobs:
       - name: Build ui library
         run: yarn workspace @kaoto/kaoto run build:lib
 
+      # 👇 Remove ui-mockups directory from stories
+      - name: Remove ui-mockups directory
+        run: rm -rf packages/ui-tests/stories/ui-mockups
+
       # 👇 Adds Chromatic as a step in the workflow
       - name: Publish to Chromatic
-        uses: chromaui/action@v13.3.3
+        uses: chromaui/action@v13.3.5
         # Chromatic GitHub Action options
         with:
-          #👇 Chromatic projectToken, see https://storybook.js.org/tutorials/intro-to-storybook/react/en/deploy/ to obtain it
-          projectToken: chpt_7a4940aa65b14ab
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # This token needs to be specified directly here so forks of the repository can push their changes to the chromatic UI
+          projectToken: chpt_7d9db951361ed23
           buildScriptName: build:storybook
           workingDir: packages/ui-tests

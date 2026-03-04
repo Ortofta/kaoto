@@ -3,7 +3,7 @@
 exports[`FlowService getFlowDiagram should return nodes and edges for a group with children 1`] = `
 [
   {
-    "children": undefined,
+    "children": [],
     "data": {
       "vizNode": VisualizationNode {
         "DISABLED_NODE_INTERACTION": {
@@ -17,7 +17,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
           "canReplaceStep": false,
         },
         "children": undefined,
-        "data": {},
+        "data": {
+          "catalogKind": "entity",
+          "isGroup": false,
+          "name": "route",
+        },
         "id": "child1",
         "lastUpdate": 0,
         "nextNode": undefined,
@@ -46,7 +50,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
                 "canReplaceStep": false,
               },
               "children": undefined,
-              "data": {},
+              "data": {
+                "catalogKind": "entity",
+                "isGroup": false,
+                "name": "route",
+              },
               "id": "child2",
               "lastUpdate": 0,
               "nextNode": undefined,
@@ -55,7 +63,9 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
             },
           ],
           "data": {
+            "catalogKind": "entity",
             "isGroup": true,
+            "name": "route",
           },
           "id": "group",
           "lastUpdate": 0,
@@ -66,6 +76,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
         "previousNode": undefined,
       },
     },
+    "group": false,
     "height": 75,
     "id": "test|child1",
     "parentNode": "test|group",
@@ -74,7 +85,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
     "width": 90,
   },
   {
-    "children": undefined,
+    "children": [],
     "data": {
       "vizNode": VisualizationNode {
         "DISABLED_NODE_INTERACTION": {
@@ -88,7 +99,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
           "canReplaceStep": false,
         },
         "children": undefined,
-        "data": {},
+        "data": {
+          "catalogKind": "entity",
+          "isGroup": false,
+          "name": "route",
+        },
         "id": "child2",
         "lastUpdate": 0,
         "nextNode": undefined,
@@ -116,7 +131,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
                 "canReplaceStep": false,
               },
               "children": undefined,
-              "data": {},
+              "data": {
+                "catalogKind": "entity",
+                "isGroup": false,
+                "name": "route",
+              },
               "id": "child1",
               "lastUpdate": 0,
               "nextNode": undefined,
@@ -126,7 +145,9 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
             [Circular],
           ],
           "data": {
+            "catalogKind": "entity",
             "isGroup": true,
+            "name": "route",
           },
           "id": "group",
           "lastUpdate": 0,
@@ -137,6 +158,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
         "previousNode": undefined,
       },
     },
+    "group": false,
     "height": 75,
     "id": "test|child2",
     "parentNode": "test|group",
@@ -174,7 +196,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
               "canReplaceStep": false,
             },
             "children": undefined,
-            "data": {},
+            "data": {
+              "catalogKind": "entity",
+              "isGroup": false,
+              "name": "route",
+            },
             "id": "child1",
             "lastUpdate": 0,
             "nextNode": undefined,
@@ -193,7 +219,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
               "canReplaceStep": false,
             },
             "children": undefined,
-            "data": {},
+            "data": {
+              "catalogKind": "entity",
+              "isGroup": false,
+              "name": "route",
+            },
             "id": "child2",
             "lastUpdate": 0,
             "nextNode": undefined,
@@ -202,7 +232,9 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
           },
         ],
         "data": {
+          "catalogKind": "entity",
           "isGroup": true,
+          "name": "route",
         },
         "id": "group",
         "lastUpdate": 0,
@@ -228,7 +260,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a group wi
 exports[`FlowService getFlowDiagram should return nodes and edges for a multiple nodes VisualizationNode 1`] = `
 [
   {
-    "children": undefined,
+    "children": [],
     "data": {
       "vizNode": VisualizationNode {
         "DISABLED_NODE_INTERACTION": {
@@ -242,7 +274,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
           "canReplaceStep": false,
         },
         "children": undefined,
-        "data": {},
+        "data": {
+          "catalogKind": "entity",
+          "isGroup": false,
+          "name": "route",
+        },
         "id": "node",
         "lastUpdate": 0,
         "nextNode": VisualizationNode {
@@ -257,7 +293,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
             "canReplaceStep": false,
           },
           "children": undefined,
-          "data": {},
+          "data": {
+            "catalogKind": "entity",
+            "name": "route",
+          },
           "id": "set-header",
           "lastUpdate": 0,
           "nextNode": VisualizationNode {
@@ -296,7 +335,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                       "canReplaceStep": false,
                     },
                     "children": undefined,
-                    "data": {},
+                    "data": {
+                      "catalogKind": "entity",
+                      "name": "route",
+                    },
                     "id": "when-leaf",
                     "lastUpdate": 0,
                     "nextNode": undefined,
@@ -304,7 +346,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                     "previousNode": undefined,
                   },
                 ],
-                "data": {},
+                "data": {
+                  "catalogKind": "entity",
+                  "name": "route",
+                },
                 "id": "when",
                 "lastUpdate": 0,
                 "nextNode": undefined,
@@ -347,7 +392,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                           "canReplaceStep": false,
                         },
                         "children": undefined,
-                        "data": {},
+                        "data": {
+                          "catalogKind": "entity",
+                          "name": "route",
+                        },
                         "id": "log",
                         "lastUpdate": 0,
                         "nextNode": undefined,
@@ -355,7 +403,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                         "previousNode": undefined,
                       },
                     ],
-                    "data": {},
+                    "data": {
+                      "catalogKind": "entity",
+                      "name": "route",
+                    },
                     "id": "process",
                     "lastUpdate": 0,
                     "nextNode": undefined,
@@ -363,7 +414,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                     "previousNode": undefined,
                   },
                 ],
-                "data": {},
+                "data": {
+                  "catalogKind": "entity",
+                  "name": "route",
+                },
                 "id": "otherwise",
                 "lastUpdate": 0,
                 "nextNode": undefined,
@@ -371,7 +425,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                 "previousNode": undefined,
               },
             ],
-            "data": {},
+            "data": {
+              "catalogKind": "entity",
+              "name": "route",
+            },
             "id": "choice",
             "lastUpdate": 0,
             "nextNode": VisualizationNode {
@@ -386,7 +443,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
                 "canReplaceStep": false,
               },
               "children": undefined,
-              "data": {},
+              "data": {
+                "catalogKind": "entity",
+                "name": "route",
+              },
               "id": "direct",
               "lastUpdate": 0,
               "nextNode": undefined,
@@ -403,6 +463,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
         "previousNode": undefined,
       },
     },
+    "group": false,
     "height": 75,
     "id": "test|node",
     "parentNode": undefined,
@@ -428,7 +489,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a multiple
 exports[`FlowService getFlowDiagram should return nodes and edges for a simple VisualizationNode 1`] = `
 [
   {
-    "children": undefined,
+    "children": [],
     "data": {
       "vizNode": VisualizationNode {
         "DISABLED_NODE_INTERACTION": {
@@ -442,7 +503,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a simple V
           "canReplaceStep": false,
         },
         "children": undefined,
-        "data": {},
+        "data": {
+          "catalogKind": "entity",
+          "isGroup": false,
+          "name": "route",
+        },
         "id": "node",
         "lastUpdate": 0,
         "nextNode": undefined,
@@ -450,6 +515,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a simple V
         "previousNode": undefined,
       },
     },
+    "group": false,
     "height": 75,
     "id": "test|node",
     "parentNode": undefined,
@@ -465,7 +531,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a simple V
 exports[`FlowService getFlowDiagram should return nodes and edges for a two-nodes VisualizationNode 1`] = `
 [
   {
-    "children": undefined,
+    "children": [],
     "data": {
       "vizNode": VisualizationNode {
         "DISABLED_NODE_INTERACTION": {
@@ -491,7 +557,10 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a two-node
               "canReplaceStep": false,
             },
             "children": undefined,
-            "data": {},
+            "data": {
+              "catalogKind": "entity",
+              "name": "route",
+            },
             "id": "child",
             "lastUpdate": 0,
             "nextNode": undefined,
@@ -499,7 +568,11 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a two-node
             "previousNode": undefined,
           },
         ],
-        "data": {},
+        "data": {
+          "catalogKind": "entity",
+          "isGroup": false,
+          "name": "route",
+        },
         "id": "node",
         "lastUpdate": 0,
         "nextNode": undefined,
@@ -507,6 +580,7 @@ exports[`FlowService getFlowDiagram should return nodes and edges for a two-node
         "previousNode": undefined,
       },
     },
+    "group": false,
     "height": 75,
     "id": "test|node",
     "parentNode": undefined,

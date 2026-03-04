@@ -1,6 +1,7 @@
 import {
   AddMappingNodeData,
   BODY_DOCUMENT_ID,
+  DocumentDefinition,
   DocumentDefinitionType,
   DocumentNodeData,
   DocumentType,
@@ -16,7 +17,6 @@ import {
   TargetNodeData,
   ValueSelector,
 } from '../models/datamapper';
-import { JsonSchemaDocumentService } from './json-schema-document.service';
 import {
   accountJsonSchema,
   camelYamlDslJsonSchema,
@@ -24,22 +24,35 @@ import {
   shipOrderJsonSchema,
   shipOrderJsonXslt,
 } from '../stubs/datamapper/data-mapper';
-import { VisualizationService } from './visualization.service';
+import { JsonSchemaDocumentService } from './json-schema-document.service';
 import { MappingSerializerService } from './mapping-serializer.service';
+import { VisualizationService } from './visualization.service';
 
 describe('VisualizationService / JSON', () => {
-  const accountDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
-    DocumentType.PARAM,
-    'Account',
-    accountJsonSchema,
+  const accountDefinition = new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.JSON_SCHEMA, 'Account', {
+    'Account.json': accountJsonSchema,
+  });
+  const accountResult = JsonSchemaDocumentService.createJsonSchemaDocument(accountDefinition);
+  expect(accountResult.validationStatus).toBe('success');
+  const accountDoc = accountResult.document!;
+  const cartDefinition = new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.JSON_SCHEMA, 'Cart', {
+    'Cart.json': cartJsonSchema,
+  });
+  const cartResult = JsonSchemaDocumentService.createJsonSchemaDocument(cartDefinition);
+  expect(cartResult.validationStatus).toBe('success');
+  const cartDoc = cartResult.document!;
+  const orderSequenceDoc = new PrimitiveDocument(
+    new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.Primitive, 'OrderSequence'),
   );
-  const cartDoc = JsonSchemaDocumentService.createJsonSchemaDocument(DocumentType.PARAM, 'Cart', cartJsonSchema);
-  const orderSequenceDoc = new PrimitiveDocument(DocumentType.PARAM, 'OrderSequence');
-  const targetDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
+  const targetDefinition = new DocumentDefinition(
     DocumentType.TARGET_BODY,
-    'ShipOrder',
-    shipOrderJsonSchema,
+    DocumentDefinitionType.JSON_SCHEMA,
+    BODY_DOCUMENT_ID,
+    { 'ShipOrder.json': shipOrderJsonSchema },
   );
+  const result = JsonSchemaDocumentService.createJsonSchemaDocument(targetDefinition);
+  expect(result.validationStatus).toBe('success');
+  const targetDoc = result.document!;
 
   const sourceParameterMap = new Map<string, IDocument>([
     ['OrderSequence', orderSequenceDoc],
@@ -184,11 +197,15 @@ describe('VisualizationService / JSON', () => {
 
   it('should generate nodes from Camel YAML DSL JSON schema', () => {
     mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.JSON_SCHEMA);
-    const camelYamlDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
+    const camelYamlDefinition = new DocumentDefinition(
       DocumentType.TARGET_BODY,
-      'CamelYamlDsl.json',
-      camelYamlDslJsonSchema,
+      DocumentDefinitionType.JSON_SCHEMA,
+      BODY_DOCUMENT_ID,
+      { 'CamelYamlDsl.json': camelYamlDslJsonSchema },
     );
+    const result = JsonSchemaDocumentService.createJsonSchemaDocument(camelYamlDefinition);
+    expect(result.validationStatus).toBe('success');
+    const camelYamlDoc = result.document!;
     targetDocNode = new TargetDocumentNodeData(camelYamlDoc, mappingTree);
     const targetChildren = VisualizationService.generateStructuredDocumentChildren(targetDocNode);
     expect(targetChildren.length).toEqual(1);

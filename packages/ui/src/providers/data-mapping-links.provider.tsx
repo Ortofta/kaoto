@@ -1,35 +1,35 @@
 import {
   createContext,
   FunctionComponent,
-  MutableRefObject,
   PropsWithChildren,
   RefObject,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
-import { IMappingLink, NodeReference } from '../models/datamapper';
+
 import { useDataMapper } from '../hooks/useDataMapper';
+import { IMappingLink, NodeReference } from '../models/datamapper';
 import { MappingLinksService } from '../services/mapping-links.service';
 
 export interface IMappingLinksContext {
-  mappingLinkCanvasRef: RefObject<HTMLDivElement> | null;
-  setMappingLinkCanvasRef: (ref: RefObject<HTMLDivElement>) => void;
+  mappingLinkCanvasRef: RefObject<HTMLDivElement | null>;
   getMappingLinks: () => IMappingLink[];
-  getSelectedNodeReference: () => MutableRefObject<NodeReference> | null;
-  setSelectedNodeReference: (ref: MutableRefObject<NodeReference> | null) => void;
-  toggleSelectedNodeReference: (ref: MutableRefObject<NodeReference> | null) => void;
-  isInSelectedMapping: (ref: MutableRefObject<NodeReference>) => boolean;
+  getSelectedNodeReference: () => RefObject<NodeReference> | null;
+  setSelectedNodeReference: (ref: RefObject<NodeReference> | null) => void;
+  toggleSelectedNodeReference: (ref: RefObject<NodeReference> | null) => void;
+  isInSelectedMapping: (ref: RefObject<NodeReference>) => boolean;
 }
 
 export const MappingLinksContext = createContext<IMappingLinksContext | undefined>(undefined);
 
 export const MappingLinksProvider: FunctionComponent<PropsWithChildren> = ({ children }) => {
   const { mappingTree, sourceParameterMap, sourceBodyDocument } = useDataMapper();
-  const [mappingLinkCanvasRef, setMappingLinkCanvasRef] = useState<RefObject<HTMLDivElement> | null>(null);
   const [mappingLinks, setMappingLinks] = useState<IMappingLink[]>([]);
-  const [selectedNodeRef, setSelectedNodeRef] = useState<MutableRefObject<NodeReference> | null>(null);
+  const [selectedNodeRef, setSelectedNodeRef] = useState<RefObject<NodeReference> | null>(null);
+  const mappingLinkCanvasRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const links = MappingLinksService.extractMappingLinks(
@@ -42,14 +42,14 @@ export const MappingLinksProvider: FunctionComponent<PropsWithChildren> = ({ chi
   }, [mappingTree, selectedNodeRef, sourceBodyDocument, sourceParameterMap]);
 
   const toggleSelectedNodeReference = useCallback(
-    (ref: MutableRefObject<NodeReference> | null) => {
-      setSelectedNodeRef(ref !== selectedNodeRef ? ref : null);
+    (ref: RefObject<NodeReference> | null) => {
+      setSelectedNodeRef(ref === selectedNodeRef ? null : ref);
     },
     [selectedNodeRef],
   );
 
   const isInSelectedMapping = useCallback(
-    (ref: MutableRefObject<NodeReference>): boolean =>
+    (ref: RefObject<NodeReference>): boolean =>
       selectedNodeRef === ref || MappingLinksService.isInSelectedMapping(mappingLinks, ref),
     [mappingLinks, selectedNodeRef],
   );
@@ -57,7 +57,6 @@ export const MappingLinksProvider: FunctionComponent<PropsWithChildren> = ({ chi
   const value = useMemo(() => {
     return {
       mappingLinkCanvasRef,
-      setMappingLinkCanvasRef,
       getMappingLinks: () => mappingLinks,
       getSelectedNodeReference: () => selectedNodeRef,
       setSelectedNodeReference: setSelectedNodeRef,

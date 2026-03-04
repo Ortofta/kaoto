@@ -1,15 +1,25 @@
 import { renderHook } from '@testing-library/react';
 import { FunctionComponent, PropsWithChildren } from 'react';
-import { AddStepMode } from '../../../../models/visualization/base-visual-entity';
-import { EntitiesContext } from '../../../../providers/entities.provider';
-import { CamelRouteVisualEntity } from '../../../../models/visualization/flows/camel-route-visual-entity';
-import { camelRouteJson } from '../../../../stubs/camel-route';
-import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
+
+import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
+import { CatalogKind } from '../../../../models';
 import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
-import { useDuplicateStep } from './duplicate-step.hook';
-import { CatalogModalContext } from '../../../../providers/catalog-modal.provider';
+import { AddStepMode } from '../../../../models/visualization/base-visual-entity';
+import { CamelRouteVisualEntity } from '../../../../models/visualization/flows/camel-route-visual-entity';
+import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
+import { EntitiesContext } from '../../../../providers/entities.provider';
+import { camelRouteJson } from '../../../../stubs/camel-route';
 import { updateIds } from '../../../../utils/update-ids';
 import { NodeInteractionAddonContext } from '../../../registers/interactions/node-interaction-addon.provider';
+import { useDuplicateStep } from './duplicate-step.hook';
+
+const mockController = {
+  fromModel: jest.fn(),
+};
+
+jest.mock('@patternfly/react-topology', () => ({
+  useVisualizationController: () => mockController,
+}));
 
 // Mock the `updateIds` function
 jest.mock('../../../../utils/update-ids', () => ({
@@ -19,23 +29,34 @@ jest.mock('../../../../utils/update-ids', () => ({
 describe('useDuplicateStep', () => {
   const visualEntity = new CamelRouteVisualEntity(camelRouteJson);
   const vizNode = createVisualizationNode('test', {
+    catalogKind: CatalogKind.Processor,
+    name: 'to',
     path: 'route.from.steps.2.to',
     entity: visualEntity,
     processorName: 'to',
   });
   const whenVizNode = createVisualizationNode('when', {
+    catalogKind: CatalogKind.Processor,
+    name: 'when',
     path: 'route.from.steps.1.choice.when.0',
     entity: visualEntity,
     processorName: 'when',
   });
   const choiceVizNode = createVisualizationNode('choice', {
+    catalogKind: CatalogKind.Processor,
+    name: 'choice',
     path: 'route.from.steps.1.choice',
     entity: visualEntity,
     processorName: 'choice',
   });
-  // Set parent of when node to choice node
+
+  // Set parent of when node to choice node and vice versa
   whenVizNode.setParentNode(choiceVizNode);
+  choiceVizNode.addChild(whenVizNode);
+
   const routeVizNode = createVisualizationNode('route', {
+    catalogKind: CatalogKind.Processor,
+    name: 'route',
     path: 'route',
     entity: visualEntity,
     processorName: 'route',
@@ -146,6 +167,24 @@ describe('useDuplicateStep', () => {
         updateIds(vizNode.getCopiedContent()!),
         AddStepMode.AppendStep,
       );
+      expect(mockEntitiesContext.updateEntitiesFromCamelResource as jest.Mock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call controller.fromModel() when parent node can have special children and conditions are met', async () => {
+      const VizNodePasteBaseEntityStepSpy = jest.spyOn(whenVizNode, 'pasteBaseEntityStep');
+
+      const { result } = renderHook(() => useDuplicateStep(whenVizNode), { wrapper });
+      await result.current.onDuplicate();
+
+      expect(VizNodePasteBaseEntityStepSpy).toHaveBeenCalledTimes(1);
+      expect(VizNodePasteBaseEntityStepSpy).toHaveBeenCalledWith(
+        updateIds(whenVizNode.getCopiedContent()!),
+        AddStepMode.AppendStep,
+      );
+      expect(mockController.fromModel).toHaveBeenCalledWith({
+        nodes: [],
+        edges: [],
+      });
       expect(mockEntitiesContext.updateEntitiesFromCamelResource as jest.Mock).toHaveBeenCalledTimes(1);
     });
 

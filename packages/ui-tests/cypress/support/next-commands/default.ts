@@ -218,7 +218,7 @@ Cypress.Commands.add('deleteRoute', (index: number) => {
 
 Cypress.Commands.add('deleteRouteInCanvas', (routeName: string) => {
   cy.openGroupConfigurationTab(routeName);
-  cy.get('button[data-testid="step-toolbar-button-delete-group"]').click();
+  cy.get(`button[data-testid="${routeName}|step-toolbar-button-delete-group"]`).click();
   cy.get('body').then(($body) => {
     if ($body.find('.pf-m-danger').length) {
       // Delete Confirmation Modal appeared, click on the confirm button
@@ -296,6 +296,10 @@ Cypress.Commands.add('addValueToClipboard', (value) => {
   cy.window().then(async (win) => {
     if (win.navigator?.clipboard?.writeText) {
       await win.navigator?.clipboard?.writeText(JSON.stringify(value));
+      win.navigator?.clipboard?.readText().then((text) => {
+        const parsedContent = JSON.parse(text);
+        expect(parsedContent).to.deep.equal(value);
+      });
     } else {
       // For browsers without clipboard API support, skip this
       cy.log('Clipboard API not available - skipping clipboard addition');

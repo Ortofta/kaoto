@@ -1,11 +1,12 @@
-import { useCallback, useContext, useMemo } from 'react';
-import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
-import { CatalogModalContext } from '../../../../providers';
-import { EntitiesContext } from '../../../../providers/entities.provider';
+import { isDefined } from '@kaoto/forms';
 import { useVisualizationController } from '@patternfly/react-topology';
+import { useCallback, useContext, useMemo } from 'react';
+
+import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
+import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
 import { CamelComponentSchemaService } from '../../../../models/visualization/flows/support/camel-component-schema.service';
 import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
-import { isDefined } from '../../../../utils/is-defined';
+import { EntitiesContext } from '../../../../providers/entities.provider';
 
 export const useInsertStep = (
   vizNode: IVisualizationNode,

@@ -1,8 +1,10 @@
 import { FromDefinition, RouteDefinition } from '@kaoto/camel-catalog/types';
+import { isDefined } from '@kaoto/forms';
+
 import { getCamelRandomId } from '../../../camel-utils/camel-random-id';
-import { isDefined, setValue } from '../../../utils';
-import { DefinedComponent } from '../../camel-catalog-index';
+import { setValue } from '../../../utils';
 import { EntityType } from '../../camel/entities';
+import { DefinedComponent } from '../../camel-catalog-index';
 import { AddStepMode, IVisualizationNodeData } from '../base-visual-entity';
 import { AbstractCamelVisualEntity } from './abstract-camel-visual-entity';
 import { CamelComponentDefaultService } from './support/camel-component-default.service';
@@ -128,5 +130,16 @@ export class CamelRouteVisualEntity extends AbstractCamelVisualEntity<{ route: R
 
   protected getRootUri(): string | undefined {
     return this.entityDef.route.from?.uri;
+  }
+
+  getGroupIcons(): { icon: 'play' | 'pause'; title: string }[] {
+    const isAutoStartup = this.entityDef.route.autoStartup !== false;
+
+    return [
+      {
+        icon: isAutoStartup ? 'play' : 'pause',
+        title: isAutoStartup ? 'Auto Startup Enabled' : 'Auto Startup Disabled',
+      },
+    ];
   }
 }

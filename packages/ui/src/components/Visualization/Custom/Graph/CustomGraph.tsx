@@ -7,12 +7,21 @@ import {
   withContextMenu,
   withPanZoom,
 } from '@patternfly/react-topology';
-import { FunctionComponent, ReactElement, useContext } from 'react';
+import { FunctionComponent, PropsWithChildren, ReactElement, useContext } from 'react';
+
+import { IDataTestID } from '../../../../models';
+import { ItemPasteEntity } from './ItemPasteEntity';
 import { ShowOrHideAllFlows } from './ShowOrHideAllFlows';
 import { withEntityContextMenu, WithEntityContextMenuProps } from './withEntityContextMenu';
 
-export const GraphContextMenuFn = (entityContextMenuFn: () => ReactElement[]): ReactElement[] => {
-  const items: ReactElement[] = [
+interface GraphContextMenuOptions {
+  entityContextMenuFn: () => ReactElement[];
+}
+
+export const GraphContextMenuFn = ({
+  entityContextMenuFn,
+}: GraphContextMenuOptions): ReactElement<PropsWithChildren<IDataTestID>>[] => {
+  const items: ReactElement<PropsWithChildren<IDataTestID>>[] = [
     <ShowOrHideAllFlows key="showAll" data-testid="context-menu-item-show-all" mode="showAll">
       <EyeIcon />
       <span className="pf-v6-u-m-sm">Show all</span>
@@ -21,6 +30,7 @@ export const GraphContextMenuFn = (entityContextMenuFn: () => ReactElement[]): R
       <EyeSlashIcon />
       <span className="pf-v6-u-m-sm">Hide all</span>
     </ShowOrHideAllFlows>,
+    <ItemPasteEntity key="paste-entity" data-testid="context-menu-item-paste" />,
   ];
 
   const entities = entityContextMenuFn();
@@ -47,7 +57,7 @@ export const GraphContextMenuFn = (entityContextMenuFn: () => ReactElement[]): R
 };
 
 const BaseCustomGraph: FunctionComponent<WithEntityContextMenuProps> = ({ entityContextMenuFn, ...rest }) => {
-  const contextMenuFn = () => GraphContextMenuFn(entityContextMenuFn);
+  const contextMenuFn = () => GraphContextMenuFn({ entityContextMenuFn });
   const element = useContext(ElementContext);
   const EnhancedGraphComponent = withPanZoom()(withContextMenu(contextMenuFn)(GraphComponent));
 

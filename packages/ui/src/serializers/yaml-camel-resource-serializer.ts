@@ -1,5 +1,6 @@
 import { CamelYamlDsl, Integration, Kamelet, KameletBinding, Pipe } from '@kaoto/camel-catalog/types';
 import { parse, stringify } from 'yaml';
+
 import { CamelResource, CamelResourceSerializer, Metadata, SerializerType } from '../models/camel/camel-resource';
 import { isXML } from './xml/kaoto-xml-parser';
 
@@ -31,7 +32,7 @@ export class YamlCamelResourceSerializer implements CamelResourceSerializer {
   }
 
   serialize(resource: CamelResource): string {
-    let code = stringify(resource, { sortMapEntries: resource.sortFn, schema: 'yaml-1.1' }) || '';
+    let code = stringify(resource.toJSON(), { schema: 'yaml-1.1' }) || '';
     if (this.comments.length > 0) {
       code = this.insertComments(code);
     }

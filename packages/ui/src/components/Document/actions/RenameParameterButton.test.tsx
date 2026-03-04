@@ -1,9 +1,16 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { FunctionComponent, PropsWithChildren, useEffect } from 'react';
+
+import { useDataMapper } from '../../../hooks/useDataMapper';
+import {
+  DocumentDefinition,
+  DocumentDefinitionType,
+  DocumentType,
+  IDocument,
+  PrimitiveDocument,
+} from '../../../models/datamapper/document';
 import { DataMapperProvider } from '../../../providers/datamapper.provider';
 import { DataMapperCanvasProvider } from '../../../providers/datamapper-canvas.provider';
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import { useDataMapper } from '../../../hooks/useDataMapper';
-import { DocumentType, IDocument, PrimitiveDocument } from '../../../models/datamapper/document';
 import { RenameParameterButton } from './RenameParameterButton';
 
 describe('RenameParameterButton', () => {
@@ -14,7 +21,12 @@ describe('RenameParameterButton', () => {
     const ParamTest: FunctionComponent<PropsWithChildren> = ({ children }) => {
       const { sourceParameterMap } = useDataMapper();
       useEffect(() => {
-        sourceParameterMap.set('testparam1', new PrimitiveDocument(DocumentType.PARAM, 'testparam1'));
+        sourceParameterMap.set(
+          'testparam1',
+          new PrimitiveDocument(
+            new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.Primitive, 'testparam1'),
+          ),
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
       useEffect(() => {

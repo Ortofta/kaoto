@@ -1,11 +1,13 @@
+import './MappingLink.scss';
+
 import { curveMonotoneX } from '@visx/curve';
 import { Circle, LinePath } from '@visx/shape';
 import clsx from 'clsx';
 import { FunctionComponent, useCallback, useState } from 'react';
+
 import { useCanvas } from '../../hooks/useCanvas';
 import { useMappingLinks } from '../../hooks/useMappingLinks';
 import { LineProps } from '../../models/datamapper';
-import './MappingLink.scss';
 
 const getY = (d: number[]) => d[1];
 const getX = (d: number[]) => d[0];
@@ -26,8 +28,9 @@ export const MappingLink: FunctionComponent<LineProps> = ({
   const dotRadius = isOver ? 6 : 3;
   const svgRect = svgRef?.current?.getBoundingClientRect();
   const canvasRect = mappingLinkCanvasRef?.current?.getBoundingClientRect();
-  const canvasLeft = canvasRect ? canvasRect.left - (svgRect ? svgRect.left : 0) : undefined;
-  const canvasRight = canvasRect ? canvasRect.right - (svgRect ? svgRect.left : 0) : undefined;
+  const svgRectLeft = svgRect?.left ?? 0;
+  const canvasLeft = canvasRect ? canvasRect.left - svgRectLeft : undefined;
+  const canvasRight = canvasRect ? canvasRect.right - svgRectLeft : undefined;
 
   const onMouseEnter = useCallback(() => {
     setIsOver(true);

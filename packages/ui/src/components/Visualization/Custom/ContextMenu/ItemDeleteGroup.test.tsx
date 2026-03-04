@@ -1,19 +1,20 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
-import { createVisualizationNode, IVisualizationNode } from '../../../../models';
+
+import { CatalogKind, createVisualizationNode, IVisualizationNode } from '../../../../models';
+import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
+import { EntityType } from '../../../../models/camel/entities';
 import {
   ACTION_ID_CONFIRM,
   ActionConfirmationModalContext,
 } from '../../../../providers/action-confirmation-modal.provider';
-import { ItemDeleteGroup } from './ItemDeleteGroup';
-import { NodeInteractionAddonContext } from '../../../registers/interactions/node-interaction-addon.provider';
+import { TestProvidersWrapper } from '../../../../stubs';
 import {
   IInteractionType,
   IOnDeleteAddon,
   IRegisteredInteractionAddon,
 } from '../../../registers/interactions/node-interaction-addon.model';
-import { EntityType } from '../../../../models/camel/entities';
-import { TestProvidersWrapper } from '../../../../stubs';
-import { CamelRouteResource } from '../../../../models/camel/camel-route-resource';
+import { NodeInteractionAddonContext } from '../../../registers/interactions/node-interaction-addon.provider';
+import { ItemDeleteGroup } from './ItemDeleteGroup';
 
 describe('ItemDeleteGroup', () => {
   let vizNode: IVisualizationNode;
@@ -22,7 +23,7 @@ describe('ItemDeleteGroup', () => {
   };
 
   beforeEach(() => {
-    vizNode = createVisualizationNode('test', {});
+    vizNode = createVisualizationNode('test', { catalogKind: CatalogKind.Entity, name: EntityType.Route });
   });
 
   afterEach(() => {
@@ -36,7 +37,7 @@ describe('ItemDeleteGroup', () => {
   });
 
   it('should open delete confirmation modal on click', async () => {
-    const childNode = createVisualizationNode('test', {});
+    const childNode = createVisualizationNode('test', { catalogKind: CatalogKind.Entity, name: EntityType.Route });
     vizNode.addChild(childNode);
 
     const wrapper = render(

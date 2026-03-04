@@ -24,9 +24,13 @@ import {
   TargetNodeData,
   TargetNodeDataType,
 } from '../models/datamapper/visualization';
-import { DocumentUtilService } from './document-util.service';
 import { DocumentService } from './document.service';
+import { DocumentUtilService } from './document-util.service';
 import { MappingService } from './mapping.service';
+
+// Regex patterns for DnD ID generation
+const FORWARD_SLASH_REGEX = /\//g;
+const COLON_REGEX = /:/g;
 
 type MappingNodePairType = {
   sourceNode?: SourceNodeDataType;
@@ -235,7 +239,7 @@ export class VisualizationService {
         'parent' in nodeData &&
         nodeData.parent instanceof MappingNodeData &&
         nodeData.parent.mapping instanceof ForEachItem;
-      return !isForEachField && !VisualizationService.getExpressionItemForNode(nodeData);
+      return !isForEachField;
     }
     const mappingNodeData = nodeData as MappingNodeData;
     return (
@@ -346,7 +350,10 @@ export class VisualizationService {
   }
 
   static generateDndId(nodeData: NodeData) {
-    return nodeData instanceof DocumentNodeData ? nodeData.id : nodeData.path.pathSegments.join('-');
+    // Use full path with documentType to ensure unique IDs between source and target
+    return nodeData instanceof DocumentNodeData
+      ? nodeData.id
+      : nodeData.path.toString().replace(FORWARD_SLASH_REGEX, '-').replace(COLON_REGEX, '-');
   }
 
   static addMapping(nodeData: AddMappingNodeData) {

@@ -1,20 +1,22 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { NodeTitle } from './NodeTitle';
+
+import {
+  BODY_DOCUMENT_ID,
+  DocumentDefinition,
+  DocumentDefinitionType,
+  DocumentType,
+  PrimitiveDocument,
+} from '../../models/datamapper/document';
+import { IfItem, MappingTree } from '../../models/datamapper/mapping';
 import {
   DocumentNodeData,
   FieldNodeData,
   MappingNodeData,
   TargetDocumentNodeData,
 } from '../../models/datamapper/visualization';
-import {
-  BODY_DOCUMENT_ID,
-  DocumentDefinitionType,
-  DocumentType,
-  PrimitiveDocument,
-} from '../../models/datamapper/document';
 import { TestUtil } from '../../stubs/datamapper/data-mapper';
-import { IfItem, MappingTree } from '../../models/datamapper/mapping';
+import { NodeTitle } from './NodeTitle';
 
 describe('NodeTitle', () => {
   const createMockField = () => {
@@ -23,7 +25,9 @@ describe('NodeTitle', () => {
   };
 
   it('should render document title with Title component when isDocument is true', () => {
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(primitiveDoc);
 
     render(<NodeTitle nodeData={documentNodeData} isDocument={true} rank={0} />);
@@ -46,7 +50,9 @@ describe('NodeTitle', () => {
   });
 
   it('should render with truncate class by default for document node', () => {
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(primitiveDoc);
 
     render(<NodeTitle nodeData={documentNodeData} isDocument={false} rank={0} />);
@@ -56,7 +62,9 @@ describe('NodeTitle', () => {
   });
 
   it('should render content correctly with custom className', () => {
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(primitiveDoc);
     const customClass = 'custom-test-class';
 
@@ -68,7 +76,9 @@ describe('NodeTitle', () => {
   });
 
   it('should handle PrimitiveDocument node data', () => {
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, 'primitive-doc');
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, 'primitive-doc'),
+    );
     const primitiveNodeData = new DocumentNodeData(primitiveDoc);
 
     render(<NodeTitle nodeData={primitiveNodeData} isDocument={true} rank={0} />);
@@ -80,7 +90,9 @@ describe('NodeTitle', () => {
 
   it('should handle long titles with truncation', () => {
     const longTitle = 'This is a very long document title that should be truncated properly when rendered';
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, longTitle);
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, longTitle),
+    );
     const documentNodeData = new DocumentNodeData(primitiveDoc);
 
     render(<NodeTitle nodeData={documentNodeData} isDocument={true} rank={0} />);
@@ -91,7 +103,9 @@ describe('NodeTitle', () => {
   });
 
   it('should render with truncate class by default', () => {
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(primitiveDoc);
 
     render(<NodeTitle nodeData={documentNodeData} isDocument={false} rank={0} />);
@@ -101,7 +115,9 @@ describe('NodeTitle', () => {
   });
 
   it('should handle undefined className gracefully', () => {
-    const primitiveDoc = new PrimitiveDocument(DocumentType.SOURCE_BODY, BODY_DOCUMENT_ID);
+    const primitiveDoc = new PrimitiveDocument(
+      new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, BODY_DOCUMENT_ID),
+    );
     const documentNodeData = new DocumentNodeData(primitiveDoc);
 
     render(<NodeTitle nodeData={documentNodeData} isDocument={false} className={undefined} rank={0} />);
@@ -126,6 +142,47 @@ describe('NodeTitle', () => {
       expect(screen.getByText(/minOccurs/)).toBeInTheDocument();
       expect(screen.getByText(/maxOccurs/)).toBeInTheDocument();
     });
+  });
+
+  it('should display an optional icon when the field information is optional', async () => {
+    const shipOrderDoc = TestUtil.createSourceOrderDoc();
+    const documentNodeData = new DocumentNodeData(shipOrderDoc);
+    const mockField = createMockField();
+    const fieldNodeData = new FieldNodeData(documentNodeData, mockField);
+    fieldNodeData.field.minOccurs = 0;
+
+    render(<NodeTitle nodeData={fieldNodeData} isDocument={false} rank={0} />);
+
+    const element = screen.getByAltText('Optional');
+    expect(element).toBeVisible();
+  });
+
+  it('should display an repeat 0+ icon when the field information can be repeated 0+ times', async () => {
+    const shipOrderDoc = TestUtil.createSourceOrderDoc();
+    const documentNodeData = new DocumentNodeData(shipOrderDoc);
+    const mockField = createMockField();
+    const fieldNodeData = new FieldNodeData(documentNodeData, mockField);
+    fieldNodeData.field.minOccurs = 0;
+    fieldNodeData.field.maxOccurs = 'unbounded';
+
+    render(<NodeTitle nodeData={fieldNodeData} isDocument={false} rank={0} />);
+
+    const element = screen.getByAltText('Repeat0');
+    expect(element).toBeVisible();
+  });
+
+  it('should display an repeat 1+ icon when the field information can be repeated 1+ times', async () => {
+    const shipOrderDoc = TestUtil.createSourceOrderDoc();
+    const documentNodeData = new DocumentNodeData(shipOrderDoc);
+    const mockField = createMockField();
+    const fieldNodeData = new FieldNodeData(documentNodeData, mockField);
+    fieldNodeData.field.minOccurs = 1;
+    fieldNodeData.field.maxOccurs = 'unbounded';
+
+    render(<NodeTitle nodeData={fieldNodeData} isDocument={false} rank={0} />);
+
+    const element = screen.getByAltText('Repeat1');
+    expect(element).toBeVisible();
   });
 
   it('should not display popover for MappingNodeData', async () => {

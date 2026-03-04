@@ -1,29 +1,39 @@
+import './CustomGroupExpanded.scss';
+
 import { Icon } from '@patternfly/react-core';
-import { ArrowDownIcon, ArrowRightIcon, BanIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
+import {
+  ArrowDownIcon,
+  ArrowRightIcon,
+  BanIcon,
+  ExclamationCircleIcon,
+  PauseIcon,
+  PlayIcon,
+} from '@patternfly/react-icons';
 import {
   AnchorEnd,
   GROUPS_LAYER,
+  isNode,
   Layer,
   Node,
+  observer,
   Rect,
   TOP_LAYER,
-  isNode,
-  observer,
   useAnchor,
   useHover,
   withDndDrop,
 } from '@patternfly/react-topology';
 import { FunctionComponent, useContext, useRef } from 'react';
+
 import { AddStepMode, IVisualizationNode, NodeToolbarTrigger } from '../../../../models';
 import { SettingsContext } from '../../../../providers';
+import { IconResolver } from '../../../IconResolver';
 import { LayoutType } from '../../Canvas';
-import { StepToolbar } from '../../Canvas/StepToolbar/StepToolbar';
 import { CanvasDefaults } from '../../Canvas/canvas.defaults';
+import { StepToolbar } from '../../Canvas/StepToolbar/StepToolbar';
+import { customGroupExpandedDropTargetSpec } from '../customComponentUtils';
 import { AddStepIcon } from '../Edge/AddStepIcon';
 import { FloatingCircle } from '../FloatingCircle/FloatingCircle';
-import { customGroupExpandedDropTargetSpec } from '../customComponentUtils';
 import { TargetAnchor } from '../target-anchor';
-import './CustomGroupExpanded.scss';
 import { CustomGroupProps } from './Group.models';
 
 export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = observer(
@@ -65,8 +75,8 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
     if (!droppable || !boxRef.current) {
       boxRef.current = element.getBounds();
     }
-    const toolbarWidth = Math.max(CanvasDefaults.STEP_TOOLBAR_WIDTH, boxRef.current.width);
-    const toolbarX = boxRef.current.x + (boxRef.current.width - toolbarWidth) / 2;
+
+    const toolbarX = boxRef.current.x + (boxRef.current.width - CanvasDefaults.STEP_TOOLBAR_WIDTH) / 2;
     const toolbarY = boxRef.current.y - CanvasDefaults.STEP_TOOLBAR_HEIGHT;
     const addStepX = isHorizontal
       ? boxRef.current.x + boxRef.current.width
@@ -102,10 +112,16 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
                 {doesHaveWarnings ? (
                   <div className="custom-group__container__icon-placeholder" />
                 ) : (
-                  <img alt={tooltipContent} src={vizNode.data.icon} />
+                  <IconResolver alt={tooltipContent} catalogKind={vizNode.data.catalogKind} name={vizNode.data.name} />
                 )}
                 <span title={label}>{label}</span>
               </div>
+
+              {vizNode.data.entity?.getGroupIcons?.()?.map(({ icon, title }) => (
+                <Icon key={title} className="custom-group__autostart-icon" title={title}>
+                  {icon === 'play' ? <PlayIcon /> : <PauseIcon />}
+                </Icon>
+              ))}
 
               {isDisabled && !doesHaveWarnings && (
                 <Icon className="custom-group__disabled-icon" title="Step disabled">
@@ -136,7 +152,7 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
                 className="custom-group__toolbar"
                 x={toolbarX}
                 y={toolbarY}
-                width={toolbarWidth}
+                width={CanvasDefaults.STEP_TOOLBAR_WIDTH}
                 height={CanvasDefaults.STEP_TOOLBAR_HEIGHT}
               >
                 <StepToolbar

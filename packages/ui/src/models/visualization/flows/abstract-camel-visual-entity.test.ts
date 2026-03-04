@@ -1,6 +1,7 @@
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
 import { CatalogLibrary, To } from '@kaoto/camel-catalog/types';
 import { cloneDeep } from 'lodash';
+
 import { mockRandomValues } from '../../../stubs';
 import { camelRouteJson } from '../../../stubs/camel-route';
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
@@ -76,13 +77,21 @@ describe('AbstractCamelVisualEntity', () => {
 
   describe('getNodeInteraction', () => {
     it('should not allow marked processors to have previous/next steps', () => {
-      const result = abstractVisualEntity.getNodeInteraction({ processorName: 'from' });
+      const result = abstractVisualEntity.getNodeInteraction({
+        catalogKind: CatalogKind.Processor,
+        name: 'from',
+        processorName: 'from',
+      });
       expect(result.canHavePreviousStep).toEqual(false);
       expect(result.canHaveNextStep).toEqual(false);
     });
 
     it('should allow processors to have previous/next steps', () => {
-      const result = abstractVisualEntity.getNodeInteraction({ processorName: 'to' });
+      const result = abstractVisualEntity.getNodeInteraction({
+        catalogKind: CatalogKind.Processor,
+        name: 'to',
+        processorName: 'to',
+      });
       expect(result.canHavePreviousStep).toEqual(true);
       expect(result.canHaveNextStep).toEqual(true);
     });
@@ -98,7 +107,11 @@ describe('AbstractCamelVisualEntity', () => {
       'interceptFrom',
       'interceptSendToEndpoint',
     ])(`should return the correct interaction for the '%s' processor`, (processorName) => {
-      const result = abstractVisualEntity.getNodeInteraction({ processorName });
+      const result = abstractVisualEntity.getNodeInteraction({
+        catalogKind: CatalogKind.Processor,
+        name: processorName,
+        processorName,
+      });
       expect(result).toMatchSnapshot();
     });
   });
@@ -213,6 +226,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.PrependStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'log',
           path: 'route.from.steps.2.to',
           icon: '/src/assets/components/log.svg',
           processorName: 'to',
@@ -233,6 +248,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.AppendStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'log',
           path: 'route.from.steps.2.to',
           icon: '/src/assets/components/log.svg',
           processorName: 'to',
@@ -253,6 +270,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.ReplaceStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'log',
           path: 'route.from.steps.0.to',
           icon: '/src/assets/components/log.svg',
           processorName: 'to',
@@ -273,6 +292,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.ReplaceStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'choice',
           path: 'route.from.steps.1.choice',
           icon: '/src/assets/components/choice.svg',
           processorName: 'choice',
@@ -287,6 +308,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.ReplaceStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'placeholder',
           isPlaceholder: true,
           path: 'route.from.steps.1.multicast.steps.0.placeholder',
         },
@@ -305,6 +328,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.InsertChildStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'timer',
           componentName: 'timer',
           icon: '/src/assets/components/timer.svg',
           isGroup: false,
@@ -327,6 +352,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.InsertSpecialChildStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'choice',
           path: 'route.from.steps.1.choice',
           icon: '/src/assets/eip/choice.png',
           processorName: 'choice',
@@ -348,6 +375,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.InsertSpecialChildStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'choice',
           path: 'route.from.steps.1.choice',
           icon: '/src/assets/eip/choice.png',
           processorName: 'choice',
@@ -373,6 +402,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.AppendStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'log',
           path: 'route.from.steps.2.to',
           icon: '/src/assets/components/log.svg',
           processorName: 'to',
@@ -396,6 +427,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.InsertChildStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'timer',
           componentName: 'timer',
           icon: '/src/assets/components/timer.svg',
           isGroup: false,
@@ -419,6 +452,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.InsertSpecialChildStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'choice',
           path: 'route.from.steps.1.choice',
           icon: '/src/assets/eip/choice.png',
           processorName: 'choice',
@@ -443,6 +478,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.InsertSpecialChildStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'choice',
           path: 'route.from.steps.1.choice',
           icon: '/src/assets/eip/choice.png',
           processorName: 'choice',
@@ -466,6 +503,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.ReplaceStep,
         data: {
+          catalogKind: CatalogKind.Component,
+          name: 'direct',
           path: 'route.from.steps.2.to',
           processorName: 'to',
           componentName: 'direct',
@@ -495,6 +534,8 @@ describe('AbstractCamelVisualEntity', () => {
         },
         mode: AddStepMode.ReplaceStep,
         data: {
+          catalogKind: CatalogKind.Processor,
+          name: 'when',
           path: 'route.from.steps.1.choice.when.0',
           icon: '/src/assets/eip/when.png',
           processorName: 'when',
@@ -533,6 +574,32 @@ describe('AbstractCamelVisualEntity', () => {
         name: 'to',
         defaultValue: undefined,
       });
+    });
+  });
+
+  describe('toVizNode', () => {
+    it('should remove isGroup flag when a group has no children', () => {
+      const routeEntity = new CamelRouteVisualEntity({
+        route: {
+          id: 'route-1234',
+          from: { uri: 'timer:clock', steps: [{ choice: {} }] },
+        },
+      });
+
+      const routeNode = routeEntity.toVizNode();
+      const choiceNode = routeNode.getChildren()?.[1];
+
+      expect(choiceNode?.data.isGroup).toBe(false);
+
+      choiceNode
+        ?.getChildren()
+        ?.slice()
+        .forEach((child) => child.removeChild());
+
+      const updatedViz = routeEntity.toVizNode();
+      const updatedChoiceNode = updatedViz.getChildren()?.[1];
+
+      expect(updatedChoiceNode?.data.isGroup).toBe(false);
     });
   });
 });

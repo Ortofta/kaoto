@@ -5,6 +5,7 @@
     white-space: nowrap;
     max-width: 100%;
     display: inline-block;
+    vertical-align: middle;
   }
 }
 
@@ -16,4 +17,12 @@
   &__cell {
     display: table-cell;
   }
+}
+
+div.node-title-container {
+  display: flex;
+}
+
+img.datamapper-marker-field {
+  margin: 2px;
 }

@@ -1,5 +1,6 @@
 import {
   BODY_DOCUMENT_ID,
+  DocumentDefinition,
   DocumentDefinitionType,
   DocumentType,
   FieldItem,
@@ -11,35 +12,48 @@ import {
   Types,
   ValueSelector,
 } from '../models/datamapper';
-import { MappingSerializerService } from './mapping-serializer.service';
+import { NS_XPATH_FUNCTIONS } from '../models/datamapper/standard-namespaces';
 import {
   accountJsonSchema,
   cartJsonSchema,
   shipOrderJsonSchema,
   shipOrderJsonXslt,
 } from '../stubs/datamapper/data-mapper';
-import { JsonSchemaDocumentService, JsonSchemaField } from './json-schema-document.service';
-import { NS_XPATH_FUNCTIONS } from '../models/datamapper/xslt';
+import { JsonSchemaField } from './json-schema-document.model';
+import { JsonSchemaDocumentService } from './json-schema-document.service';
+import { MappingSerializerService } from './mapping-serializer.service';
 import { TO_JSON_TARGET_VARIABLE } from './mapping-serializer-json-addon';
 
 describe('MappingSerializerService / JSON', () => {
-  const accountParamDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
-    DocumentType.PARAM,
-    'Account',
-    accountJsonSchema,
+  const accountDefinition = new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.JSON_SCHEMA, 'Account', {
+    'Account.json': accountJsonSchema,
+  });
+  const accountDocResult = JsonSchemaDocumentService.createJsonSchemaDocument(accountDefinition);
+  expect(accountDocResult.validationStatus).toBe('success');
+  const accountParamDoc = accountDocResult.document!;
+  const cartDefinition = new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.JSON_SCHEMA, 'Cart', {
+    'Cart.json': cartJsonSchema,
+  });
+  const cartDocResult = JsonSchemaDocumentService.createJsonSchemaDocument(cartDefinition);
+  expect(cartDocResult.validationStatus).toBe('success');
+  const cartParamDoc = cartDocResult.document!;
+  const orderSequenceParamDoc = new PrimitiveDocument(
+    new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.Primitive, 'OrderSequence'),
   );
-  const cartParamDoc = JsonSchemaDocumentService.createJsonSchemaDocument(DocumentType.PARAM, 'Cart', cartJsonSchema);
-  const orderSequenceParamDoc = new PrimitiveDocument(DocumentType.PARAM, 'OrderSequence');
   const sourceParameterMap = new Map<string, IDocument>([
     ['OrderSequence', orderSequenceParamDoc],
     ['Account', accountParamDoc],
     ['Cart', cartParamDoc],
   ]);
-  const targetDoc = JsonSchemaDocumentService.createJsonSchemaDocument(
+  const targetDefinition = new DocumentDefinition(
     DocumentType.TARGET_BODY,
-    'ShipOrder',
-    shipOrderJsonSchema,
+    DocumentDefinitionType.JSON_SCHEMA,
+    BODY_DOCUMENT_ID,
+    { 'ShipOrder.json': shipOrderJsonSchema },
   );
+  const result = JsonSchemaDocumentService.createJsonSchemaDocument(targetDefinition);
+  expect(result.validationStatus).toBe('success');
+  const targetDoc = result.document!;
 
   describe('deserialize()', () => {
     it('should deserialize XSLT', () => {

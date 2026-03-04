@@ -1,5 +1,6 @@
 import { Label, LabelGroup } from '@patternfly/react-core';
 import { FunctionComponent } from 'react';
+
 import { getTagColor } from './tag-color-resolver';
 
 interface ICatalogTagsPanelProps {
@@ -13,6 +14,7 @@ export const CatalogTagsPanel: FunctionComponent<ICatalogTagsPanelProps> = (prop
       {props.tags.map((tag) => (
         <Label
           isCompact
+          isClickable
           key={tag}
           color={getTagColor(tag)}
           render={({ className, content }) => (

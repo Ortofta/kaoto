@@ -1,5 +1,6 @@
-import { DefinedComponent } from '../camel-catalog-index';
 import { BaseCamelEntity, EntityType } from '../camel/entities';
+import { DefinedComponent } from '../camel-catalog-index';
+import { CatalogKind } from '../catalog-kind';
 import { KaotoSchemaDefinition } from '../kaoto-schema';
 import { NodeLabelType } from '../settings/settings.model';
 import { IClipboardCopyObject } from '../visualization/clipboard';
@@ -78,6 +79,8 @@ export interface BaseVisualCamelEntity extends BaseCamelEntity {
 
   /** Generates a IVisualizationNode from the underlying Camel entity */
   toVizNode: () => IVisualizationNode;
+
+  getGroupIcons: () => { icon: string; title: string }[];
 }
 
 export interface BaseVisualCamelEntityConstructor {
@@ -155,10 +158,14 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
 
   /** Retrieve the node's validation status, relying into the underlying entity */
   getNodeValidationText(): string | undefined;
+
+  /** Return extra icons for the CustomGroup (entity-specific) */
+  getGroupIcons(): { icon: string; title: string }[];
 }
 
 export interface IVisualizationNodeData {
-  icon?: string;
+  catalogKind: CatalogKind;
+  name: string;
   path?: string;
   entity?: BaseVisualCamelEntity;
   isPlaceholder?: boolean;

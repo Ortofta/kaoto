@@ -1,12 +1,13 @@
 import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { PropsWithChildren } from 'react';
+
 import { SourceTargetView } from '../components/View/SourceTargetView';
 import { useCanvas } from '../hooks/useCanvas';
 import { useDataMapper } from '../hooks/useDataMapper';
 import { BODY_DOCUMENT_ID, DocumentType } from '../models/datamapper/document';
 import { TestUtil } from '../stubs/datamapper/data-mapper';
-import { DataMapperCanvasProvider } from './datamapper-canvas.provider';
 import { DataMapperProvider } from './datamapper.provider';
+import { DataMapperCanvasProvider } from './datamapper-canvas.provider';
 
 describe('CanvasProvider', () => {
   const wrapper = ({ children }: PropsWithChildren) => (
@@ -68,7 +69,7 @@ describe('CanvasProvider', () => {
 
     const afterNodePaths = result.current.canvas.getAllNodePaths();
 
-    expect(afterNodePaths.length).toEqual(15);
+    expect(afterNodePaths.length).toEqual(14);
     expect(beforeNodePaths.length).toBeGreaterThan(afterNodePaths.length);
   });
 

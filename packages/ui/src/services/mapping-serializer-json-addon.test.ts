@@ -1,23 +1,16 @@
-import { DocumentType } from '../models/datamapper/document';
+import { DocumentDefinitionType, FieldItem, MappingTree, NS_XSL, PrimitiveDocument, Types } from '../models/datamapper';
+import { BODY_DOCUMENT_ID, DocumentDefinition, DocumentType } from '../models/datamapper/document';
+import { NS_XPATH_FUNCTIONS } from '../models/datamapper/standard-namespaces';
+import { cartToShipOrderJsonXslt, shipOrderXsd, TestUtil } from '../stubs/datamapper/data-mapper';
+import { JsonSchemaDocument, JsonSchemaField } from './json-schema-document.model';
+import { MappingSerializerService } from './mapping-serializer.service';
 import {
   FROM_JSON_SOURCE_SUFFIX,
   MappingSerializerJsonAddon,
   TO_JSON_TARGET_VARIABLE,
 } from './mapping-serializer-json-addon';
-import {
-  BODY_DOCUMENT_ID,
-  DocumentDefinitionType,
-  FieldItem,
-  MappingTree,
-  NS_XSL,
-  PrimitiveDocument,
-  Types,
-} from '../models/datamapper';
-import { MappingSerializerService } from './mapping-serializer.service';
-import { JsonSchemaDocument, JsonSchemaField } from './json-schema-document.service';
-import { NS_XPATH_FUNCTIONS } from '../models/datamapper/xslt';
-import { XmlSchemaDocumentService, XmlSchemaField } from './xml-schema-document.service';
-import { cartToShipOrderJsonXslt, shipOrderXsd, TestUtil } from '../stubs/datamapper/data-mapper';
+import { XmlSchemaField } from './xml-schema-document.model';
+import { XmlSchemaDocumentService } from './xml-schema-document.service';
 
 describe('mappingSerializerJsonAddon', () => {
   describe('populateXmlToJsonVariable()', () => {
@@ -95,7 +88,9 @@ describe('mappingSerializerJsonAddon', () => {
       const xsltDocument = MappingSerializerService.createNew();
       const stylesheet = xsltDocument.children[0];
       const paramName = 'testParam';
-      const doc = new JsonSchemaDocument(DocumentType.PARAM, paramName);
+      const doc = new JsonSchemaDocument(
+        new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.JSON_SCHEMA, paramName),
+      );
       MappingSerializerJsonAddon.populateJsonToXmlVariable(doc, stylesheet, paramName);
 
       expect(stylesheet.children.length).toBe(2);
@@ -108,7 +103,9 @@ describe('mappingSerializerJsonAddon', () => {
       const xsltDocument = MappingSerializerService.createNew();
       const stylesheet = xsltDocument.children[0];
       const paramName = 'testParam';
-      const doc = new PrimitiveDocument(DocumentType.PARAM, paramName);
+      const doc = new PrimitiveDocument(
+        new DocumentDefinition(DocumentType.PARAM, DocumentDefinitionType.Primitive, paramName),
+      );
       MappingSerializerJsonAddon.populateJsonToXmlVariable(doc, stylesheet, paramName);
       expect(stylesheet.children.length).toBe(1);
     });
@@ -130,7 +127,9 @@ describe('mappingSerializerJsonAddon', () => {
         TestUtil.createParameterMap(),
       );
       const root = MappingSerializerJsonAddon.populateJsonTargetBase(mappings, template);
-      const doc = new JsonSchemaDocument(DocumentType.TARGET_BODY, 'Body');
+      const doc = new JsonSchemaDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.JSON_SCHEMA, 'Body'),
+      );
 
       let mapField = new JsonSchemaField(doc, '', Types.Container);
       let fieldItem = new FieldItem(mappings, mapField);
@@ -183,11 +182,13 @@ describe('mappingSerializerJsonAddon', () => {
     });
 
     it('should not populate a FieldItem if not JSON field', () => {
-      const doc = XmlSchemaDocumentService.createXmlSchemaDocument(
+      const definition = new DocumentDefinition(
         DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        shipOrderXsd,
+        { 'shipOrder.xsd': shipOrderXsd },
       );
+      const doc = XmlSchemaDocumentService.createXmlSchemaDocument(definition).document!;
       const mappings = new MappingTree(DocumentType.TARGET_BODY, 'Body', DocumentDefinitionType.XML_SCHEMA);
       const field = new XmlSchemaField(doc, '', false);
       const fieldItem = new FieldItem(mappings, field);
@@ -199,7 +200,9 @@ describe('mappingSerializerJsonAddon', () => {
 
   describe('getOrCreateJsonField()', () => {
     it('should create a JsonSchemaField', () => {
-      const doc = new JsonSchemaDocument(DocumentType.TARGET_BODY, 'Body');
+      const doc = new JsonSchemaDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.JSON_SCHEMA, 'Body'),
+      );
       const mapElement = document.createElementNS(NS_XPATH_FUNCTIONS, 'map');
       const mapField = MappingSerializerJsonAddon.getOrCreateJsonField(mapElement, doc);
       expect(mapField instanceof JsonSchemaField).toBeTruthy();
@@ -249,7 +252,9 @@ describe('mappingSerializerJsonAddon', () => {
     });
 
     it('should not create a field if not lossless element', () => {
-      const doc = new JsonSchemaDocument(DocumentType.TARGET_BODY, 'Body');
+      const doc = new JsonSchemaDocument(
+        new DocumentDefinition(DocumentType.TARGET_BODY, DocumentDefinitionType.JSON_SCHEMA, 'Body'),
+      );
       const testElement = document.createElementNS('test', 'Test');
       const testField = MappingSerializerJsonAddon.getOrCreateJsonField(testElement, doc);
       expect(testField).toBeNull();

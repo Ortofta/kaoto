@@ -1,46 +1,112 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+
+import { VisibleFlowsContext, VisibleFlowsContextResult } from '../../../../providers';
 import { GraphContextMenuFn } from './CustomGraph';
 
 describe('GraphContextMenuFn', () => {
-  it('GraphContextMenuFn always renders ShowOrHideAllFlows items', () => {
-    const entityContextMenuFn = jest.fn().mockReturnValue([]);
-    const items = GraphContextMenuFn(entityContextMenuFn);
+  const mockVisibleFlowsContext: VisibleFlowsContextResult = {
+    allFlowsVisible: false,
+    visibleFlows: {},
+    visualFlowsApi: {
+      showFlows: jest.fn(),
+      hideFlows: jest.fn(),
+      toggleFlowVisible: jest.fn(),
+      clearFlows: jest.fn(),
+      initVisibleFlows: jest.fn(),
+      renameFlow: jest.fn(),
+    } as unknown as VisibleFlowsContextResult['visualFlowsApi'],
+  };
 
-    expect(
-      items.some(
-        (item) =>
-          item.props['data-testid'] === 'context-menu-item-show-all' &&
-          item.props.children[1].props.children === 'Show all',
-      ),
-    ).toBe(true);
+  const defaultOptions = {
+    entityContextMenuFn: jest.fn().mockReturnValue([]),
+    canPasteEntity: false,
+    pasteEntity: jest.fn(),
+  };
 
-    expect(
-      items.some(
-        (item) =>
-          item.props['data-testid'] === 'context-menu-item-hide-all' &&
-          item.props.children[1].props.children === 'Hide all',
-      ),
-    ).toBe(true);
+  const renderWithContext = (items: React.ReactNode) => {
+    return render(<VisibleFlowsContext.Provider value={mockVisibleFlowsContext}>{items}</VisibleFlowsContext.Provider>);
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    defaultOptions.entityContextMenuFn = jest.fn().mockReturnValue([]);
+    defaultOptions.pasteEntity = jest.fn();
   });
 
-  it('renders ContextSubMenuItem if entities exist', () => {
-    const entity = (
-      <div key="entity-1" data-testid="entity-item">
-        Entity 1
-      </div>
-    );
-    const entityContextMenuFn = jest.fn().mockReturnValue([entity]);
-    const items = GraphContextMenuFn(entityContextMenuFn);
+  it('renders Show all and Hide all menu items', () => {
+    const items = GraphContextMenuFn({ ...defaultOptions });
 
-    // Should contain a ContextSubMenuItem with the entity inside
-    const subMenuItem = items.find((item) => item.props['data-testid'] === 'context-menu-item-new-entity');
-    expect(subMenuItem).toBeDefined();
-    expect(subMenuItem!.props.children).toContainEqual(entity);
+    renderWithContext(<>{items}</>);
+
+    expect(screen.getByTestId('context-menu-item-show-all')).toBeInTheDocument();
+    expect(screen.getByText('Show all')).toBeInTheDocument();
+
+    expect(screen.getByTestId('context-menu-item-hide-all')).toBeInTheDocument();
+    expect(screen.getByText('Hide all')).toBeInTheDocument();
   });
 
-  it('does not render ContextSubMenuItem if no entities', () => {
-    const entityContextMenuFn = jest.fn().mockReturnValue([]);
-    const items = GraphContextMenuFn(entityContextMenuFn);
+  it('renders Paste menu item', () => {
+    const items = GraphContextMenuFn({ ...defaultOptions });
 
-    expect(items.some((item) => item.props['data-testid'] === 'context-menu-item-new-entity')).toBe(false);
+    renderWithContext(<>{items}</>);
+
+    expect(screen.getByTestId('context-menu-item-paste')).toBeInTheDocument();
+    expect(screen.getByText('Paste')).toBeInTheDocument();
+  });
+
+  it('does not render New submenu when no entities exist', () => {
+    const items = GraphContextMenuFn({ ...defaultOptions });
+
+    renderWithContext(<>{items}</>);
+
+    expect(screen.queryByTestId('context-menu-item-new-entity')).not.toBeInTheDocument();
+  });
+
+  it('renders New submenu when entities exist', () => {
+    const entities = [<div key="entity-1">Entity 1</div>];
+    const entityContextMenuFn = jest.fn().mockReturnValue(entities);
+    const items = GraphContextMenuFn({ ...defaultOptions, entityContextMenuFn });
+
+    renderWithContext(<>{items}</>);
+
+    expect(screen.getByTestId('context-menu-item-new-entity')).toBeInTheDocument();
+    expect(screen.getByText('New')).toBeInTheDocument();
+  });
+
+  it('calls entityContextMenuFn to get entities', () => {
+    GraphContextMenuFn({ ...defaultOptions });
+
+    expect(defaultOptions.entityContextMenuFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('Paste menu item is present', () => {
+    const items = GraphContextMenuFn({ ...defaultOptions });
+
+    renderWithContext(<>{items}</>);
+
+    const pasteItem = screen.getByTestId('context-menu-item-paste');
+    expect(pasteItem).toBeInTheDocument();
+  });
+
+  it('Show all menu item calls showFlows on click', () => {
+    const items = GraphContextMenuFn({ ...defaultOptions });
+
+    renderWithContext(<>{items}</>);
+
+    const showAllButton = screen.getByText('Show all').closest('button')!;
+    fireEvent.click(showAllButton);
+
+    expect(mockVisibleFlowsContext.visualFlowsApi?.showFlows).toHaveBeenCalledTimes(1);
+  });
+
+  it('Hide all menu item calls hideFlows on click', () => {
+    const items = GraphContextMenuFn({ ...defaultOptions });
+
+    renderWithContext(<>{items}</>);
+
+    const hideAllButton = screen.getByText('Hide all').closest('button')!;
+    fireEvent.click(hideAllButton);
+
+    expect(mockVisibleFlowsContext.visualFlowsApi?.hideFlows).toHaveBeenCalledTimes(1);
   });
 });

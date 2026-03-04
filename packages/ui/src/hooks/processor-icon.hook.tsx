@@ -1,6 +1,7 @@
 import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
-import { ArrowRightIcon, BoltIcon, DataSourceIcon, SyncAltIcon } from '@patternfly/react-icons';
+import { ArrowRightIcon, BoltIcon, DataSourceIcon, SpinnerIcon } from '@patternfly/react-icons';
 import { ElementType } from 'react';
+
 import { CamelCatalogService, CatalogKind } from '../models';
 
 export const useProcessorIcon = (
@@ -22,7 +23,7 @@ export const useProcessorIcon = (
     const toDDescription = CamelCatalogService.getComponent(CatalogKind.Pattern, 'toD')?.model.description;
     description = toDDescription ? `ToD: ${toDDescription}` : '';
   } else if (processorName === 'poll') {
-    Icon = SyncAltIcon;
+    Icon = SpinnerIcon;
     const pollDescription = CamelCatalogService.getComponent(CatalogKind.Pattern, 'poll')?.model.description;
     description = pollDescription ? `Poll: ${pollDescription}` : '';
   } else {

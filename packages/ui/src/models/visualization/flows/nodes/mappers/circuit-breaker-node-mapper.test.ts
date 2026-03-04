@@ -1,4 +1,5 @@
 import { ProcessorDefinition, RouteDefinition } from '@kaoto/camel-catalog/types';
+
 import { RootNodeMapper } from '../root-node-mapper';
 import { CircuitBreakerNodeMapper } from './circuit-breaker-node-mapper';
 import { OnFallbackNodeMapper } from './on-fallback-node-mapper';
@@ -41,7 +42,8 @@ describe('CircuitBreakerNodeMapper', () => {
   it('should return children', () => {
     const vizNode = mapper.getVizNodeFromProcessor(path, { processorName: 'circuitBreaker' }, routeDefinition);
 
-    expect(vizNode.getChildren()).toHaveLength(2);
+    expect(vizNode.getChildren()).toHaveLength(3);
+    expect(vizNode.getChildren()?.[1].data.isPlaceholder).toBe(true);
   });
 
   it('should return step nodes as children', () => {
@@ -53,7 +55,7 @@ describe('CircuitBreakerNodeMapper', () => {
   it('should return an `onFallback` node if defined', () => {
     const vizNode = mapper.getVizNodeFromProcessor(path, { processorName: 'circuitBreaker' }, routeDefinition);
 
-    expect(vizNode.getChildren()?.[1].data.path).toBe('from.steps.0.circuitBreaker.onFallback');
+    expect(vizNode.getChildren()?.[2].data.path).toBe('from.steps.0.circuitBreaker.onFallback');
   });
 
   it('should not return an `onFallback` node if not defined', () => {
@@ -61,7 +63,8 @@ describe('CircuitBreakerNodeMapper', () => {
 
     const vizNode = mapper.getVizNodeFromProcessor(path, { processorName: 'circuitBreaker' }, routeDefinition);
 
-    expect(vizNode.getChildren()).toHaveLength(1);
+    expect(vizNode.getChildren()).toHaveLength(2);
     expect(vizNode.getChildren()?.[0].data.path).toBe('from.steps.0.circuitBreaker.steps.0.log');
+    expect(vizNode.getChildren()?.[1].data.isPlaceholder).toBe(true);
   });
 });

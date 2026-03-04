@@ -1,4 +1,5 @@
 import { action, makeObservable, observable } from 'mobx';
+
 import { DefinedComponent } from '../camel-catalog-index';
 import { KaotoSchemaDefinition } from '../kaoto-schema';
 import { NodeLabelType } from '../settings/settings.model';
@@ -166,5 +167,9 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
     }
 
     return rootNode!;
+  }
+
+  getGroupIcons(): { icon: string; title: string }[] {
+    return this.getBaseEntity()?.getGroupIcons() ?? [];
   }
 }

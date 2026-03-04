@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { ExpressionParser } from './expression-parser';
 import catalogLibrary from '@kaoto/camel-catalog/index.json';
-import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
 import { CatalogLibrary } from '@kaoto/camel-catalog/types';
+
 import { CamelCatalogService, CatalogKind } from '../../../models';
+import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
+import { ExpressionParser } from './expression-parser';
 
 describe('Expression parser', () => {
   const xmlParser = new DOMParser();
@@ -60,5 +61,19 @@ describe('Expression parser', () => {
     const props = CamelCatalogService.getComponent(CatalogKind.Processor, 'when')?.properties;
     const result = ExpressionParser.parse(parentElement, props?.expression, 'when');
     expect(result).not.toBeDefined();
+  });
+
+  it('should trim whitespace and newlines from expression text content', () => {
+    const expression = xmlParser.parseFromString(
+      `
+          <simple>
+                    \${header.foo} == 1
+                </simple>
+      `,
+      'application/xml',
+    ).documentElement;
+
+    const result = ExpressionParser.parse(expression);
+    expect(result).toEqual({ simple: { expression: '${header.foo} == 1' } });
   });
 });

@@ -52,20 +52,26 @@ Cypress.Commands.add('editorDeleteLine', (line: number, repeatCount: number) => 
   }
 });
 
+Cypress.Commands.add('getMonacoValue', () => {
+  return cy.window().then((win) => {
+    const [model] = win.monaco.editor.getModels() ?? {};
+
+    if (!model) {
+      throw new Error(`[Kaoto]: monaco-editor not found`);
+    }
+
+    const sourceCode = model.getValue();
+    const eol = model.getEOL();
+
+    return { sourceCode, eol };
+  });
+});
+
 Cypress.Commands.add('checkCodeSpanLine', (spanText: string, linesCount?: number) => {
   linesCount = linesCount ?? 1;
   cy.waitForEditorToLoad();
   cy.get('.pf-v6-c-code-editor').within(() => {
     cy.get('span:only-child').contains(spanText).should('have.length', linesCount);
-  });
-});
-
-Cypress.Commands.add('checkMultipleCodeSpanEntry', (spanText: string, linesCount: number) => {
-  cy.waitForEditorToLoad();
-  cy.get('.pf-v6-c-code-editor').within(() => {
-    cy.get('span:only-child')
-      .filter(':contains("' + spanText.replace(/\s/g, '\u00a0') + '")')
-      .should('have.length', linesCount);
   });
 });
 
@@ -76,6 +82,14 @@ Cypress.Commands.add('checkMultiLineContent', (textContent: string[]) => {
 
   // workaround for sporadic failures of basicXml.cy.ts on edge - https://github.com/KaotoIO/kaoto/issues/2278
   cy.get('.monaco-editor').invoke('text').should('not.be.empty', { timeout: 5000 });
+  cy.get('.monaco-editor')
+    .invoke('text')
+    .should(($value: string) => {
+      expect($value.split(/\s{2,}/).map((line: string) => line.trim()).length).to.be.greaterThan(
+        modifiedTextContent.length,
+      );
+    });
+
   cy.get('.monaco-editor')
     .invoke('text')
     .then(($value) => {
