@@ -1,15 +1,14 @@
-import { PathExpression, PathSegment } from '../models/datamapper';
 import { DocumentDefinition, IDocument, IField, PrimitiveDocument } from '../models/datamapper/document';
-import { IFieldTypeOverride } from '../models/datamapper/metadata';
+import { IChoiceSelection, IFieldTypeOverride } from '../models/datamapper/metadata';
 import { IFieldTypeInfo, TypeOverrideVariant, Types } from '../models/datamapper/types';
 import { DocumentUtilService, ParseTypeOverrideFn } from './document-util.service';
 import { JsonSchemaDocument } from './json-schema-document.model';
 import { JsonSchemaDocumentService } from './json-schema-document.service';
 import { JsonSchemaTypesService } from './json-schema-types.service';
+import { SchemaPathService } from './schema-path.service';
 import { XmlSchemaDocument } from './xml-schema-document.model';
 import { XmlSchemaDocumentService } from './xml-schema-document.service';
 import { XmlSchemaTypesService } from './xml-schema-types.service';
-import { XPathService } from './xpath/xpath.service';
 
 /**
  * Service for field type override operations.
@@ -132,12 +131,12 @@ export class FieldTypeOverrideService {
    *
    * Converts field type info (typically selected from the UI) into an
    * IFieldTypeOverride object that can be applied to the document. This utility
-   * generates the XPath for the field and constructs the override definition with
+   * generates the schema path for the field and constructs the override definition with
    * all required properties.
    *
    * @param field - The field to create the override for
    * @param candidate - The field type info selected by the user
-   * @param namespaceMap - Namespace prefix to URI mapping for XPath generation
+   * @param namespaceMap - Namespace prefix to URI mapping for schema path generation
    * @param variant - The override variant (SAFE or FORCE)
    * @returns A complete IFieldTypeOverride definition ready to be applied
    *
@@ -159,7 +158,7 @@ export class FieldTypeOverrideService {
    *   TypeOverrideVariant.FORCE
    * );
    * // Returns: {
-   * //   path: '/ns0:ShipOrder/ns0:OrderPerson',
+   * //   schemaPath: '/ns0:ShipOrder/ns0:OrderPerson',
    * //   type: 'xs:int',
    * //   originalType: 'xs:string',
    * //   variant: TypeOverrideVariant.FORCE
@@ -181,23 +180,10 @@ export class FieldTypeOverrideService {
     namespaceMap: Record<string, string>,
     variant: TypeOverrideVariant.SAFE | TypeOverrideVariant.FORCE,
   ): IFieldTypeOverride {
-    const fieldStack = DocumentUtilService.getFieldStack(field, true).reverse();
-    const pathSegments: PathSegment[] = [];
-
-    for (const f of fieldStack) {
-      const nsEntry = Object.entries(namespaceMap).find(([, uri]) => f.namespaceURI === uri);
-      const nsPrefix = nsEntry ? nsEntry[0] : '';
-      pathSegments.push(new PathSegment(f.name, f.isAttribute, nsPrefix, f.predicates));
-    }
-
-    const pathExpression = new PathExpression(undefined, false);
-    pathExpression.pathSegments = pathSegments;
-    const path = XPathService.toXPathString(pathExpression);
-
+    const schemaPath = SchemaPathService.build(field, namespaceMap);
     const originalTypeString = field.originalTypeQName?.toString() ?? field.originalType;
-
     return {
-      path,
+      schemaPath,
       type: candidate.typeString,
       originalType: originalTypeString,
       variant,
@@ -269,7 +255,10 @@ export class FieldTypeOverrideService {
     }
 
     const override = FieldTypeOverrideService.createFieldTypeOverride(field, candidate, namespaceMap, variant);
-    DocumentUtilService.processTypeOverride(document, override, namespaceMap, parseTypeOverrideFn);
+    const changed = DocumentUtilService.processTypeOverride(document, override, namespaceMap, parseTypeOverrideFn);
+    if (changed) {
+      DocumentUtilService.invalidateDescendants(document, override.schemaPath);
+    }
   }
 
   /**
@@ -297,21 +286,11 @@ export class FieldTypeOverrideService {
    */
   static revertFieldTypeOverride(document: IDocument, field: IField, namespaceMap: Record<string, string>): void {
     if (field.typeOverride === TypeOverrideVariant.NONE) return;
-
-    const fieldStack = DocumentUtilService.getFieldStack(field, true).reverse();
-    const pathSegments: PathSegment[] = [];
-
-    for (const f of fieldStack) {
-      const nsEntry = Object.entries(namespaceMap).find(([, uri]) => f.namespaceURI === uri);
-      const nsPrefix = nsEntry ? nsEntry[0] : '';
-      pathSegments.push(new PathSegment(f.name, f.isAttribute, nsPrefix, f.predicates));
+    const schemaPath = SchemaPathService.build(field, namespaceMap);
+    const changed = DocumentUtilService.removeTypeOverride(document, schemaPath, namespaceMap);
+    if (changed) {
+      DocumentUtilService.invalidateDescendants(document, schemaPath);
     }
-
-    const pathExpression = new PathExpression(undefined, false);
-    pathExpression.pathSegments = pathSegments;
-    const path = XPathService.toXPathString(pathExpression);
-
-    DocumentUtilService.removeTypeOverride(document, path, namespaceMap);
   }
 
   /**
@@ -390,7 +369,83 @@ export class FieldTypeOverrideService {
       mergedDefinitionFiles,
       document.definition.rootElementChoice,
       document.definition.fieldTypeOverrides,
+      document.definition.choiceSelections,
       updatedNamespaceMap,
     );
+  }
+
+  /**
+   * Apply a choice selection to a choice compositor field in a document.
+   *
+   * This high-level orchestration method builds the `schemaPath` string from the
+   * field's ancestor chain and delegates to {@link DocumentUtilService.processChoiceSelection()}.
+   *
+   * The document is modified in place. After calling this method, use
+   * {@link DataMapperProvider.updateDocument()} to persist changes and trigger re-visualization.
+   *
+   * @param document - The document containing the choice field
+   * @param choiceField - The choice compositor field (must have `isChoice === true`)
+   * @param selectedMemberIndex - 0-based index of the choice member to select
+   * @param namespaceMap - Namespace prefix to URI mapping for path generation
+   *
+   * @example
+   * ```typescript
+   * FieldTypeOverrideService.applyChoiceSelection(document, choiceField, 1, namespaceMap);
+   *
+   * // Persist changes via provider
+   * const previousRefId = document.getReferenceId(namespaceMap);
+   * updateDocument(document, document.definition, previousRefId);
+   * ```
+   *
+   * @see revertChoiceSelection
+   * @see DocumentUtilService.processChoiceSelection
+   */
+  static applyChoiceSelection(
+    document: IDocument,
+    choiceField: IField,
+    selectedMemberIndex: number,
+    namespaceMap: Record<string, string>,
+  ): void {
+    if (!choiceField.isChoice) return;
+    const schemaPath = SchemaPathService.build(choiceField, namespaceMap);
+    const selection: IChoiceSelection = { schemaPath, selectedMemberIndex };
+    const changed = DocumentUtilService.processChoiceSelection(document, selection, namespaceMap);
+    if (changed) {
+      DocumentUtilService.invalidateDescendants(document, schemaPath);
+    }
+  }
+
+  /**
+   * Revert a choice selection from a choice compositor field in a document.
+   * Clears the selected member index from the field and removes the entry from the document definition.
+   *
+   * This is a no-op if `choiceField.selectedMemberIndex` is already `undefined`.
+   *
+   * The document is modified in place. After calling this method, use
+   * {@link DataMapperProvider.updateDocument()} to persist changes and trigger re-visualization.
+   *
+   * @param document - The document containing the choice field
+   * @param choiceField - The choice compositor field to clear
+   * @param namespaceMap - Namespace prefix to URI mapping for path generation
+   *
+   * @example
+   * ```typescript
+   * FieldTypeOverrideService.revertChoiceSelection(document, choiceField, namespaceMap);
+   *
+   * // Persist changes via provider
+   * const previousRefId = document.getReferenceId(namespaceMap);
+   * updateDocument(document, document.definition, previousRefId);
+   * ```
+   *
+   * @see applyChoiceSelection
+   * @see DocumentUtilService.removeChoiceSelection
+   */
+  static revertChoiceSelection(document: IDocument, choiceField: IField, namespaceMap: Record<string, string>): void {
+    if (choiceField.selectedMemberIndex === undefined) return;
+    const schemaPath = SchemaPathService.build(choiceField, namespaceMap);
+    const changed = DocumentUtilService.removeChoiceSelection(document, schemaPath, namespaceMap);
+    if (changed) {
+      DocumentUtilService.invalidateDescendants(document, schemaPath);
+    }
   }
 }

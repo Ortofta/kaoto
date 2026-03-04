@@ -3,14 +3,14 @@ import { BaseDocument } from '../models/datamapper/document';
 import { NS_XML_SCHEMA } from '../models/datamapper/standard-namespaces';
 import { TypeOverrideVariant, Types } from '../models/datamapper/types';
 import {
-  accountLcXsd,
-  accountNs2Xsd,
-  accountNsXsd,
-  extensionComplexXsd,
-  multipleElementsXsd,
-  restrictionComplexXsd,
-  simpleTypeInheritanceXsd,
-  simpleTypeRestrictionXsd,
+  getAccountLcXsd,
+  getAccountNs2Xsd,
+  getAccountNsXsd,
+  getExtensionComplexXsd,
+  getMultipleElementsXsd,
+  getRestrictionComplexXsd,
+  getSimpleTypeInheritanceXsd,
+  getSimpleTypeRestrictionXsd,
   TestUtil,
 } from '../stubs/datamapper/data-mapper';
 import { QName } from '../xml-schema-ts/QName';
@@ -79,6 +79,165 @@ describe('XmlSchemaDocumentUtilService', () => {
       const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'ShipTo', 'http://different-namespace.com');
 
       expect(result).toBeUndefined();
+    });
+
+    it('should find field inside choice member', () => {
+      const mockParent = {
+        fields: [
+          { name: 'RegularField', namespaceURI: null, isChoice: false, fields: [] },
+          {
+            name: 'ContactChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [
+              { name: 'email', namespaceURI: null, fields: [] },
+              { name: 'phone', namespaceURI: null, fields: [] },
+            ],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'email');
+
+      expect(result).toBeDefined();
+      expect(result?.name).toBe('email');
+    });
+
+    it('should find field with namespace inside choice member', () => {
+      const mockParent = {
+        fields: [
+          {
+            name: 'ContactChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [
+              { name: 'email', namespaceURI: 'http://www.kaoto.io/contact', fields: [] },
+              { name: 'phone', namespaceURI: 'http://www.kaoto.io/contact', fields: [] },
+            ],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'email', 'http://www.kaoto.io/contact');
+
+      expect(result).toBeDefined();
+      expect(result?.name).toBe('email');
+      expect(result?.namespaceURI).toBe('http://www.kaoto.io/contact');
+    });
+
+    it('should prefer direct child over choice member with same name', () => {
+      const mockParent = {
+        fields: [
+          { name: 'email', namespaceURI: null, isChoice: false, fields: [] },
+          {
+            name: 'ContactChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [{ name: 'email', namespaceURI: 'http://different.com', fields: [] }],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'email');
+
+      expect(result?.namespaceURI).toBeNull();
+    });
+
+    it('should find field in nested choice', () => {
+      const mockParent = {
+        fields: [
+          {
+            name: 'OuterChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [
+              {
+                name: 'InnerChoice',
+                namespaceURI: null,
+                isChoice: true,
+                fields: [{ name: 'deepField', namespaceURI: null, fields: [] }],
+              },
+            ],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'deepField');
+
+      expect(result).toBeDefined();
+      expect(result?.name).toBe('deepField');
+    });
+
+    it('should return undefined when field not found in choice or regular fields', () => {
+      const mockParent = {
+        fields: [
+          { name: 'RegularField', namespaceURI: null, isChoice: false, fields: [] },
+          {
+            name: 'ContactChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [
+              { name: 'email', namespaceURI: null, fields: [] },
+              { name: 'phone', namespaceURI: null, fields: [] },
+            ],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'nonexistent');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle empty choice', () => {
+      const mockParent = {
+        fields: [
+          { name: 'RegularField', namespaceURI: null, isChoice: false, fields: [] },
+          {
+            name: 'EmptyChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const result = XmlSchemaDocumentUtilService.getChildField(mockParent, 'email');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle multiple choices in same parent', () => {
+      const mockParent = {
+        fields: [
+          {
+            name: 'ContactChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [
+              { name: 'email', namespaceURI: null, fields: [] },
+              { name: 'phone', namespaceURI: null, fields: [] },
+            ],
+          },
+          {
+            name: 'AddressChoice',
+            namespaceURI: null,
+            isChoice: true,
+            fields: [
+              { name: 'street', namespaceURI: null, fields: [] },
+              { name: 'city', namespaceURI: null, fields: [] },
+            ],
+          },
+        ],
+      } as unknown as BaseDocument;
+
+      const emailResult = XmlSchemaDocumentUtilService.getChildField(mockParent, 'email');
+      expect(emailResult).toBeDefined();
+      expect(emailResult?.name).toBe('email');
+
+      const streetResult = XmlSchemaDocumentUtilService.getChildField(mockParent, 'street');
+      expect(streetResult).toBeDefined();
+      expect(streetResult?.name).toBe('street');
     });
   });
 
@@ -173,7 +332,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'extension.xsd': extensionComplexXsd },
+        { 'extension.xsd': getExtensionComplexXsd() },
       );
       const extensionResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(extensionResult.validationStatus).toBe('success');
@@ -194,7 +353,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'restriction.xsd': restrictionComplexXsd },
+        { 'restriction.xsd': getRestrictionComplexXsd() },
       );
       const restrictionResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(restrictionResult.validationStatus).toBe('success');
@@ -226,7 +385,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'extension.xsd': extensionComplexXsd },
+        { 'extension.xsd': getExtensionComplexXsd() },
       );
       const extensionResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(extensionResult.validationStatus).toBe('success');
@@ -250,7 +409,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'restriction.xsd': restrictionComplexXsd },
+        { 'restriction.xsd': getRestrictionComplexXsd() },
       );
       const restrictionResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(restrictionResult.validationStatus).toBe('success');
@@ -274,7 +433,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'extension.xsd': extensionComplexXsd },
+        { 'extension.xsd': getExtensionComplexXsd() },
       );
       const extensionResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(extensionResult.validationStatus).toBe('success');
@@ -298,7 +457,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'simple.xsd': simpleTypeInheritanceXsd },
+        { 'simple.xsd': getSimpleTypeInheritanceXsd() },
       );
       const simpleInheritResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(simpleInheritResult.validationStatus).toBe('success');
@@ -326,7 +485,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'simple.xsd': simpleTypeRestrictionXsd },
+        { 'simple.xsd': getSimpleTypeRestrictionXsd() },
       );
       const simpleRestrictionResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(simpleRestrictionResult.validationStatus).toBe('success');
@@ -489,8 +648,8 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
         {
-          'account-ns.xsd': accountNsXsd,
-          'account-ns2.xsd': accountNs2Xsd,
+          'account-ns.xsd': getAccountNsXsd(),
+          'account-ns2.xsd': getAccountNs2Xsd(),
         },
       );
 
@@ -516,8 +675,8 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
         {
-          'account-lc.xsd': accountLcXsd,
-          'account-ns.xsd': accountNsXsd,
+          'account-lc.xsd': getAccountLcXsd(),
+          'account-ns.xsd': getAccountNsXsd(),
         },
       );
 
@@ -543,7 +702,7 @@ describe('XmlSchemaDocumentUtilService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
         {
-          'MultipleElements.xsd': multipleElementsXsd,
+          'MultipleElements.xsd': getMultipleElementsXsd(),
         },
       );
 

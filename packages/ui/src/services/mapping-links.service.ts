@@ -151,7 +151,7 @@ export class MappingLinksService {
       lastSeparatorIndex !== -1 && path.charAt(lastSeparatorIndex - 1) === '/'
         ? lastSeparatorIndex + 1
         : lastSeparatorIndex;
-    return endIndex !== -1 ? path.substring(0, endIndex) : null;
+    return endIndex === -1 ? null : path.substring(0, endIndex);
   }
 
   private static getCoordFromFieldRef(
@@ -269,8 +269,8 @@ export class MappingLinksService {
   }
 
   static isInSelectedMapping(mappingLinks: IMappingLink[], ref: RefObject<NodeReference>): boolean {
-    return !!mappingLinks
+    return mappingLinks
       .filter((link) => link.isSelected)
-      .find((link) => MappingLinksService.isLinkSelected(link.sourceNodePath, link.targetNodePath, ref));
+      .some((link) => MappingLinksService.isLinkSelected(link.sourceNodePath, link.targetNodePath, ref));
   }
 }

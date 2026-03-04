@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DataMapperProvider } from '../../providers/datamapper.provider';
 import { DataMapperCanvasProvider } from '../../providers/datamapper-canvas.provider';
 import { BrowserFilePickerMetadataProvider } from '../../stubs/BrowserFilePickerMetadataProvider';
-import { shipOrderJsonSchema, shipOrderXsd } from '../../stubs/datamapper/data-mapper';
+import { getShipOrderJsonSchema, getShipOrderXsd } from '../../stubs/datamapper/data-mapper';
 import { ExpansionPanels } from '../ExpansionPanels/ExpansionPanels';
 import { ParametersSection } from './Parameters';
 
@@ -157,15 +157,14 @@ describe('ParametersSection', () => {
       fireEvent.click(importButton);
     });
 
-    const fileContent = new File([new Blob([shipOrderXsd])], 'ShipOrder.xsd', { type: 'text/plain' });
+    const fileContent = new File([new Blob([getShipOrderXsd()])], 'ShipOrder.xsd', { type: 'text/plain' });
     const fileInput = screen.getByTestId('attach-schema-file-input');
     act(() => {
       fireEvent.change(fileInput, { target: { files: { item: () => fileContent, length: 1, 0: fileContent } } });
     });
 
     await waitFor(() => {
-      const text: HTMLInputElement = screen.getByTestId('attach-schema-modal-text');
-      expect(text.value).toEqual('ShipOrder.xsd');
+      screen.getByTestId('attach-schema-file-item-ShipOrder.xsd');
       const xmlSchemaRadio: HTMLInputElement = screen.getByTestId('attach-schema-modal-option-xml');
       expect(xmlSchemaRadio.checked).toBeTruthy();
       const jsonSchemaRadio: HTMLInputElement = screen.getByTestId('attach-schema-modal-option-json');
@@ -226,15 +225,14 @@ describe('ParametersSection', () => {
       fireEvent.click(importButton);
     });
 
-    const fileContent = new File([new Blob([shipOrderJsonSchema])], 'ShipOrder.json', { type: 'text/plain' });
+    const fileContent = new File([new Blob([getShipOrderJsonSchema()])], 'ShipOrder.json', { type: 'text/plain' });
     const fileInput = screen.getByTestId('attach-schema-file-input');
     act(() => {
       fireEvent.change(fileInput, { target: { files: { item: () => fileContent, length: 1, 0: fileContent } } });
     });
 
     await waitFor(() => {
-      const text: HTMLInputElement = screen.getByTestId('attach-schema-modal-text');
-      expect(text.value).toEqual('ShipOrder.json');
+      screen.getByTestId('attach-schema-file-item-ShipOrder.json');
       const jsonSchemaRadio: HTMLInputElement = screen.getByTestId('attach-schema-modal-option-json');
       expect(jsonSchemaRadio.checked).toBeTruthy();
       const xmlSchemaRadio: HTMLInputElement = screen.getByTestId('attach-schema-modal-option-xml');

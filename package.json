@@ -1,6 +1,6 @@
 {
   "name": "kaoto",
-  "version": "2.10.0-dev",
+  "version": "2.10.0-RC1",
   "description": "Kaoto - The Integration Designer for Apache Camel",
   "repository": "https://github.com/KaotoIO/kaoto",
   "author": "The Kaoto Team",
@@ -30,9 +30,9 @@
     "node": ">=22.x"
   },
   "devDependencies": {
-    "@lerna-lite/cli": "^3.0.0",
-    "@lerna-lite/publish": "^3.0.0",
-    "@lerna-lite/version": "^3.0.0",
+    "@lerna-lite/cli": "^4.11.3",
+    "@lerna-lite/publish": "^4.11.3",
+    "@lerna-lite/version": "^4.11.3",
     "fast-xml-parser": "^5.0.9",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0"

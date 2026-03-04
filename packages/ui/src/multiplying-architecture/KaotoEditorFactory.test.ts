@@ -2,7 +2,7 @@ jest.mock('./KaotoEditorApp');
 jest.mock('react-router-dom');
 import { EditorInitArgs, KogitoEditorEnvelopeContextType } from '@kie-tools-core/editor/dist/api';
 
-import { ColorScheme, ISettingsModel, NodeLabelType, NodeToolbarTrigger } from '../models';
+import { CanvasLayoutDirection, ColorScheme, ISettingsModel, NodeLabelType, NodeToolbarTrigger } from '../models';
 import { KaotoEditorApp } from './KaotoEditorApp';
 import { KaotoEditorChannelApi } from './KaotoEditorChannelApi';
 import { KaotoEditorFactory } from './KaotoEditorFactory';
@@ -15,9 +15,14 @@ describe('KaotoEditorFactory', () => {
   it('should create editor', async () => {
     const settingsModel: ISettingsModel = {
       catalogUrl: 'catalog-url',
+      rest: {
+        apicurioRegistryUrl: '',
+        customMediaTypes: [],
+      },
       nodeLabel: NodeLabelType.Id,
       nodeToolbarTrigger: NodeToolbarTrigger.onHover,
       colorScheme: ColorScheme.Auto,
+      canvasLayoutDirection: CanvasLayoutDirection.SelectInCanvas,
       experimentalFeatures: {
         enableDragAndDrop: false,
       },
@@ -44,9 +49,14 @@ describe('KaotoEditorFactory', () => {
   it('should get settings', async () => {
     const settingsModel: ISettingsModel = {
       catalogUrl: 'catalog-url',
+      rest: {
+        apicurioRegistryUrl: '',
+        customMediaTypes: [],
+      },
       nodeLabel: NodeLabelType.Id,
       nodeToolbarTrigger: NodeToolbarTrigger.onHover,
       colorScheme: ColorScheme.Auto,
+      canvasLayoutDirection: CanvasLayoutDirection.SelectInCanvas,
       experimentalFeatures: {
         enableDragAndDrop: false,
       },
@@ -98,18 +108,28 @@ describe('KaotoEditorFactory', () => {
   it('should update catalog URL', async () => {
     const settingsModel: ISettingsModel = {
       catalogUrl: '',
+      rest: {
+        apicurioRegistryUrl: '',
+        customMediaTypes: [],
+      },
       nodeLabel: NodeLabelType.Id,
       nodeToolbarTrigger: NodeToolbarTrigger.onHover,
       colorScheme: ColorScheme.Auto,
+      canvasLayoutDirection: CanvasLayoutDirection.SelectInCanvas,
       experimentalFeatures: {
         enableDragAndDrop: false,
       },
     };
     const expectedSettings: ISettingsModel = {
       catalogUrl: 'path-prefix/camel-catalog/index.json',
+      rest: {
+        apicurioRegistryUrl: '',
+        customMediaTypes: [],
+      },
       nodeLabel: NodeLabelType.Id,
       nodeToolbarTrigger: NodeToolbarTrigger.onHover,
       colorScheme: ColorScheme.Auto,
+      canvasLayoutDirection: CanvasLayoutDirection.SelectInCanvas,
       experimentalFeatures: {
         enableDragAndDrop: false,
       },

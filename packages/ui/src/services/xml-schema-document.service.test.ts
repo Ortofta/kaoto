@@ -6,25 +6,30 @@ import {
 } from '../models/datamapper/document';
 import { Types } from '../models/datamapper/types';
 import {
-  camelSpringXsd,
-  commonTypesXsd,
-  elementRefXsd,
-  extensionComplexXsd,
-  extensionSimpleXsd,
-  importedTypesXsd,
-  invalidComplexExtensionXsd,
-  mainWithImportXsd,
-  mainWithIncludeXsd,
-  multiLevelExtensionXsd,
-  multiLevelRestrictionXsd,
-  restrictionComplexXsd,
-  restrictionInheritanceXsd,
-  restrictionSimpleXsd,
-  schemaTestXsd,
-  shipOrderEmptyFirstLineXsd,
-  shipOrderXsd,
-  simpleTypeInheritanceXsd,
-  testDocumentXsd,
+  getAnonymousGlobalElementRefLargeXsd,
+  getCamelSpringXsd,
+  getCommonTypesXsd,
+  getElementRefXsd,
+  getExtensionComplexXsd,
+  getExtensionSimpleXsd,
+  getImportedTypesXsd,
+  getInlineAttrSimpleTypeXsd,
+  getInvalidComplexExtensionXsd,
+  getMainWithImportXsd,
+  getMainWithIncludeXsd,
+  getMultiIncludeComponentAXsd,
+  getMultiIncludeComponentBXsd,
+  getMultiIncludeMainXsd,
+  getMultiLevelExtensionXsd,
+  getMultiLevelRestrictionXsd,
+  getRestrictionComplexXsd,
+  getRestrictionInheritanceXsd,
+  getRestrictionSimpleXsd,
+  getSchemaTestXsd,
+  getShipOrderEmptyFirstLineXsd,
+  getShipOrderXsd,
+  getSimpleTypeInheritanceXsd,
+  getTestDocumentXsd,
 } from '../stubs/datamapper/data-mapper';
 import { QName } from '../xml-schema-ts/QName';
 import { DocumentUtilService } from './document-util.service';
@@ -39,7 +44,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'shipOrder.xsd': shipOrderXsd,
+        'shipOrder.xsd': getShipOrderXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -63,7 +68,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'testDocument.xsd': testDocumentXsd,
+        'testDocument.xsd': getTestDocumentXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -82,7 +87,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'camel-spring.xsd': camelSpringXsd,
+        'camel-spring.xsd': getCamelSpringXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -120,7 +125,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'extensionSimple.xsd': extensionSimpleXsd,
+        'extensionSimple.xsd': getExtensionSimpleXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -180,7 +185,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentType.SOURCE_BODY,
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
-      { 'extensionComplex.xsd': extensionComplexXsd },
+      { 'extensionComplex.xsd': getExtensionComplexXsd() },
       { namespaceUri: 'http://www.example.com/TEST', name: 'Request' },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -213,7 +218,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentType.TARGET_BODY,
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
-      { 'camel-spring.xsd': camelSpringXsd },
+      { 'camel-spring.xsd': getCamelSpringXsd() },
       { namespaceUri: 'http://camel.apache.org/schema/spring', name: 'routes' },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -242,7 +247,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'shipOrder.xsd': shipOrderXsd,
+        'shipOrder.xsd': getShipOrderXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -259,11 +264,11 @@ describe('XmlSchemaDocumentService', () => {
       DocumentType.SOURCE_BODY,
       DocumentDefinitionType.XML_SCHEMA,
       'ShipOrderEmptyFirstLine',
-      { 'ShipOrderEmptyFirstLine.xsd': shipOrderEmptyFirstLineXsd },
+      { 'ShipOrderEmptyFirstLine.xsd': getShipOrderEmptyFirstLineXsd() },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
     expect(result.validationStatus).toBe('error');
-    expect(result.errors![0]).toContain('an XML declaration must be at the start of the document');
+    expect(result.errors![0].message).toContain('an XML declaration must be at the start of the document');
   });
 
   it('should parse SchemaTest.xsd with advanced features', () => {
@@ -272,7 +277,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'schemaTest.xsd': schemaTestXsd,
+        'schemaTest.xsd': getSchemaTestXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -345,7 +350,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'extensionSimple.xsd': extensionSimpleXsd,
+        'extensionSimple.xsd': getExtensionSimpleXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -381,7 +386,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'restrictionSimple.xsd': restrictionSimpleXsd,
+        'restrictionSimple.xsd': getRestrictionSimpleXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -423,7 +428,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'restrictionComplex.xsd': restrictionComplexXsd,
+        'restrictionComplex.xsd': getRestrictionComplexXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -482,7 +487,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'restrictionInheritance.xsd': restrictionInheritanceXsd,
+        'restrictionInheritance.xsd': getRestrictionInheritanceXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -541,7 +546,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'multiLevelExtension.xsd': multiLevelExtensionXsd,
+        'multiLevelExtension.xsd': getMultiLevelExtensionXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -594,7 +599,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'multiLevelRestriction.xsd': multiLevelRestrictionXsd,
+        'multiLevelRestriction.xsd': getMultiLevelRestrictionXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -644,7 +649,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'extensionSimple.xsd': extensionSimpleXsd,
+        'extensionSimple.xsd': getExtensionSimpleXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -675,7 +680,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'restrictionSimple.xsd': restrictionSimpleXsd,
+        'restrictionSimple.xsd': getRestrictionSimpleXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -704,7 +709,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'extensionSimple.xsd': extensionSimpleXsd,
+        'extensionSimple.xsd': getExtensionSimpleXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -737,7 +742,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'invalidComplexExtension.xsd': invalidComplexExtensionXsd,
+        'invalidComplexExtension.xsd': getInvalidComplexExtensionXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -789,7 +794,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
       {
-        'simpleTypeInheritance.xsd': simpleTypeInheritanceXsd,
+        'simpleTypeInheritance.xsd': getSimpleTypeInheritanceXsd(),
       },
     );
     const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -826,7 +831,7 @@ describe('XmlSchemaDocumentService', () => {
       DocumentType.SOURCE_BODY,
       DocumentDefinitionType.XML_SCHEMA,
       BODY_DOCUMENT_ID,
-      { 'element-ref.xsd': elementRefXsd },
+      { 'element-ref.xsd': getElementRefXsd() },
       { namespaceUri: '', name: 'CSV' },
     );
 
@@ -849,8 +854,8 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         'test-doc',
         {
-          'MainWithInclude.xsd': mainWithIncludeXsd,
-          'CommonTypes.xsd': commonTypesXsd,
+          'MainWithInclude.xsd': getMainWithIncludeXsd(),
+          'CommonTypes.xsd': getCommonTypesXsd(),
         },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -883,7 +888,7 @@ describe('XmlSchemaDocumentService', () => {
         'test-doc',
         {
           'schemas/main.xsd': mainSchema,
-          'schemas/common.xsd': commonTypesXsd,
+          'schemas/common.xsd': getCommonTypesXsd(),
         },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -898,14 +903,37 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         'test-doc',
         {
-          'MainWithInclude.xsd': mainWithIncludeXsd,
+          'MainWithInclude.xsd': getMainWithIncludeXsd(),
         },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(result.validationStatus).toBe('error');
-      expect(result.errors![0]).toContain('Missing required schema');
-      expect(result.errors![0]).toContain('CommonTypes.xsd');
-      expect(result.errors![0]).toContain('MainWithInclude.xsd');
+      expect(result.errors![0].message).toContain('Missing required schema');
+      expect(result.errors![0].message).toContain('CommonTypes.xsd');
+      expect(result.errors![0].message).toContain('MainWithInclude.xsd');
+    });
+
+    it('should load multiple schemas with same targetNamespace connected via xs:include', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        {
+          'MultiIncludeMain.xsd': getMultiIncludeMainXsd(),
+          'MultiIncludeComponentA.xsd': getMultiIncludeComponentAXsd(),
+          'MultiIncludeComponentB.xsd': getMultiIncludeComponentBXsd(),
+        },
+      );
+      const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+      expect(result.validationStatus).not.toBe('error');
+      const document = result.document as XmlSchemaDocument;
+      expect(document).toBeDefined();
+
+      const rootElement = document.fields[0];
+      expect(rootElement.name).toEqual('Root');
+      expect(rootElement.fields).toHaveLength(2);
+      expect(rootElement.fields[0].name).toEqual('partA');
+      expect(rootElement.fields[1].name).toEqual('partB');
     });
   });
 
@@ -916,8 +944,8 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         'test-doc',
         {
-          'MainWithImport.xsd': mainWithImportXsd,
-          'ImportedTypes.xsd': importedTypesXsd,
+          'MainWithImport.xsd': getMainWithImportXsd(),
+          'ImportedTypes.xsd': getImportedTypesXsd(),
         },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -954,7 +982,7 @@ describe('XmlSchemaDocumentService', () => {
         'test-doc',
         {
           'schemas/main.xsd': mainSchema,
-          'schemas/types.xsd': importedTypesXsd,
+          'schemas/types.xsd': getImportedTypesXsd(),
         },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -978,7 +1006,7 @@ describe('XmlSchemaDocumentService', () => {
         'test-doc',
         {
           'schema1.xsd': schema1,
-          'ImportedTypes.xsd': importedTypesXsd,
+          'ImportedTypes.xsd': getImportedTypesXsd(),
         },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -1089,6 +1117,7 @@ describe('XmlSchemaDocumentService', () => {
         { 'main.xsd': mainSchema },
         undefined,
         undefined,
+        undefined,
         { ns0: 'http://example.com/main' },
       );
 
@@ -1192,6 +1221,7 @@ describe('XmlSchemaDocumentService', () => {
         { 'main.xsd': mainSchema },
         undefined,
         undefined,
+        undefined,
         { ns0: 'http://example.com/main' },
       );
 
@@ -1255,10 +1285,10 @@ describe('XmlSchemaDocumentService', () => {
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(result.validationStatus).toBe('error');
-      expect(result.errors![0]).toContain('Missing required schema');
-      expect(result.errors![0]).toContain('Missing.xsd');
-      expect(result.errors![0]).toContain('main.xsd');
-      expect(result.errors![0]).toContain('xs:include');
+      expect(result.errors![0].message).toContain('Missing required schema');
+      expect(result.errors![0].message).toContain('Missing.xsd');
+      expect(result.errors![0].message).toContain('main.xsd');
+      expect(result.errors![0].message).toContain('xs:include');
       expect(result.errors).toBeDefined();
       expect(result.errors!.length).toBeGreaterThan(0);
     });
@@ -1280,9 +1310,9 @@ describe('XmlSchemaDocumentService', () => {
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(result.validationStatus).toBe('error');
-      expect(result.errors![0]).toContain('Missing required schema');
-      expect(result.errors![0]).toContain('types.xsd');
-      expect(result.errors![0]).toContain('xs:import');
+      expect(result.errors![0].message).toContain('Missing required schema');
+      expect(result.errors![0].message).toContain('types.xsd');
+      expect(result.errors![0].message).toContain('xs:import');
       expect(result.errors).toBeDefined();
       expect(result.errors!.length).toBeGreaterThan(0);
     });
@@ -1308,7 +1338,7 @@ describe('XmlSchemaDocumentService', () => {
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(result.validationStatus).toBe('error');
-      expect(result.errors![0]).toContain('Circular xs:include');
+      expect(result.errors![0].message).toContain('Circular xs:include');
       expect(result.errors).toBeDefined();
       expect(result.errors!.length).toBeGreaterThan(0);
     });
@@ -1338,9 +1368,8 @@ describe('XmlSchemaDocumentService', () => {
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(result.validationStatus).toBe('warning');
-      expect(result.warnings).toBeDefined();
-      expect(result.warnings!.length).toBeGreaterThan(0);
-      expect(result.warnings![0]).toContain('Circular xs:import');
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings![0].message).toContain('Circular xs:import');
       expect(result.document).toBeDefined();
     });
 
@@ -1391,8 +1420,8 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
         {
-          'MainWithInclude.xsd': mainWithIncludeXsd,
-          'CommonTypes.xsd': commonTypesXsd,
+          'MainWithInclude.xsd': getMainWithIncludeXsd(),
+          'CommonTypes.xsd': getCommonTypesXsd(),
         },
       );
       const initialResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -1412,7 +1441,7 @@ describe('XmlSchemaDocumentService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'shipOrder.xsd': shipOrderXsd, 'ImportedTypes.xsd': importedTypesXsd },
+        { 'shipOrder.xsd': getShipOrderXsd(), 'ImportedTypes.xsd': getImportedTypesXsd() },
       );
 
       const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'ImportedTypes.xsd');
@@ -1425,7 +1454,7 @@ describe('XmlSchemaDocumentService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
-        { 'shipOrder.xsd': shipOrderXsd },
+        { 'shipOrder.xsd': getShipOrderXsd() },
       );
 
       const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd');
@@ -1439,13 +1468,102 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         BODY_DOCUMENT_ID,
         {
-          'MainWithInclude.xsd': mainWithIncludeXsd,
-          'CommonTypes.xsd': commonTypesXsd,
+          'MainWithInclude.xsd': getMainWithIncludeXsd(),
+          'CommonTypes.xsd': getCommonTypesXsd(),
         },
       );
 
       XmlSchemaDocumentService.removeSchemaFile(definition, 'CommonTypes.xsd');
       expect(definition.definitionFiles!['CommonTypes.xsd']).toBeDefined();
     });
+
+    it('should fallback to first element when rootElementChoice is in the removed file', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'shipOrder.xsd': getShipOrderXsd(), 'element-ref.xsd': getElementRefXsd() },
+        { namespaceUri: 'io.kaoto.datamapper.poc.test', name: 'ShipOrder' },
+      );
+
+      const initialResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+      expect(initialResult.document).toBeDefined();
+
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd');
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.documentDefinition!.rootElementChoice).toBeUndefined();
+    });
+
+    it('should preserve rootElementChoice when it is not in the removed file', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'shipOrder.xsd': getShipOrderXsd(), 'element-ref.xsd': getElementRefXsd() },
+        { namespaceUri: 'io.kaoto.datamapper.poc.test', name: 'ShipOrder' },
+      );
+
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'element-ref.xsd');
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.documentDefinition!.rootElementChoice).toEqual({
+        namespaceUri: 'io.kaoto.datamapper.poc.test',
+        name: 'ShipOrder',
+      });
+    });
+  });
+
+  it('should load attribute with inline simple type without crashing', () => {
+    const definition = new DocumentDefinition(
+      DocumentType.SOURCE_BODY,
+      DocumentDefinitionType.XML_SCHEMA,
+      BODY_DOCUMENT_ID,
+      { 'InlineAttrSimpleType.xsd': getInlineAttrSimpleTypeXsd() },
+      { namespaceUri: '', name: 'Root' },
+    );
+
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    expect(result.validationStatus).toBe('success');
+    const document = result.document as XmlSchemaDocument;
+    expect(document).toBeDefined();
+    expect(document.fields[0].name).toEqual('Root');
+
+    const statusAttr = document.fields[0].fields.find((f) => f.name === 'Status' && f.isAttribute);
+    expect(statusAttr).toBeDefined();
+    expect(statusAttr!.type).toEqual(Types.AnyType);
+  });
+
+  it('should load large anonymous-typed global element ref schema within time budget', () => {
+    const definition = new DocumentDefinition(
+      DocumentType.SOURCE_BODY,
+      DocumentDefinitionType.XML_SCHEMA,
+      BODY_DOCUMENT_ID,
+      { 'AnonymousGlobalElementRefLarge.xsd': getAnonymousGlobalElementRefLargeXsd() },
+      { namespaceUri: '', name: 'Root' },
+    );
+
+    const start = performance.now();
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    const elapsed = performance.now() - start;
+
+    expect(result.validationStatus).toBe('success');
+    expect(result.document).toBeDefined();
+    expect(elapsed).toBeLessThan(5000);
+
+    const document = result.document as XmlSchemaDocument;
+    expect(document.namedTypeFragments['__elem::TypeA01']).toBeDefined();
+    expect(document.namedTypeFragments['__elem::TypeB01']).toBeDefined();
+    expect(document.namedTypeFragments['__elem::TypeC01']).toBeDefined();
+    expect(document.namedTypeFragments['__elem::TypeD01']).toBeDefined();
+    expect(document.namedTypeFragments['__elem::TypeE01']).toBeDefined();
+    expect(document.namedTypeFragments['__elem::TypeF01']).toBeDefined();
+
+    const bigContainerFragment = document.namedTypeFragments['BigContainer'];
+    expect(bigContainerFragment).toBeDefined();
+    const typeA01Field = bigContainerFragment.fields.find((f) => f.name === 'TypeA01');
+    expect(typeA01Field).toBeDefined();
+    expect(typeA01Field!.type).toEqual(Types.Container);
+    expect(typeA01Field!.originalType).toEqual(Types.Container);
   });
 });

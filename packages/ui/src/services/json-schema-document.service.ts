@@ -46,7 +46,7 @@ export class JsonSchemaDocumentService {
     if (filePaths.length === 0) {
       return {
         validationStatus: 'error',
-        errors: ['No schema files provided in DocumentDefinition'],
+        errors: [{ message: 'No schema files provided in DocumentDefinition' }],
         documentDefinition: definition,
       };
     }
@@ -67,7 +67,9 @@ export class JsonSchemaDocumentService {
       if (!found) {
         return {
           validationStatus: 'error',
-          errors: [`Primary schema file '${definition.rootElementChoice.name}' not found in loaded schemas`],
+          errors: [
+            { message: `Primary schema file '${definition.rootElementChoice.name}' not found in loaded schemas` },
+          ],
           documentDefinition: definition,
         };
       }
@@ -100,18 +102,20 @@ export class JsonSchemaDocumentService {
 
     const document = jsonDocument;
 
-    if (definition.fieldTypeOverrides?.length) {
-      DocumentUtilService.processTypeOverrides(
-        document,
-        definition.fieldTypeOverrides,
-        definition.namespaceMap || {},
-        JsonSchemaTypesService.parseTypeOverride,
-      );
-    }
+    DocumentUtilService.processOverrides(
+      document,
+      definition.fieldTypeOverrides ?? [],
+      definition.choiceSelections ?? [],
+      definition.namespaceMap || {},
+      JsonSchemaTypesService.parseTypeOverride,
+    );
+
+    const validationWarnings = analysisResult.warnings;
+    const validationStatus = validationWarnings.length > 0 ? 'warning' : 'success';
 
     return {
-      validationStatus: analysisResult.warnings.length > 0 ? 'warning' : 'success',
-      warnings: analysisResult.warnings,
+      validationStatus,
+      warnings: validationWarnings.length > 0 ? validationWarnings : undefined,
       documentDefinition: definition,
       document,
       rootElementOptions: [],
@@ -164,9 +168,21 @@ export class JsonSchemaDocumentService {
       updatedFiles,
       definition.rootElementChoice,
       definition.fieldTypeOverrides,
+      definition.choiceSelections,
       definition.namespaceMap,
     );
 
+    // Try to create the Document object. It could fail if the primary schema is the removed schema file.
+    // In that case, we unset updatedDefinition.rootElementChoice and retry.
+    const result = JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition);
+
+    // If it succeeds or a primary schema not set, return as it is
+    if (result.document || !definition.rootElementChoice) {
+      return result;
+    }
+
+    // Unset the primary schema and retry
+    updatedDefinition.rootElementChoice = undefined;
     return JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition);
   }
 

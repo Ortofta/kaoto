@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { FunctionComponent, MouseEvent, useCallback, useRef } from 'react';
+import { FunctionComponent, KeyboardEvent, MouseEvent, useCallback, useRef } from 'react';
 
 import { useCanvas } from '../../hooks/useCanvas';
 import { useMappingLinks } from '../../hooks/useMappingLinks';
@@ -8,6 +8,7 @@ import { NodeReference } from '../../models/datamapper/visualization';
 import { TreeUIService } from '../../services/tree-ui.service';
 import { VisualizationService } from '../../services/visualization.service';
 import { useDocumentTreeStore } from '../../store';
+import { handleNodeKeyDown } from './document-node.utils';
 import { NodeContainer } from './NodeContainer';
 import { BaseNode } from './Nodes/BaseNode';
 import { NodeTitle } from './NodeTitle';
@@ -50,6 +51,7 @@ export const SourceDocumentNode: FunctionComponent<TreeSourceNodeProps> = ({
   );
 
   const isCollectionField = VisualizationService.isCollectionField(nodeData);
+  const isChoiceField = VisualizationService.isChoiceField(nodeData);
   const isAttributeField = VisualizationService.isAttributeField(nodeData);
   const isDraggable = !isDocument || VisualizationService.isPrimitiveDocumentNode(nodeData);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -76,12 +78,20 @@ export const SourceDocumentNode: FunctionComponent<TreeSourceNodeProps> = ({
     [toggleSelectedNodeReference],
   );
 
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => handleNodeKeyDown(event, () => toggleSelectedNodeReference(nodeReference)),
+    [toggleSelectedNodeReference],
+  );
+
   return (
     <div
       data-testid={`node-source-${nodeData.id}`}
       data-selected={isSelected}
       className="node__container"
+      role="button"
+      tabIndex={0}
       onClick={handleClickField}
+      onKeyDown={handleKeyDown}
     >
       <NodeContainer ref={containerRef} nodeData={nodeData}>
         <div className="node__header">
@@ -94,6 +104,7 @@ export const SourceDocumentNode: FunctionComponent<TreeSourceNodeProps> = ({
               isDraggable={isDraggable}
               iconType={nodeData.type}
               isCollectionField={isCollectionField}
+              isChoiceField={isChoiceField}
               isAttributeField={isAttributeField}
               title={<NodeTitle className="node__spacer" nodeData={nodeData} isDocument={isDocument} rank={rank} />}
               rank={rank}

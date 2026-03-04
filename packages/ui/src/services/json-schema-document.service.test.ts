@@ -4,13 +4,13 @@ import { DocumentDefinition, DocumentDefinitionType, PathExpression, Types } fro
 import { BODY_DOCUMENT_ID, DocumentType } from '../models/datamapper/document';
 import { NS_XPATH_FUNCTIONS } from '../models/datamapper/standard-namespaces';
 import {
-  accountJsonSchema,
-  camelYamlDslJsonSchema,
-  commonTypesJsonSchema,
-  customerJsonSchema,
-  mainWithRefJsonSchema,
-  orderJsonSchema,
-  productJsonSchema,
+  getAccountJsonSchema,
+  getCamelYamlDslJsonSchema,
+  getCommonTypesJsonSchema,
+  getCustomerJsonSchema,
+  getMainWithRefJsonSchema,
+  getOrderJsonSchema,
+  getProductJsonSchema,
 } from '../stubs/datamapper/data-mapper';
 import { DocumentUtilService } from './document-util.service';
 import { JsonSchemaDocument } from './json-schema-document.model';
@@ -25,7 +25,7 @@ function createTestJsonDocument(documentType: DocumentType, documentId: string, 
   );
   const result = JsonSchemaDocumentService.createJsonSchemaDocument(definition);
   if (result.validationStatus === 'error' || !result.document) {
-    throw new Error(result.errors?.join('; ') || 'Failed to create document');
+    throw new Error(result.errors?.map((e) => e.message).join('; ') || 'Failed to create document');
   }
   return result.document;
 }
@@ -254,7 +254,7 @@ describe('JsonSchemaDocumentService', () => {
   });
 
   it('should parse camelYamlDsl', () => {
-    const camelDoc = createTestJsonDocument(DocumentType.PARAM, 'test', camelYamlDslJsonSchema);
+    const camelDoc = createTestJsonDocument(DocumentType.PARAM, 'test', getCamelYamlDslJsonSchema());
 
     expect(camelDoc).toBeDefined();
     expect(camelDoc.fields.length).toBe(1);
@@ -522,16 +522,16 @@ describe('JsonSchemaDocumentService', () => {
       );
       const result = JsonSchemaDocumentService.createJsonSchemaDocument(definition);
       if (result.validationStatus === 'error' || !result.document) {
-        throw new Error(result.errors?.join('; ') || 'Failed to create document');
+        throw new Error(result.errors?.map((e) => e.message).join('; ') || 'Failed to create document');
       }
       return result.document;
     };
 
     it('should load multiple schema files', () => {
       const doc = createMultiSchemaDocument(DocumentType.PARAM, 'multiTest1', {
-        'Order.schema.json': orderJsonSchema,
-        'Customer.schema.json': customerJsonSchema,
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'Order.schema.json': getOrderJsonSchema(),
+        'Customer.schema.json': getCustomerJsonSchema(),
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       expect(doc).toBeDefined();
@@ -543,9 +543,9 @@ describe('JsonSchemaDocumentService', () => {
 
     it('should resolve relative path external $ref', () => {
       const doc = createMultiSchemaDocument(DocumentType.PARAM, 'multiTest2', {
-        'Order.schema.json': orderJsonSchema,
-        'Customer.schema.json': customerJsonSchema,
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'Order.schema.json': getOrderJsonSchema(),
+        'Customer.schema.json': getCustomerJsonSchema(),
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       const root = doc.fields[0];
@@ -564,9 +564,9 @@ describe('JsonSchemaDocumentService', () => {
 
     it('should resolve $id-based URI external $ref', () => {
       const doc = createMultiSchemaDocument(DocumentType.PARAM, 'multiTest3', {
-        'Order.schema.json': orderJsonSchema,
-        'Customer.schema.json': customerJsonSchema,
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'Order.schema.json': getOrderJsonSchema(),
+        'Customer.schema.json': getCustomerJsonSchema(),
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       const root = doc.fields[0];
@@ -582,9 +582,9 @@ describe('JsonSchemaDocumentService', () => {
 
     it('should handle nested cross-file references', () => {
       const doc = createMultiSchemaDocument(DocumentType.PARAM, 'multiTest4', {
-        'Order.schema.json': orderJsonSchema,
-        'Customer.schema.json': customerJsonSchema,
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'Order.schema.json': getOrderJsonSchema(),
+        'Customer.schema.json': getCustomerJsonSchema(),
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       const root = doc.fields[0];
@@ -602,8 +602,8 @@ describe('JsonSchemaDocumentService', () => {
 
     it('should use first schema as document schema', () => {
       const customerFirstDoc = createMultiSchemaDocument(DocumentType.PARAM, 'customerFirst', {
-        'Customer.schema.json': customerJsonSchema,
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'Customer.schema.json': getCustomerJsonSchema(),
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       const root = customerFirstDoc.fields[0];
@@ -612,7 +612,7 @@ describe('JsonSchemaDocumentService', () => {
     });
 
     it('should maintain backward compatibility with single-file schemas', () => {
-      const singleFileDoc = createTestJsonDocument(DocumentType.PARAM, 'test', accountJsonSchema);
+      const singleFileDoc = createTestJsonDocument(DocumentType.PARAM, 'test', getAccountJsonSchema());
 
       expect(singleFileDoc.fields[0].type).toBe(Types.Container);
     });
@@ -622,9 +622,9 @@ describe('JsonSchemaDocumentService', () => {
         DocumentType.PARAM,
         'customer',
         {
-          'Order.schema.json': orderJsonSchema,
-          'Customer.schema.json': customerJsonSchema,
-          'CommonTypes.schema.json': commonTypesJsonSchema,
+          'Order.schema.json': getOrderJsonSchema(),
+          'Customer.schema.json': getCustomerJsonSchema(),
+          'CommonTypes.schema.json': getCommonTypesJsonSchema(),
         },
         { namespaceUri: '', name: 'Customer.schema.json' },
       );
@@ -639,9 +639,9 @@ describe('JsonSchemaDocumentService', () => {
 
     it('should default to first file when rootElementChoice not specified', () => {
       const doc = createMultiSchemaDocument(DocumentType.PARAM, 'customer', {
-        'Customer.schema.json': customerJsonSchema,
-        'Order.schema.json': orderJsonSchema,
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'Customer.schema.json': getCustomerJsonSchema(),
+        'Order.schema.json': getOrderJsonSchema(),
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       const root = doc.fields[0];
@@ -655,14 +655,14 @@ describe('JsonSchemaDocumentService', () => {
         DocumentDefinitionType.JSON_SCHEMA,
         'order',
         {
-          'Order.schema.json': orderJsonSchema,
+          'Order.schema.json': getOrderJsonSchema(),
         },
         { namespaceUri: '', name: 'NonExistent.schema.json' },
       );
 
       const result = JsonSchemaDocumentService.createJsonSchemaDocument(definition);
       expect(result.validationStatus).toBe('error');
-      expect(result.errors?.join('; ')).toContain('NonExistent.schema.json');
+      expect(result.errors?.map((e) => e.message).join('; ')).toContain('NonExistent.schema.json');
       expect(result.errors).toBeDefined();
       expect(result.errors!.length).toBeGreaterThan(0);
     });
@@ -675,8 +675,8 @@ describe('JsonSchemaDocumentService', () => {
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
         {
-          'MainWithRef.schema.json': mainWithRefJsonSchema,
-          'CommonTypes.schema.json': commonTypesJsonSchema,
+          'MainWithRef.schema.json': getMainWithRefJsonSchema(),
+          'CommonTypes.schema.json': getCommonTypesJsonSchema(),
         },
       );
 
@@ -704,8 +704,8 @@ describe('JsonSchemaDocumentService', () => {
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
         {
-          'nested/Product.schema.json': productJsonSchema,
-          'CommonTypes.schema.json': commonTypesJsonSchema,
+          'nested/Product.schema.json': getProductJsonSchema(),
+          'CommonTypes.schema.json': getCommonTypesJsonSchema(),
         },
       );
 
@@ -733,13 +733,13 @@ describe('JsonSchemaDocumentService', () => {
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
         {
-          'MainWithRef.schema.json': mainWithRefJsonSchema,
+          'MainWithRef.schema.json': getMainWithRefJsonSchema(),
         },
       );
 
       const result = JsonSchemaDocumentService.createJsonSchemaDocument(definition);
       expect(result.validationStatus).toBe('error');
-      expect(result.errors?.join('; ')).toContain('CommonTypes.schema.json');
+      expect(result.errors?.map((e) => e.message).join('; ')).toContain('CommonTypes.schema.json');
       expect(result.errors).toBeDefined();
       expect(result.errors!.length).toBeGreaterThan(0);
     });
@@ -763,7 +763,7 @@ describe('JsonSchemaDocumentService', () => {
       expect(document).toBeDefined();
 
       JsonSchemaDocumentService.addSchemaFiles(document, {
-        'CommonTypes.schema.json': commonTypesJsonSchema,
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
       });
 
       const collection = document.schemaCollection;
@@ -808,8 +808,8 @@ describe('JsonSchemaDocumentService', () => {
       const document = result.document!;
 
       JsonSchemaDocumentService.addSchemaFiles(document, {
-        'CommonTypes.schema.json': commonTypesJsonSchema,
-        'Customer.schema.json': customerJsonSchema,
+        'CommonTypes.schema.json': getCommonTypesJsonSchema(),
+        'Customer.schema.json': getCustomerJsonSchema(),
       });
 
       const collection = document.schemaCollection;
@@ -843,8 +843,8 @@ describe('JsonSchemaDocumentService', () => {
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
         {
-          'MainWithRef.schema.json': mainWithRefJsonSchema,
-          'CommonTypes.schema.json': commonTypesJsonSchema,
+          'MainWithRef.schema.json': getMainWithRefJsonSchema(),
+          'CommonTypes.schema.json': getCommonTypesJsonSchema(),
         },
       );
       const initialResult = JsonSchemaDocumentService.createJsonSchemaDocument(definition);
@@ -864,7 +864,7 @@ describe('JsonSchemaDocumentService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
-        { 'Account.schema.json': accountJsonSchema, 'camelYamlDsl.json': camelYamlDslJsonSchema },
+        { 'Account.schema.json': getAccountJsonSchema(), 'camelYamlDsl.json': getCamelYamlDslJsonSchema() },
       );
 
       const removeResult = JsonSchemaDocumentService.removeSchemaFile(definition, 'camelYamlDsl.json');
@@ -877,7 +877,7 @@ describe('JsonSchemaDocumentService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
-        { 'Account.schema.json': accountJsonSchema },
+        { 'Account.schema.json': getAccountJsonSchema() },
       );
 
       const removeResult = JsonSchemaDocumentService.removeSchemaFile(definition, 'Account.schema.json');
@@ -891,13 +891,46 @@ describe('JsonSchemaDocumentService', () => {
         DocumentDefinitionType.JSON_SCHEMA,
         'test-doc',
         {
-          'MainWithRef.schema.json': mainWithRefJsonSchema,
-          'CommonTypes.schema.json': commonTypesJsonSchema,
+          'MainWithRef.schema.json': getMainWithRefJsonSchema(),
+          'CommonTypes.schema.json': getCommonTypesJsonSchema(),
         },
       );
 
       JsonSchemaDocumentService.removeSchemaFile(definition, 'CommonTypes.schema.json');
       expect(definition.definitionFiles!['CommonTypes.schema.json']).toBeDefined();
+    });
+
+    it('should fallback to first schema when rootElementChoice is the removed file', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.JSON_SCHEMA,
+        'test-doc',
+        { 'Account.schema.json': getAccountJsonSchema(), 'camelYamlDsl.json': getCamelYamlDslJsonSchema() },
+        { namespaceUri: '', name: 'Account.schema.json' },
+      );
+
+      const removeResult = JsonSchemaDocumentService.removeSchemaFile(definition, 'Account.schema.json');
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.documentDefinition!.rootElementChoice).toBeUndefined();
+    });
+
+    it('should preserve rootElementChoice when it is not the removed file', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.JSON_SCHEMA,
+        'test-doc',
+        { 'Account.schema.json': getAccountJsonSchema(), 'camelYamlDsl.json': getCamelYamlDslJsonSchema() },
+        { namespaceUri: '', name: 'Account.schema.json' },
+      );
+
+      const removeResult = JsonSchemaDocumentService.removeSchemaFile(definition, 'camelYamlDsl.json');
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.documentDefinition!.rootElementChoice).toEqual({
+        namespaceUri: '',
+        name: 'Account.schema.json',
+      });
     });
   });
 });

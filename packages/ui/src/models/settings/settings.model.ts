@@ -14,11 +14,22 @@ export const enum ColorScheme {
   Dark = 'dark',
 }
 
+export const enum CanvasLayoutDirection {
+  SelectInCanvas = 'SelectInCanvas',
+  Horizontal = 'Horizontal',
+  Vertical = 'Vertical',
+}
+
 export interface ISettingsModel {
   catalogUrl: string;
   nodeLabel: NodeLabelType;
   nodeToolbarTrigger: NodeToolbarTrigger;
   colorScheme: ColorScheme;
+  rest: {
+    apicurioRegistryUrl: string;
+    customMediaTypes: string[];
+  };
+  canvasLayoutDirection: CanvasLayoutDirection;
   experimentalFeatures: {
     enableDragAndDrop: boolean;
   };
@@ -34,11 +45,28 @@ export class SettingsModel implements ISettingsModel {
   nodeLabel: NodeLabelType = NodeLabelType.Description;
   nodeToolbarTrigger: NodeToolbarTrigger = NodeToolbarTrigger.onHover;
   colorScheme: ColorScheme = ColorScheme.Auto;
+  rest = {
+    apicurioRegistryUrl: '',
+    customMediaTypes: [] as string[],
+  };
+  canvasLayoutDirection: CanvasLayoutDirection = CanvasLayoutDirection.SelectInCanvas;
   experimentalFeatures = {
     enableDragAndDrop: true,
   };
 
   constructor(options: Partial<ISettingsModel> = {}) {
-    Object.assign(this, options);
+    // Extract nested objects before Object.assign
+    const { rest, experimentalFeatures, ...topLevel } = options;
+
+    // Assign top-level properties
+    Object.assign(this, topLevel);
+
+    // Deep merge nested objects to preserve defaults
+    if (rest) {
+      this.rest = { ...this.rest, ...rest };
+    }
+    if (experimentalFeatures) {
+      this.experimentalFeatures = { ...this.experimentalFeatures, ...experimentalFeatures };
+    }
   }
 }

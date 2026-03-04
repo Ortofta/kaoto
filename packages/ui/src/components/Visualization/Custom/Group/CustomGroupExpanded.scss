@@ -73,6 +73,26 @@
         border-color: var(--pf-topology__node--m-danger--Background--Fill);
         box-shadow: var(--custom-node-Shadow);
       }
+
+      &__draggedGroup {
+        @include custom.drag-group;
+      }
+
+      &__dropTarget-right {
+        border-right: var(--custom-group-border-dropTarget);
+      }
+
+      &__dropTarget-left {
+        border-left: var(--custom-group-border-dropTarget);
+      }
+
+      &__possibleDropTarget-right {
+        border-right: var(--custom-group-border-possibleDropTarget);
+      }
+
+      &__possibleDropTarget-left {
+        border-left: var(--custom-group-border-possibleDropTarget);
+      }
     }
 
     &__disabled-icon {

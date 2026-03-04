@@ -274,7 +274,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -319,16 +325,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -367,7 +374,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -412,16 +425,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -460,7 +474,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -505,16 +525,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -553,7 +574,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -598,16 +625,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-database"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         database
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -646,7 +674,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -691,16 +725,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-file"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         file
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -739,7 +774,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -784,16 +825,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-http"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         http
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -832,7 +874,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -877,16 +925,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -925,7 +974,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -970,16 +1025,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1018,7 +1074,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1063,16 +1125,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1111,7 +1174,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1156,16 +1225,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1204,7 +1274,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1249,16 +1325,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1297,7 +1374,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1342,16 +1425,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1390,7 +1474,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1435,16 +1525,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1483,7 +1574,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1528,16 +1625,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1576,7 +1674,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1621,16 +1725,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1669,7 +1774,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1714,16 +1825,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1762,7 +1874,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1807,16 +1925,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1855,7 +1974,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1900,16 +2025,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-sink"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         sink
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -1948,7 +2074,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -1993,16 +2125,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2041,7 +2174,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2086,16 +2225,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2134,7 +2274,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2179,16 +2325,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2227,7 +2374,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2272,16 +2425,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2320,7 +2474,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2365,16 +2525,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2413,7 +2574,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2458,16 +2625,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2506,7 +2674,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2551,16 +2725,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2599,7 +2774,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2644,16 +2825,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2692,7 +2874,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2737,16 +2925,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2785,7 +2974,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2830,16 +3025,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2878,7 +3074,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -2923,16 +3125,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-sink"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         sink
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -2971,7 +3174,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3016,16 +3225,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3064,7 +3274,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3109,16 +3325,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3157,7 +3374,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3202,16 +3425,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3250,7 +3474,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3295,16 +3525,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3343,7 +3574,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3388,16 +3625,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-database"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         database
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3436,7 +3674,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3481,16 +3725,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-file"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         file
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3529,7 +3774,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3574,16 +3825,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-http"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         http
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3622,7 +3874,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="component icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3667,16 +3925,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-messaging"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         messaging
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3715,7 +3974,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3760,16 +4025,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3808,7 +4074,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3853,16 +4125,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3901,7 +4174,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -3946,16 +4225,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -3994,7 +4274,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4039,16 +4325,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4087,7 +4374,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4132,16 +4425,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4180,7 +4474,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4225,16 +4525,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4273,7 +4574,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4318,16 +4625,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4366,7 +4674,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4411,16 +4725,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4459,7 +4774,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4504,16 +4825,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4552,7 +4874,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="processor icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4597,16 +4925,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-eip"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         eip
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4645,7 +4974,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4690,16 +5025,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-sink"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         sink
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4738,7 +5074,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4783,16 +5125,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -4831,7 +5174,13 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
           >
             <div
               class="tile__header"
-            />
+            >
+              <img
+                alt="Kamelet icon"
+                class="tile__icon"
+                src="file-mock-data"
+              />
+            </div>
             <div
               class="pf-v6-c-card__title"
             >
@@ -4876,16 +5225,17 @@ exports[`BaseCatalog renders correctly with Gallery Layout 1`] = `
                   <span
                     class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                   >
-                    <a
+                    <button
                       class="pf-v6-c-label__content"
                       data-testid="tag-source"
+                      type="button"
                     >
                       <span
                         class="pf-v6-c-label__text"
                       >
                         source
                       </span>
-                    </a>
+                    </button>
                   </span>
                 </li>
               </ul>
@@ -5167,6 +5517,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5199,16 +5554,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5261,6 +5617,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5293,16 +5654,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5355,6 +5717,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5387,16 +5754,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5449,6 +5817,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5481,16 +5854,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-database"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   database
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5543,6 +5917,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5575,16 +5954,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-file"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   file
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5637,6 +6017,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5669,16 +6054,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-http"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   http
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5731,6 +6117,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5763,16 +6154,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5825,6 +6217,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5857,16 +6254,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -5919,6 +6317,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -5951,16 +6354,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6013,6 +6417,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6045,16 +6454,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6107,6 +6517,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6139,16 +6554,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6201,6 +6617,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6233,16 +6654,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6295,6 +6717,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6327,16 +6754,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6389,6 +6817,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6421,16 +6854,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6483,6 +6917,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6515,16 +6954,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6577,6 +7017,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6609,16 +7054,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6671,6 +7117,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6703,16 +7154,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6765,6 +7217,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6797,16 +7254,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-sink"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   sink
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6859,6 +7317,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6891,16 +7354,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -6953,6 +7417,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -6985,16 +7454,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7047,6 +7517,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7079,16 +7554,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7141,6 +7617,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7173,16 +7654,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7235,6 +7717,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7267,16 +7754,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7329,6 +7817,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7361,16 +7854,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7423,6 +7917,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7455,16 +7954,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7517,6 +8017,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7549,16 +8054,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7611,6 +8117,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7643,16 +8154,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7705,6 +8217,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7737,16 +8254,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7799,6 +8317,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7831,16 +8354,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-sink"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   sink
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7893,6 +8417,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -7925,16 +8454,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -7987,6 +8517,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8019,16 +8554,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8081,6 +8617,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8113,16 +8654,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8175,6 +8717,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8207,16 +8754,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8269,6 +8817,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8301,16 +8854,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-database"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   database
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8363,6 +8917,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8395,16 +8954,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-file"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   file
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8457,6 +9017,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8489,16 +9054,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-http"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   http
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8551,6 +9117,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="component icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8583,16 +9154,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-messaging"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   messaging
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8645,6 +9217,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8677,16 +9254,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8739,6 +9317,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8771,16 +9354,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8833,6 +9417,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8865,16 +9454,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -8927,6 +9517,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -8959,16 +9554,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9021,6 +9617,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9053,16 +9654,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9115,6 +9717,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9147,16 +9754,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9209,6 +9817,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9241,16 +9854,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9303,6 +9917,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9335,16 +9954,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9397,6 +10017,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9429,16 +10054,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9491,6 +10117,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="processor icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9523,16 +10154,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-eip"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   eip
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9585,6 +10217,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9617,16 +10254,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-sink"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   sink
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9679,6 +10317,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9711,16 +10354,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>
@@ -9773,6 +10417,11 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                   <div
                     class="catalog-data-list-item__title-div-left"
                   >
+                    <img
+                      alt="Kamelet icon"
+                      class="catalog-data-list-item__title-div-left__icon"
+                      src="file-mock-data"
+                    />
                     <span
                       class="catalog-data-list-item__title-div-left__title"
                       id="clickable-action-item1"
@@ -9805,16 +10454,17 @@ exports[`BaseCatalog renders correctly with List Layout 1`] = `
                             <span
                               class="pf-v6-c-label pf-m-filled pf-m-compact pf-m-clickable"
                             >
-                              <a
+                              <button
                                 class="pf-v6-c-label__content"
                                 data-testid="tag-source"
+                                type="button"
                               >
                                 <span
                                   class="pf-v6-c-label__text"
                                 >
                                   source
                                 </span>
-                              </a>
+                              </button>
                             </span>
                           </li>
                         </ul>

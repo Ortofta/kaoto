@@ -9,14 +9,21 @@ import {
 } from '../models/datamapper';
 import { NS_XML_SCHEMA } from '../models/datamapper/standard-namespaces';
 import { TypeOverrideVariant } from '../models/datamapper/types';
-import { importedTypesXsd, namedTypesXsd, shipOrderXsd, TestUtil } from '../stubs/datamapper/data-mapper';
+import { getImportedTypesXsd, getNamedTypesXsd, getShipOrderXsd, TestUtil } from '../stubs/datamapper/data-mapper';
 import { FieldTypeOverrideService } from './field-type-override.service';
 import { JsonSchemaDocument } from './json-schema-document.model';
 import { JsonSchemaDocumentService } from './json-schema-document.service';
-import { XmlSchemaDocument } from './xml-schema-document.model';
+import { XmlSchemaDocument, XmlSchemaField } from './xml-schema-document.model';
 import { XmlSchemaDocumentService } from './xml-schema-document.service';
 
 describe('FieldTypeOverrideService', () => {
+  function makeChoiceField(parent: XmlSchemaField, memberNames: string[]) {
+    const choiceField = new XmlSchemaField(parent, 'choice', false);
+    choiceField.isChoice = true;
+    choiceField.fields = memberNames.map((n) => new XmlSchemaField(choiceField, n, false));
+    return choiceField;
+  }
+
   describe('getSafeOverrideCandidates()', () => {
     it('should return all types for xs:anyType fields', () => {
       const doc = TestUtil.createSourceOrderDoc();
@@ -62,7 +69,7 @@ describe('FieldTypeOverrideService', () => {
         DocumentType.SOURCE_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         'test-doc',
-        { 'NamedTypes.xsd': namedTypesXsd },
+        { 'NamedTypes.xsd': getNamedTypesXsd() },
       );
 
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -136,7 +143,8 @@ describe('FieldTypeOverrideService', () => {
           DocumentType.SOURCE_BODY,
           DocumentDefinitionType.XML_SCHEMA,
           'test-doc',
-          { 'ShipOrder.xsd': shipOrderXsd },
+          { 'ShipOrder.xsd': getShipOrderXsd() },
+          undefined,
           undefined,
           undefined,
           { ns0: 'io.kaoto.datamapper.poc.test' },
@@ -146,7 +154,7 @@ describe('FieldTypeOverrideService', () => {
         const document = result.document as XmlSchemaDocument;
 
         const updatedDef = FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
-          'ImportedTypes.xsd': importedTypesXsd,
+          'ImportedTypes.xsd': getImportedTypesXsd(),
         });
 
         expect(Object.keys(updatedDef.definitionFiles || {})).toContain('ShipOrder.xsd');
@@ -162,7 +170,8 @@ describe('FieldTypeOverrideService', () => {
           DocumentType.SOURCE_BODY,
           DocumentDefinitionType.XML_SCHEMA,
           'test-doc',
-          { 'ShipOrder.xsd': shipOrderXsd },
+          { 'ShipOrder.xsd': getShipOrderXsd() },
+          undefined,
           undefined,
           undefined,
           { ns0: 'io.kaoto.datamapper.poc.test', custom: 'http://example.com/custom' },
@@ -172,7 +181,7 @@ describe('FieldTypeOverrideService', () => {
         const document = result.document as XmlSchemaDocument;
 
         const updatedDef = FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
-          'ImportedTypes.xsd': importedTypesXsd,
+          'ImportedTypes.xsd': getImportedTypesXsd(),
         });
 
         const namespaceMap = updatedDef.namespaceMap || {};
@@ -230,7 +239,8 @@ describe('FieldTypeOverrideService', () => {
           DocumentType.SOURCE_BODY,
           DocumentDefinitionType.XML_SCHEMA,
           'test-doc',
-          { 'ShipOrder.xsd': shipOrderXsd },
+          { 'ShipOrder.xsd': getShipOrderXsd() },
+          undefined,
           undefined,
           undefined,
           { ns0: 'io.kaoto.datamapper.poc.test' },
@@ -244,6 +254,61 @@ describe('FieldTypeOverrideService', () => {
         expect(updatedDef.definitionFiles).toEqual(definition.definitionFiles);
         expect(updatedDef.namespaceMap).toEqual(definition.namespaceMap);
       });
+    });
+  });
+
+  describe('createFieldTypeOverride()', () => {
+    it('should create override with schemaPath property', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const stringField = doc.fields[0].fields.find((f) => f.name === 'OrderPerson');
+      if (!stringField) throw new Error('Field not found');
+
+      const candidate = {
+        displayName: 'xs:int',
+        typeString: 'xs:int',
+        type: Types.Integer,
+        namespaceURI: NS_XML_SCHEMA,
+        isBuiltIn: true,
+      };
+
+      const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      const override = FieldTypeOverrideService.createFieldTypeOverride(
+        stringField,
+        candidate,
+        namespaceMap,
+        TypeOverrideVariant.FORCE,
+      );
+
+      expect(override.schemaPath).toBe('/ns0:ShipOrder/ns0:OrderPerson');
+      expect(override.type).toBe('xs:int');
+      expect(override.variant).toBe(TypeOverrideVariant.FORCE);
+    });
+
+    it('should create override with schema path through choice compositor', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, []);
+      const emailField = new XmlSchemaField(choiceField, 'email', false);
+      choiceField.fields = [emailField];
+      shipOrderField.fields.push(choiceField);
+
+      const candidate = {
+        displayName: 'xs:int',
+        typeString: 'xs:int',
+        type: Types.Integer,
+        namespaceURI: NS_XML_SCHEMA,
+        isBuiltIn: true,
+      };
+
+      const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      const override = FieldTypeOverrideService.createFieldTypeOverride(
+        emailField,
+        candidate,
+        namespaceMap,
+        TypeOverrideVariant.FORCE,
+      );
+
+      expect(override.schemaPath).toBe('/ns0:ShipOrder/{choice:0}/email');
     });
   });
 
@@ -276,7 +341,46 @@ describe('FieldTypeOverrideService', () => {
       expect(stringField.type).toBe(Types.Integer);
       expect(stringField.typeOverride).toBe(TypeOverrideVariant.FORCE);
       expect(doc.definition.fieldTypeOverrides).toBeDefined();
-      expect(doc.definition.fieldTypeOverrides?.length).toBeGreaterThan(0);
+      expect(doc.definition.fieldTypeOverrides![0].schemaPath).toBe('/ns0:ShipOrder/ns0:OrderPerson');
+    });
+
+    it('should invalidate descendant overrides and selections after applying type override', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      doc.definition.fieldTypeOverrides = [
+        {
+          schemaPath: '/ns0:ShipOrder/ShipTo/City',
+          type: 'xs:int',
+          originalType: 'xs:string',
+          variant: TypeOverrideVariant.FORCE,
+        },
+      ];
+      doc.definition.choiceSelections = [{ schemaPath: '/ns0:ShipOrder/ShipTo/{choice:0}', selectedMemberIndex: 0 }];
+
+      const shipToField = shipOrderField.fields.find((f) => f.name === 'ShipTo');
+      if (!shipToField) throw new Error('ShipTo field not found');
+
+      const candidate = {
+        displayName: 'xs:int',
+        typeString: 'xs:int',
+        type: Types.Integer,
+        namespaceURI: NS_XML_SCHEMA,
+        isBuiltIn: true,
+      };
+
+      const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      FieldTypeOverrideService.applyFieldTypeOverride(
+        doc,
+        shipToField,
+        candidate,
+        namespaceMap,
+        TypeOverrideVariant.FORCE,
+      );
+
+      expect(doc.definition.fieldTypeOverrides?.some((o) => o.schemaPath === '/ns0:ShipOrder/ShipTo/City')).toBe(false);
+      expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/ShipTo/{choice:0}')).toBe(
+        false,
+      );
     });
 
     it('should apply override to JSON document field', () => {
@@ -422,6 +526,239 @@ describe('FieldTypeOverrideService', () => {
 
       expect(stringField.type).toBe(originalType);
       expect(stringField.typeOverride).toBe(TypeOverrideVariant.NONE);
+    });
+
+    it('should invalidate descendant overrides and selections after reverting type override', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const shipToField = shipOrderField.fields.find((f) => f.name === 'ShipTo');
+      if (!shipToField) throw new Error('ShipTo field not found');
+
+      const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      const candidate = {
+        displayName: 'xs:int',
+        typeString: 'xs:int',
+        type: Types.Integer,
+        namespaceURI: NS_XML_SCHEMA,
+        isBuiltIn: true,
+      };
+      FieldTypeOverrideService.applyFieldTypeOverride(
+        doc,
+        shipToField,
+        candidate,
+        namespaceMap,
+        TypeOverrideVariant.FORCE,
+      );
+
+      doc.definition.fieldTypeOverrides = [
+        ...(doc.definition.fieldTypeOverrides ?? []),
+        {
+          schemaPath: '/ns0:ShipOrder/ShipTo/City',
+          type: 'xs:int',
+          originalType: 'xs:string',
+          variant: TypeOverrideVariant.FORCE,
+        },
+      ];
+      doc.definition.choiceSelections = [
+        ...(doc.definition.choiceSelections ?? []),
+        { schemaPath: '/ns0:ShipOrder/ShipTo/{choice:0}', selectedMemberIndex: 0 },
+      ];
+
+      FieldTypeOverrideService.revertFieldTypeOverride(doc, shipToField, namespaceMap);
+
+      expect(doc.definition.fieldTypeOverrides?.some((o) => o.schemaPath === '/ns0:ShipOrder/ShipTo/City')).toBe(false);
+      expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/ShipTo/{choice:0}')).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('applyChoiceSelection()', () => {
+    const namespaceMap = { ns0: 'io.kaoto.datamapper.poc.test' };
+
+    it('should apply choice selection and update definition', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, ['email', 'phone']);
+      shipOrderField.fields.push(choiceField);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, choiceField, 1, namespaceMap);
+
+      expect(choiceField.selectedMemberIndex).toBe(1);
+      expect(doc.definition.choiceSelections).toHaveLength(1);
+      expect(doc.definition.choiceSelections![0].schemaPath).toBe('/ns0:ShipOrder/{choice:0}');
+      expect(doc.definition.choiceSelections![0].selectedMemberIndex).toBe(1);
+    });
+
+    it('should update selection when re-applied with different index', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, ['email', 'phone']);
+      shipOrderField.fields.push(choiceField);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, choiceField, 0, namespaceMap);
+      FieldTypeOverrideService.applyChoiceSelection(doc, choiceField, 1, namespaceMap);
+
+      expect(choiceField.selectedMemberIndex).toBe(1);
+      expect(doc.definition.choiceSelections).toHaveLength(1);
+    });
+
+    it('should build correct path for directly nested choices', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const outerChoice = makeChoiceField(shipOrderField, []);
+      const innerChoice = makeChoiceField(outerChoice, ['optA', 'optB']);
+      outerChoice.fields = [innerChoice];
+      shipOrderField.fields.push(outerChoice);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, innerChoice, 0, namespaceMap);
+
+      expect(doc.definition.choiceSelections![0].schemaPath).toBe('/ns0:ShipOrder/{choice:0}/{choice:0}');
+    });
+
+    it('should build correct index when non-choice fields are interspersed between choices', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const elementA = new XmlSchemaField(shipOrderField, 'ElementA', false);
+      const choice0 = makeChoiceField(shipOrderField, ['optA', 'optB']);
+      const elementB = new XmlSchemaField(shipOrderField, 'ElementB', false);
+      const choice1 = makeChoiceField(shipOrderField, ['optX', 'optY']);
+      shipOrderField.fields.push(elementA, choice0, elementB, choice1);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, choice1, 0, namespaceMap);
+
+      expect(doc.definition.choiceSelections![0].schemaPath).toBe('/ns0:ShipOrder/{choice:1}');
+    });
+
+    it('should invalidate descendant overrides and selections after applying choice selection', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, ['email', 'phone']);
+      shipOrderField.fields.push(choiceField);
+
+      doc.definition.fieldTypeOverrides = [
+        {
+          schemaPath: '/ns0:ShipOrder/{choice:0}/email/emailAddress',
+          type: 'xs:int',
+          originalType: 'xs:string',
+          variant: TypeOverrideVariant.FORCE,
+        },
+      ];
+      doc.definition.choiceSelections = [
+        { schemaPath: '/ns0:ShipOrder/{choice:0}/email/{choice:0}', selectedMemberIndex: 0 },
+      ];
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, choiceField, 0, namespaceMap);
+
+      expect(
+        doc.definition.fieldTypeOverrides?.some((o) => o.schemaPath === '/ns0:ShipOrder/{choice:0}/email/emailAddress'),
+      ).toBe(false);
+      expect(
+        doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/{choice:0}/email/{choice:0}'),
+      ).toBe(false);
+      expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/{choice:0}')).toBe(true);
+    });
+
+    it('should be no-op when PrimitiveDocument is passed as the choice field', () => {
+      const definition = new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.Primitive, 'test-doc');
+      const document = new PrimitiveDocument(definition);
+
+      expect(() => {
+        FieldTypeOverrideService.applyChoiceSelection(document, document as unknown as IField, 0, {});
+      }).not.toThrow();
+    });
+
+    it('should be no-op when field is not a choice compositor', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const regularField = new XmlSchemaField(shipOrderField, 'email', false);
+      shipOrderField.fields.push(regularField);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, regularField, 0, namespaceMap);
+
+      expect(regularField.selectedMemberIndex).toBeUndefined();
+      expect(doc.definition.choiceSelections).toBeUndefined();
+    });
+  });
+
+  describe('revertChoiceSelection()', () => {
+    const namespaceMap = { ns0: 'io.kaoto.datamapper.poc.test' };
+
+    it('should clear selectedMemberIndex and remove from definition after revert', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, ['email', 'phone']);
+      shipOrderField.fields.push(choiceField);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, choiceField, 1, namespaceMap);
+      expect(choiceField.selectedMemberIndex).toBe(1);
+      expect(doc.definition.choiceSelections).toHaveLength(1);
+
+      FieldTypeOverrideService.revertChoiceSelection(doc, choiceField, namespaceMap);
+
+      expect(choiceField.selectedMemberIndex).toBeUndefined();
+      expect(doc.definition.choiceSelections).toHaveLength(0);
+    });
+
+    it('should be no-op if field has no selection', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, ['email', 'phone']);
+      shipOrderField.fields.push(choiceField);
+
+      expect(choiceField.selectedMemberIndex).toBeUndefined();
+
+      expect(() => {
+        FieldTypeOverrideService.revertChoiceSelection(doc, choiceField, namespaceMap);
+      }).not.toThrow();
+
+      expect(doc.definition.choiceSelections).toBeUndefined();
+    });
+
+    it('should be no-op when field is not a choice compositor', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const regularField = new XmlSchemaField(shipOrderField, 'email', false);
+      shipOrderField.fields.push(regularField);
+
+      expect(() => {
+        FieldTypeOverrideService.revertChoiceSelection(doc, regularField, namespaceMap);
+      }).not.toThrow();
+
+      expect(regularField.selectedMemberIndex).toBeUndefined();
+      expect(doc.definition.choiceSelections).toBeUndefined();
+    });
+
+    it('should invalidate descendant overrides and selections after reverting choice selection', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const shipOrderField = doc.fields[0];
+      const choiceField = makeChoiceField(shipOrderField, ['email', 'phone']);
+      shipOrderField.fields.push(choiceField);
+
+      FieldTypeOverrideService.applyChoiceSelection(doc, choiceField, 0, namespaceMap);
+
+      doc.definition.fieldTypeOverrides = [
+        {
+          schemaPath: '/ns0:ShipOrder/{choice:0}/email/emailAddress',
+          type: 'xs:int',
+          originalType: 'xs:string',
+          variant: TypeOverrideVariant.FORCE,
+        },
+      ];
+      doc.definition.choiceSelections!.push({
+        schemaPath: '/ns0:ShipOrder/{choice:0}/email/{choice:0}',
+        selectedMemberIndex: 0,
+      });
+
+      FieldTypeOverrideService.revertChoiceSelection(doc, choiceField, namespaceMap);
+
+      expect(
+        doc.definition.fieldTypeOverrides?.some((o) => o.schemaPath === '/ns0:ShipOrder/{choice:0}/email/emailAddress'),
+      ).toBe(false);
+      expect(
+        doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/{choice:0}/email/{choice:0}'),
+      ).toBe(false);
+      expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/{choice:0}')).toBe(false);
     });
   });
 });

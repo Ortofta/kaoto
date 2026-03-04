@@ -1,8 +1,9 @@
 import { getCamelRandomId } from '../../camel-utils/camel-random-id';
 import { MaxOccursType } from '../../xml-schema-ts/constants';
 import { QName } from '../../xml-schema-ts/QName';
-import { IFieldTypeOverride } from './metadata';
+import { IChoiceSelection, IFieldTypeOverride } from './metadata';
 import { NodePath } from './nodepath';
+import { ReportMessage } from './schema';
 import { TypeOverrideVariant, Types } from './types';
 import { Predicate } from './xpath';
 
@@ -64,8 +65,6 @@ export interface IField {
   predicates: Predicate[];
   /** Whether this field represents a choice compositor */
   isChoice?: boolean;
-  /** Array of choice option fields */
-  choiceMembers?: IField[];
   /** Index of selected member (0-based), undefined = show all */
   selectedMemberIndex?: number;
 
@@ -262,7 +261,6 @@ export class BaseField implements IField {
   namedTypeFragmentRefs: string[] = [];
   predicates: Predicate[] = [];
   isChoice?: boolean;
-  choiceMembers?: IField[];
   selectedMemberIndex?: number;
 
   protected mergeInto(existing: IField): void {
@@ -272,7 +270,6 @@ export class BaseField implements IField {
       !existing.namedTypeFragmentRefs.includes(ref) && existing.namedTypeFragmentRefs.push(ref);
     }
     if (this.isChoice !== undefined) existing.isChoice = this.isChoice;
-    if (this.choiceMembers !== undefined) existing.choiceMembers = this.choiceMembers;
     if (this.selectedMemberIndex !== undefined) existing.selectedMemberIndex = this.selectedMemberIndex;
     for (const child of this.fields) child.adopt(existing);
   }
@@ -298,7 +295,6 @@ export class BaseField implements IField {
     adopted.namespaceURI = this.namespaceURI;
     adopted.namedTypeFragmentRefs = this.namedTypeFragmentRefs;
     adopted.isChoice = this.isChoice;
-    adopted.choiceMembers = this.choiceMembers;
     adopted.selectedMemberIndex = this.selectedMemberIndex;
     adopted.fields = this.fields.map((child) => child.adopt(adopted));
     parent.fields.push(adopted);
@@ -336,6 +332,7 @@ export class DocumentDefinition {
     public definitionFiles?: Record<string, string>,
     public rootElementChoice?: RootElementOption,
     public fieldTypeOverrides?: IFieldTypeOverride[],
+    public choiceSelections?: IChoiceSelection[],
     public namespaceMap?: Record<string, string>,
   ) {
     if (!definitionFiles) this.definitionFiles = {};
@@ -378,8 +375,8 @@ export type RootElementOption = {
  */
 export interface CreateDocumentResult {
   validationStatus: 'success' | 'warning' | 'error';
-  errors?: string[];
-  warnings?: string[];
+  errors?: ReportMessage[];
+  warnings?: ReportMessage[];
   documentDefinition?: DocumentDefinition;
   document?: IDocument;
   rootElementOptions?: RootElementOption[];

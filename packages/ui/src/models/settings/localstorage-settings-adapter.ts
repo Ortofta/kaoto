@@ -1,12 +1,19 @@
 import { LocalStorageKeys } from '../local-storage-keys';
-import { AbstractSettingsAdapter, ISettingsModel, SettingsModel } from './settings.model';
+import { AbstractSettingsAdapter, CanvasLayoutDirection, ISettingsModel, SettingsModel } from './settings.model';
 
 export class LocalStorageSettingsAdapter implements AbstractSettingsAdapter {
   private settings: ISettingsModel;
 
   constructor() {
     const rawSettings = localStorage.getItem(LocalStorageKeys.Settings) ?? '{}';
-    const parsedSettings = JSON.parse(rawSettings);
+    const parsedSettings: ISettingsModel = JSON.parse(rawSettings);
+    parsedSettings.rest ??= {
+      apicurioRegistryUrl: '',
+      customMediaTypes: [],
+    };
+
+    parsedSettings.canvasLayoutDirection ??= CanvasLayoutDirection.SelectInCanvas;
+
     this.settings = new SettingsModel(parsedSettings);
   }
 

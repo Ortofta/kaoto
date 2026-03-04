@@ -136,9 +136,7 @@ const IntegerLiteral = createToken({
 });
 
 /** DO NOT CHANGE @see {@link NCName}, {@link DecimalLiteral} */
-allTokens.push(NCName);
-allTokens.push(DecimalLiteral);
-allTokens.push(DoubleLiteral);
+allTokens.push(NCName, DecimalLiteral, DoubleLiteral);
 
 /**
  * XPath 2.0 Parser which implements the EBNF defined in the W3C specification
@@ -524,7 +522,7 @@ export class XPath2Parser extends CstParser implements XPathParser {
    * XPath reserved words.
    * @private
    */
-  private Identifier = this.RULE('Identifier', () => {
+  private readonly Identifier = this.RULE('Identifier', () => {
     this.OR([
       { ALT: () => this.CONSUME(NCName) },
       { ALT: () => this.CONSUME(Return) },
@@ -643,7 +641,7 @@ export class XPath2Parser extends CstParser implements XPathParser {
     this.SUBRULE(this.VarName);
   });
 
-  private VarName = this.RULE('VarName', () => {
+  private readonly VarName = this.RULE('VarName', () => {
     this.OPTION(() => {
       this.SUBRULE(this.Identifier);
       this.CONSUME(Colon);

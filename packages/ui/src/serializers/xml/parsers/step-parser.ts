@@ -76,9 +76,9 @@ export class StepParser {
           }
           break;
         case 'expression':
-          if (name !== 'expression') {
-            processor[name] = ExpressionParser.parse(element, properties, name);
-          } else processor = { ...processor, ...ExpressionParser.parse(element, properties) };
+          if (name === 'expression') {
+            processor = { ...processor, ...ExpressionParser.parse(element, properties) };
+          } else processor[name] = ExpressionParser.parse(element, properties, name);
           break;
 
         case 'element':
@@ -132,7 +132,7 @@ export class StepParser {
     name: string,
   ): Element | undefined {
     if (properties.oneOf) {
-      return properties.oneOf.map((tag) => element.getElementsByTagName(tag)[0]).find((el) => el);
+      return properties.oneOf.map((tag) => element.getElementsByTagName(tag)[0]).find(Boolean);
     }
     return element.getElementsByTagName(name)[0];
   }

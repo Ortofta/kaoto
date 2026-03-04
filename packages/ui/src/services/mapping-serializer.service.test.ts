@@ -17,13 +17,13 @@ import {
 import { NS_XSL } from '../models/datamapper/standard-namespaces';
 import { Types } from '../models/datamapper/types';
 import {
-  invoice850Xsd,
-  shipOrderToShipOrderCollectionIndexXslt,
-  shipOrderToShipOrderInvalidForEachXslt,
-  shipOrderToShipOrderMultipleForEachXslt,
-  shipOrderToShipOrderXslt,
+  getInvoice850Xsd,
+  getShipOrderToShipOrderCollectionIndexXslt,
+  getShipOrderToShipOrderInvalidForEachXslt,
+  getShipOrderToShipOrderMultipleForEachXslt,
+  getShipOrderToShipOrderXslt,
+  getX12850ForEachXslt,
   TestUtil,
-  x12850ForEachXslt,
 } from '../stubs/datamapper/data-mapper';
 import { EMPTY_XSL, MappingSerializerService } from './mapping-serializer.service';
 import { XmlSchemaField } from './xml-schema-document.model';
@@ -59,7 +59,7 @@ describe('MappingSerializerService', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       expect(Object.keys(mappingTree.namespaceMap).length).toEqual(0);
       mappingTree = MappingSerializerService.deserialize(
-        shipOrderToShipOrderXslt,
+        getShipOrderToShipOrderXslt(),
         targetDoc,
         mappingTree,
         sourceParameterMap,
@@ -181,7 +181,7 @@ describe('MappingSerializerService', () => {
     it('should deserialize incomplete XSLT', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
-        shipOrderToShipOrderInvalidForEachXslt,
+        getShipOrderToShipOrderInvalidForEachXslt(),
         targetDoc,
         mappingTree,
         sourceParameterMap,
@@ -197,14 +197,14 @@ describe('MappingSerializerService', () => {
         DocumentType.TARGET_BODY,
         DocumentDefinitionType.XML_SCHEMA,
         'Invoice',
-        { 'Invoice.xsd': invoice850Xsd },
+        { 'Invoice.xsd': getInvoice850Xsd() },
       );
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition850);
       expect(result.validationStatus).toBe('success');
       const targetDoc850 = result.document!;
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
-        x12850ForEachXslt,
+        getX12850ForEachXslt(),
         targetDoc850,
         mappingTree,
         sourceParameterMap,
@@ -222,7 +222,7 @@ describe('MappingSerializerService', () => {
     it('should deserialize multiple for-each mappings on a same target collection', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
-        shipOrderToShipOrderMultipleForEachXslt,
+        getShipOrderToShipOrderMultipleForEachXslt(),
         targetDoc,
         mappingTree,
         sourceParameterMap,
@@ -242,10 +242,10 @@ describe('MappingSerializerService', () => {
 
     it('should deserialize multiple indexed collection mappings on a same target collection', () => {
       const mockCrypto = { getRandomValues: () => [Math.random() * 10000] };
-      jest.spyOn(global, 'crypto', 'get').mockImplementation(() => mockCrypto as unknown as Crypto);
+      jest.spyOn(globalThis, 'crypto', 'get').mockImplementation(() => mockCrypto as unknown as Crypto);
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
-        shipOrderToShipOrderCollectionIndexXslt,
+        getShipOrderToShipOrderCollectionIndexXslt(),
         targetDoc,
         mappingTree,
         sourceParameterMap,
@@ -277,7 +277,7 @@ describe('MappingSerializerService', () => {
     it('should serialize mappings', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
-        shipOrderToShipOrderXslt,
+        getShipOrderToShipOrderXslt(),
         targetDoc,
         mappingTree,
         sourceParameterMap,
@@ -371,13 +371,13 @@ describe('MappingSerializerService', () => {
     it('should serialize mappings with respecting Document field order', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
-        shipOrderToShipOrderXslt,
+        getShipOrderToShipOrderXslt(),
         targetDoc,
         mappingTree,
         sourceParameterMap,
       );
       const shipOrderItem = mappingTree.children[0];
-      shipOrderItem.children = shipOrderItem.children.reverse();
+      shipOrderItem.children.reverse();
       const xslt = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
       const xsltDocument = domParser.parseFromString(xslt, 'text/xml');
       const shipOrderSelect = xsltDocument.evaluate(
@@ -387,14 +387,14 @@ describe('MappingSerializerService', () => {
         XPathResult.ORDERED_NODE_ITERATOR_TYPE,
       );
       const xslAttribute = shipOrderSelect.iterateNext() as Element;
-      expect(xslAttribute!.nodeName).toEqual('xsl:attribute');
+      expect(xslAttribute.nodeName).toEqual('xsl:attribute');
       const xslIf = shipOrderSelect.iterateNext() as Element;
-      expect(xslIf!.nodeName).toEqual('xsl:if');
-      expect(xslIf!.getAttribute('test')).toEqual("/ns0:ShipOrder/ns0:OrderPerson != ''");
+      expect(xslIf.nodeName).toEqual('xsl:if');
+      expect(xslIf.getAttribute('test')).toEqual("/ns0:ShipOrder/ns0:OrderPerson != ''");
       const shipTo = shipOrderSelect.iterateNext() as Element;
-      expect(shipTo!.nodeName).toEqual('ShipTo');
+      expect(shipTo.nodeName).toEqual('ShipTo');
       const xslForEach = shipOrderSelect.iterateNext() as Element;
-      expect(xslForEach!.nodeName).toEqual('xsl:for-each');
+      expect(xslForEach.nodeName).toEqual('xsl:for-each');
       expect(xslForEach.getAttribute('select')).toEqual('/ns0:ShipOrder/Item');
     });
   });

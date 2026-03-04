@@ -11,6 +11,8 @@ import { PrefixedBeanField, UnprefixedBeanField } from './BeanField/BeanField';
 import { customFieldsFactoryfactory } from './custom-fields-factory';
 import { DirectEndpointNameField } from './DirectEndpointNameField';
 import { ExpressionField } from './ExpressionField/ExpressionField';
+import { MediaTypeField } from './MediaTypeField/MediaTypeField';
+import { UriField } from './UriField/UriField';
 
 describe('customFieldsFactoryfactory', () => {
   let componentCatalogMap: Record<string, ICamelComponentDefinition>;
@@ -75,6 +77,18 @@ describe('customFieldsFactoryfactory', () => {
     expect(result).toBe(ExpressionField);
   });
 
+  it('returns MediaTypeField for title "Consumes"', () => {
+    const schema: KaotoSchemaDefinition['schema'] = { type: 'string', title: 'Consumes' };
+    const result = customFieldsFactoryfactory(schema);
+    expect(result).toBe(MediaTypeField);
+  });
+
+  it('returns MediaTypeField for title "Produces"', () => {
+    const schema: KaotoSchemaDefinition['schema'] = { type: 'string', title: 'Produces' };
+    const result = customFieldsFactoryfactory(schema);
+    expect(result).toBe(MediaTypeField);
+  });
+
   it('returns undefined for string type with unrelated format', () => {
     const schema: KaotoSchemaDefinition['schema'] = { type: 'string', format: 'text' };
     const result = customFieldsFactoryfactory(schema);
@@ -113,6 +127,18 @@ describe('customFieldsFactoryfactory', () => {
 
   it('returns undefined if schema is empty', () => {
     const result = customFieldsFactoryfactory({});
+    expect(result).toBeUndefined();
+  });
+
+  it('returns UriField for string type with title "Uri"', () => {
+    const schema: KaotoSchemaDefinition['schema'] = { type: 'string', title: 'Uri' };
+    const result = customFieldsFactoryfactory(schema);
+    expect(result).toBe(UriField);
+  });
+
+  it('returns undefined for string type with case-sensitive title mismatch for Uri', () => {
+    const schema: KaotoSchemaDefinition['schema'] = { type: 'string', title: 'uri' };
+    const result = customFieldsFactoryfactory(schema);
     expect(result).toBeUndefined();
   });
 });
