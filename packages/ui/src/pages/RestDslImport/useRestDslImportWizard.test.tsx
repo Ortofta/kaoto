@@ -49,14 +49,16 @@ describe('useRestDslImportWizard', () => {
         },
       });
 
+      let returnValue: { error?: string } | undefined;
       act(() => {
-        result.current.handleSchemaLoaded({
+        returnValue = result.current.handleSchemaLoaded({
           schema: validSpec,
           source: 'file',
           sourceIdentifier: 'openapi.json',
         });
       });
 
+      expect(returnValue).toEqual({});
       expect(result.current.isOpenApiParsed).toBe(true);
       expect(result.current.openApiLoadSource).toBe('file');
       expect(result.current.sourceIdentifier).toBe('openapi.json');
@@ -127,18 +129,20 @@ describe('useRestDslImportWizard', () => {
     it('handles invalid OpenAPI spec gracefully', () => {
       const { result } = renderHook(() => useRestDslImportWizard(), { wrapper });
 
+      let returnValue: { error?: string } | undefined;
       act(() => {
-        result.current.handleSchemaLoaded({
+        returnValue = result.current.handleSchemaLoaded({
           schema: 'invalid json {{{',
           source: 'file',
           sourceIdentifier: 'invalid.json',
         });
       });
 
+      expect(returnValue).toEqual({ error: expect.stringMatching(/Invalid OpenAPI specification/) });
       expect(result.current.isOpenApiParsed).toBe(false);
       expect(result.current.importStatus).toEqual({
         type: 'error',
-        message: expect.stringMatching(/Invalid spec/),
+        message: expect.stringMatching(/Invalid OpenAPI specification/),
       });
     });
 
@@ -151,14 +155,16 @@ describe('useRestDslImportWizard', () => {
         paths: {},
       });
 
+      let returnValue: { error?: string } | undefined;
       act(() => {
-        result.current.handleSchemaLoaded({
+        returnValue = result.current.handleSchemaLoaded({
           schema: noPaths,
           source: 'file',
           sourceIdentifier: 'empty.json',
         });
       });
 
+      expect(returnValue).toEqual({ error: 'No operations were found in the specification.' });
       expect(result.current.isOpenApiParsed).toBe(false);
       expect(result.current.importStatus).toEqual({
         type: 'error',
@@ -167,12 +173,72 @@ describe('useRestDslImportWizard', () => {
     });
   });
 
-  it('does not create duplicate route when operation direct route already exists', () => {
+  it('does not create duplicate route when operation direct route already exists (direct:operationId format)', () => {
     const camelResource = new CamelRouteResource([
       {
         route: {
           from: {
             uri: 'direct:addPet',
+            steps: [],
+          },
+        },
+      },
+    ]);
+
+    const { Provider, updateEntitiesFromCamelResourceSpy } = TestProvidersWrapper({ camelResource });
+    const addNewEntitySpy = jest.spyOn(camelResource, 'addNewEntity');
+
+    const wrapper: FunctionComponent<PropsWithChildren> = ({ children }) => (
+      <SettingsContext.Provider value={mockSettingsContext}>
+        <Provider>{children}</Provider>
+      </SettingsContext.Provider>
+    );
+
+    const { result } = renderHook(() => useRestDslImportWizard(), { wrapper });
+
+    const spec: OpenApi = {
+      openapi: '3.0.0',
+      info: {
+        title: 'Test API',
+        version: '1.0.0',
+      },
+      paths: {
+        '/pet': {
+          post: {
+            operationId: 'addPet',
+            responses: {
+              '200': { description: 'ok' },
+            },
+          },
+        },
+      },
+    };
+
+    act(() => {
+      result.current.setOpenApiSpecText(JSON.stringify(spec));
+    });
+
+    act(() => {
+      result.current.handleParseOpenApiSpec();
+    });
+
+    let imported = false;
+    act(() => {
+      imported = result.current.handleImportOpenApi();
+    });
+
+    expect(imported).toBe(false);
+    expect(addNewEntitySpy).not.toHaveBeenCalled();
+    expect(updateEntitiesFromCamelResourceSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not create duplicate route when operation direct route already exists (parameters.name format)', () => {
+    const camelResource = new CamelRouteResource([
+      {
+        route: {
+          from: {
+            uri: 'direct',
+            parameters: { name: 'addPet' },
             steps: [],
           },
         },
@@ -553,7 +619,8 @@ describe('useRestDslImportWizard', () => {
 
       expect(imported).toBe(true);
       expect(camelResource.addNewEntity).toHaveBeenCalledWith('route');
-      expect(mockRouteEntity.updateModel).toHaveBeenCalledWith('route.from.uri', 'direct:getPet');
+      expect(mockRouteEntity.updateModel).toHaveBeenCalledWith('route.from.uri', 'direct');
+      expect(mockRouteEntity.updateModel).toHaveBeenCalledWith('route.from.parameters', { name: 'getPet' });
       expect(updateEntitiesFromCamelResourceSpy).toHaveBeenCalled();
       expect(result.current.importStatus).toEqual({
         type: 'success',

@@ -8,6 +8,7 @@ import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
 import { SourceSchemaType } from '../../camel';
 import { NonStringEIP } from '../../camel/types';
 import { CatalogKind } from '../../catalog-kind';
+import { PlaceholderType } from '../../placeholder.constants';
 import { NodeLabelType } from '../../settings';
 import { AddStepMode } from '../base-visual-entity';
 import { CamelCatalogService } from './camel-catalog.service';
@@ -315,7 +316,7 @@ describe('AbstractCamelVisualEntity', () => {
         mode: AddStepMode.ReplaceStep,
         data: {
           catalogKind: CatalogKind.Processor,
-          name: 'placeholder',
+          name: PlaceholderType.Placeholder,
           isPlaceholder: true,
           path: 'route.from.steps.1.multicast.steps.0.placeholder',
         },
@@ -584,7 +585,7 @@ describe('AbstractCamelVisualEntity', () => {
   });
 
   describe('toVizNode', () => {
-    it('should remove isGroup flag when a group has no children', () => {
+    it('should keep isGroup flag when a group has no children since it has placeholders', () => {
       const routeEntity = new CamelRouteVisualEntity({
         route: {
           id: 'route-1234',
@@ -595,17 +596,9 @@ describe('AbstractCamelVisualEntity', () => {
       const routeNode = routeEntity.toVizNode();
       const choiceNode = routeNode.getChildren()?.[1];
 
-      expect(choiceNode?.data.isGroup).toBe(false);
-
-      choiceNode
-        ?.getChildren()
-        ?.slice()
-        .forEach((child) => child.removeChild());
-
-      const updatedViz = routeEntity.toVizNode();
-      const updatedChoiceNode = updatedViz.getChildren()?.[1];
-
-      expect(updatedChoiceNode?.data.isGroup).toBe(false);
+      // Choice has when and otherwise placeholders as children, so it remains a group (isGroup true)
+      expect(choiceNode?.data.isGroup).toBe(true);
+      expect(choiceNode?.getChildren()?.length).toEqual(2);
     });
   });
 });

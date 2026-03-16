@@ -7,6 +7,7 @@ import { SourceSchemaType } from '../../camel/source-schema-type';
 import { DefinedComponent } from '../../camel-catalog-index';
 import { CatalogKind } from '../../catalog-kind';
 import { KaotoSchemaDefinition } from '../../kaoto-schema';
+import { PlaceholderType } from '../../placeholder.constants';
 import { NodeLabelType } from '../../settings/settings.model';
 import {
   AddStepMode,
@@ -137,9 +138,10 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     mode: AddStepMode;
     data: IVisualizationNodeData;
     targetProperty?: string;
+    insertAtStart?: boolean;
   }) {
     const defaultValue = CamelComponentDefaultService.getDefaultNodeDefinitionValue(options.definedComponent);
-    this.addNewStep(defaultValue, options.mode, options.data, options.definedComponent.name);
+    this.addNewStep(defaultValue, options.mode, options.data, options.definedComponent.name, options.insertAtStart);
   }
 
   getCopiedContent(path?: string): IClipboardCopyObject | undefined {
@@ -155,9 +157,14 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     };
   }
 
-  pasteStep(options: { clipboardContent: IClipboardCopyObject; mode: AddStepMode; data: IVisualizationNodeData }) {
+  pasteStep(options: {
+    clipboardContent: IClipboardCopyObject;
+    mode: AddStepMode;
+    data: IVisualizationNodeData;
+    insertAtStart?: boolean;
+  }) {
     const defaultValue = CamelComponentSchemaService.getNodeDefinitionValue(options.clipboardContent);
-    this.addNewStep(defaultValue, options.mode, options.data, options.clipboardContent.name);
+    this.addNewStep(defaultValue, options.mode, options.data, options.clipboardContent.name, options.insertAtStart);
   }
 
   canDragNode(path?: string) {
@@ -275,7 +282,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
 
     if (!this.getRootUri()) {
       fromNode.data.catalogKind = CatalogKind.Entity;
-      fromNode.data.name = 'placeholder';
+      fromNode.data.name = PlaceholderType.Placeholder;
     }
     routeGroupNode.addChild(fromNode);
 
@@ -315,6 +322,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     mode: AddStepMode,
     data: IVisualizationNodeData,
     childName: string,
+    insertAtStart?: boolean,
   ) {
     if (data.path === undefined) return;
     const stepsProperties = CamelComponentSchemaService.getProcessorStepsProperties(
@@ -322,7 +330,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     );
 
     if (mode === AddStepMode.InsertChildStep || mode === AddStepMode.InsertSpecialChildStep) {
-      this.insertChildStep(mode, data, childName, stepsProperties, defaultValue);
+      this.insertChildStep(mode, data, childName, stepsProperties, defaultValue, insertAtStart);
       return;
     }
 
@@ -376,6 +384,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     childName: string,
     stepsProperties: CamelProcessorStepsProperties[],
     defaultValue: ProcessorDefinition = {},
+    insertAtStart?: boolean,
   ) {
     const property = stepsProperties.find((property) =>
       mode === AddStepMode.InsertChildStep ? 'steps' : childName === property.name,
@@ -386,7 +395,8 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
       setValue(this.entityDef, `${data.path}.${property.name}`, defaultValue);
     } else {
       const arrayPath: ProcessorDefinition[] = getArrayProperty(this.entityDef, `${data.path}.${property.name}`);
-      mode === AddStepMode.InsertChildStep ? arrayPath.unshift(defaultValue) : arrayPath.push(defaultValue);
+      const addAtStart = insertAtStart ?? mode === AddStepMode.InsertChildStep;
+      addAtStart ? arrayPath.unshift(defaultValue) : arrayPath.push(defaultValue);
     }
   }
 }

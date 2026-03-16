@@ -1,4 +1,5 @@
 import { CatalogKind } from '../../../../catalog-kind';
+import { PlaceholderType } from '../../../../placeholder.constants';
 import { REST_DSL_VERBS, REST_ELEMENT_NAME } from '../../../../special-processors.constants';
 import { IVisualizationNode } from '../../../base-visual-entity';
 import { createVisualizationNode } from '../../../visualization-node';
@@ -26,6 +27,7 @@ export class RestDslNodeMapper extends BaseNodeMapper {
     REST_DSL_VERBS.forEach((verb) => {
       const restVerbNodes = this.getChildrenFromArrayClause(`${path}.${verb}`, entityDefinition);
       restVerbNodes.forEach((node) => {
+        if (node.data.isPlaceholder) return;
         vizNode.addChild(node);
       });
     });
@@ -35,7 +37,7 @@ export class RestDslNodeMapper extends BaseNodeMapper {
     if (isEmptyRest) {
       const placeholderNode = createVisualizationNode(`${path}.placeholder`, {
         catalogKind: CatalogKind.Pattern,
-        name: 'placeholder-special-child',
+        name: PlaceholderType.PlaceholderSpecialChild,
         isPlaceholder: true,
         processorName: REST_ELEMENT_NAME,
         path: 'rest.placeholder',
