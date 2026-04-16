@@ -3,7 +3,8 @@ import JSZip from 'jszip';
 import { useContext } from 'react';
 
 import { PipeVisualEntity } from '../models';
-import { CamelResource, CamelRouteResource } from '../models/camel';
+import { CamelRouteResource } from '../models/camel';
+import { KaotoResource } from '../models/kaoto-resource';
 import { EntitiesContext, EntitiesProvider } from '../providers/entities.provider';
 import { camelRouteYaml, kameletYaml, mockRandomValues, pipeYaml } from '../stubs';
 import { beansYaml } from '../stubs/beans';
@@ -41,7 +42,7 @@ describe('DocumentationService', () => {
     return DocumentationService.getDocumentationEntities(entitiesContext.current.camelResource, visibleFlows);
   };
 
-  const createDocumentationEntitiesFromCamelResource = (camelResource: CamelResource) => {
+  const createDocumentationEntitiesFromCamelResource = (camelResource: KaotoResource) => {
     const visibleFlows = camelResource.getVisualEntities().reduce((acc, entity) => {
       acc[entity.id] = true;
       return acc;
@@ -49,19 +50,6 @@ describe('DocumentationService', () => {
 
     return DocumentationService.getDocumentationEntities(camelResource, visibleFlows);
   };
-
-  describe('generateFlowImage()', () => {
-    it('should fail', async () => {
-      try {
-        await DocumentationService.generateFlowImage();
-        /* eslint-disable  @typescript-eslint/no-explicit-any */
-      } catch (error: any) {
-        expect(error.message).toEqual('generateFlowImage called but the flow diagram is not found');
-        return;
-      }
-      throw new Error('expected to throw an error');
-    });
-  });
 
   describe('getDocumentationEntities()', () => {
     it('should generate route and beans documentation entities', () => {
@@ -112,10 +100,10 @@ describe('DocumentationService', () => {
       const documentationEntities = createDocumentationEntitiesFromCamelResource(camelResource);
 
       expect(documentationEntities.length).toEqual(2);
-      expect(documentationEntities[0].isVisualEntity).toBeTruthy();
+      expect(documentationEntities[0].isVisualEntity).toBeFalsy();
       expect(documentationEntities[0].label).toEqual('restConfiguration-1234');
       expect(documentationEntities[0].entity!.type).toEqual('restConfiguration');
-      expect(documentationEntities[1].isVisualEntity).toBeTruthy();
+      expect(documentationEntities[1].isVisualEntity).toBeFalsy();
       expect(documentationEntities[1].label).toEqual('rest-1234');
       expect(documentationEntities[1].entity!.type).toEqual('rest');
     });

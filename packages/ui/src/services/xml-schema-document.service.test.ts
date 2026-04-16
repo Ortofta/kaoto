@@ -4,7 +4,9 @@ import {
   DocumentDefinitionType,
   DocumentType,
 } from '../models/datamapper/document';
-import { Types } from '../models/datamapper/types';
+import { IFieldSubstitution } from '../models/datamapper/metadata';
+import { NS_XML_SCHEMA, NS_XML_SCHEMA_INSTANCE } from '../models/datamapper/standard-namespaces';
+import { FieldOverrideVariant, Types } from '../models/datamapper/types';
 import {
   getAnonymousGlobalElementRefLargeXsd,
   getCamelSpringXsd,
@@ -12,6 +14,7 @@ import {
   getElementRefXsd,
   getExtensionComplexXsd,
   getExtensionSimpleXsd,
+  getFieldSubstitutionXsd,
   getImportedTypesXsd,
   getInlineAttrSimpleTypeXsd,
   getInvalidComplexExtensionXsd,
@@ -32,7 +35,7 @@ import {
   getTestDocumentXsd,
 } from '../stubs/datamapper/data-mapper';
 import { QName } from '../xml-schema-ts/QName';
-import { DocumentUtilService } from './document-util.service';
+import { ensureNamespaceRegistered } from './namespace-util';
 import { XmlSchemaDocument, XmlSchemaField } from './xml-schema-document.model';
 import { XmlSchemaDocumentService } from './xml-schema-document.service';
 import { XmlSchemaDocumentUtilService } from './xml-schema-document-util.service';
@@ -81,6 +84,106 @@ describe('XmlSchemaDocumentService', () => {
     expect(fields.length > 0).toBeTruthy();
   });
 
+  it('should create a choice wrapper field for xs:choice', () => {
+    const definition = new DocumentDefinition(
+      DocumentType.SOURCE_BODY,
+      DocumentDefinitionType.XML_SCHEMA,
+      BODY_DOCUMENT_ID,
+      {
+        'testDocument.xsd': getTestDocumentXsd(),
+      },
+    );
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    expect(result.validationStatus).toBe('success');
+    const document = result.document as XmlSchemaDocument;
+    const testDoc = XmlSchemaDocumentUtilService.getFirstElement(document.xmlSchemaCollection)!;
+    const fields: XmlSchemaField[] = [];
+    XmlSchemaDocumentService.populateElement(document, fields, testDoc);
+
+    const testDocument = fields[0];
+    const choiceElement = testDocument.fields.find((f) => f.name === 'ChoiceElement')!;
+    expect(choiceElement).toBeDefined();
+
+    // xs:choice should create a single choice wrapper field
+    expect(choiceElement.fields.length).toEqual(1);
+    const choiceWrapper = choiceElement.fields[0];
+    expect(choiceWrapper.isChoice).toBe(true);
+    expect(choiceWrapper.name).toEqual('__choice__');
+    expect(choiceWrapper.displayName).toEqual('choice');
+
+    // Choice1, Choice2, and Group1 (xs:sequence -> Group1Element1, Group1Element2 flattened)
+    expect(choiceWrapper.fields.length).toEqual(4);
+    expect(choiceWrapper.fields.find((f) => f.name === 'Choice1')).toBeDefined();
+    expect(choiceWrapper.fields.find((f) => f.name === 'Choice2')).toBeDefined();
+    expect(choiceWrapper.fields.find((f) => f.name === 'Group1Element1')).toBeDefined();
+    expect(choiceWrapper.fields.find((f) => f.name === 'Group1Element2')).toBeDefined();
+  });
+
+  it('should preserve maxOccurs from xs:choice on the choice wrapper', () => {
+    const xsdContent = `<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Root">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element name="OptionA" type="xs:string"/>
+        <xs:element name="OptionB" type="xs:string"/>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>`;
+    const definition = new DocumentDefinition(
+      DocumentType.SOURCE_BODY,
+      DocumentDefinitionType.XML_SCHEMA,
+      BODY_DOCUMENT_ID,
+      { 'root.xsd': xsdContent },
+    );
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    expect(result.validationStatus).toBe('success');
+    const document = result.document as XmlSchemaDocument;
+    const root = document.fields[0];
+    const choiceWrapper = root.fields.find((f) => f.isChoice);
+    expect(choiceWrapper).toBeDefined();
+    expect(choiceWrapper!.maxOccurs).toEqual('unbounded');
+    expect(choiceWrapper!.maxOccursExplicit).toBe(true);
+    expect(choiceWrapper!.fields.length).toEqual(2);
+  });
+
+  it('should produce two sibling choice wrappers for two sibling xs:choice compositors', () => {
+    const xsdContent = `<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Root">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice>
+          <xs:element name="A1" type="xs:string"/>
+          <xs:element name="A2" type="xs:string"/>
+        </xs:choice>
+        <xs:choice>
+          <xs:element name="B1" type="xs:string"/>
+          <xs:element name="B2" type="xs:string"/>
+        </xs:choice>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>`;
+    const definition = new DocumentDefinition(
+      DocumentType.SOURCE_BODY,
+      DocumentDefinitionType.XML_SCHEMA,
+      BODY_DOCUMENT_ID,
+      { 'root.xsd': xsdContent },
+    );
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    expect(result.validationStatus).toBe('success');
+    const document = result.document as XmlSchemaDocument;
+    const root = document.fields[0];
+    const choiceWrappers = root.fields.filter((f) => f.isChoice);
+    expect(choiceWrappers.length).toEqual(2);
+    expect(choiceWrappers[0].fields.find((f) => f.name === 'A1')).toBeDefined();
+    expect(choiceWrappers[0].fields.find((f) => f.name === 'A2')).toBeDefined();
+    expect(choiceWrappers[1].fields.find((f) => f.name === 'B1')).toBeDefined();
+    expect(choiceWrappers[1].fields.find((f) => f.name === 'B2')).toBeDefined();
+  });
+
   it('should parse camel-spring.xsd XML schema', () => {
     const definition = new DocumentDefinition(
       DocumentType.TARGET_BODY,
@@ -101,7 +204,8 @@ describe('XmlSchemaDocumentService', () => {
     expect(aggregate.namedTypeFragmentRefs[0]).toEqual('{http://camel.apache.org/schema/spring}aggregateDefinition');
     const aggregateDef = document.namedTypeFragments[aggregate.namedTypeFragmentRefs[0]];
 
-    expect(aggregateDef.fields.length).toBeGreaterThanOrEqual(100);
+    // Many fields; fewer direct children now that xs:choice compositors are wrapped
+    expect(aggregateDef.fields.length).toBeGreaterThanOrEqual(30);
 
     const outputDef = document.namedTypeFragments['{http://camel.apache.org/schema/spring}output'];
     expect(outputDef).toBeDefined();
@@ -298,7 +402,8 @@ describe('XmlSchemaDocumentService', () => {
     const personType = document.namedTypeFragments[person.namedTypeFragmentRefs[0]];
     expect(personType).toBeDefined();
 
-    expect(personType.fields.length).toEqual(11);
+    // name, street, city from AddressGroup, 1 choice wrapper, createdBy, createdDate, @id, @version, @status
+    expect(personType.fields.length).toEqual(9);
 
     const nameField = personType.fields.find((f) => f.name === 'name');
     expect(nameField).toBeDefined();
@@ -308,12 +413,17 @@ describe('XmlSchemaDocumentService', () => {
     const cityField = personType.fields.find((f) => f.name === 'city');
     expect(cityField).toBeDefined();
 
-    const emailField = personType.fields.find((f) => f.name === 'email');
+    // xs:choice wraps into a choice field; ContactGroup is itself xs:choice -> nested wrapper
+    const choiceField = personType.fields.find((f) => f.isChoice);
+    expect(choiceField).toBeDefined();
+    expect(choiceField!.isChoice).toBe(true);
+    const innerChoiceField = choiceField!.fields.find((f) => f.isChoice);
+    expect(innerChoiceField).toBeDefined();
+    const emailField = innerChoiceField!.fields.find((f) => f.name === 'email');
     expect(emailField).toBeDefined();
-    const phoneField = personType.fields.find((f) => f.name === 'phone');
+    const phoneField = innerChoiceField!.fields.find((f) => f.name === 'phone');
     expect(phoneField).toBeDefined();
-
-    const faxField = personType.fields.find((f) => f.name === 'fax');
+    const faxField = choiceField!.fields.find((f) => f.name === 'fax');
     expect(faxField).toBeDefined();
 
     const createdByField = personType.fields.find((f) => f.name === 'createdBy');
@@ -378,6 +488,44 @@ describe('XmlSchemaDocumentService', () => {
     expect(attrExpression).toEqual('@discount');
     attrExpression = discountAttr!.getExpression(namespaceMap);
     expect(attrExpression).toEqual('@discount');
+  });
+
+  it('should expose xsi:nil as a child field for nillable elements', () => {
+    const definition = new DocumentDefinition(
+      DocumentType.SOURCE_BODY,
+      DocumentDefinitionType.XML_SCHEMA,
+      BODY_DOCUMENT_ID,
+      {
+        'nillable.xsd': `
+          <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                     targetNamespace="http://www.example.com/NILLABLE"
+                     xmlns:tns="http://www.example.com/NILLABLE"
+                     elementFormDefault="qualified">
+            <xs:element name="Root" nillable="true">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="Child" type="xs:string" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:schema>`,
+      },
+      { namespaceUri: 'http://www.example.com/NILLABLE', name: 'Root' },
+    );
+
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    expect(result.validationStatus).toBe('success');
+    const document = result.document as XmlSchemaDocument;
+    const root = document.fields[0];
+
+    expect(root.nillable).toBe(true);
+    expect(root.fields.some((field) => field.isAttribute && field.name === 'nil')).toBe(true);
+
+    const nilField = root.fields.find((field) => field.isAttribute && field.name === 'nil');
+    expect(nilField).toBeDefined();
+    expect(nilField!.displayName).toEqual('xsi:nil');
+    expect(nilField!.namespacePrefix).toEqual('xsi');
+    expect(nilField!.namespaceURI).toEqual(NS_XML_SCHEMA_INSTANCE);
   });
 
   it('should parse RestrictionSimple.xsd', () => {
@@ -1103,7 +1251,7 @@ describe('XmlSchemaDocumentService', () => {
       expect(importedType).toBeDefined();
     });
 
-    it('should return updated namespace map when adding schemas with new namespaces', () => {
+    it('should make added schemas available in the collection', () => {
       const mainSchema = `<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            targetNamespace="http://example.com/main">
@@ -1115,10 +1263,6 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         'test-doc',
         { 'main.xsd': mainSchema },
-        undefined,
-        undefined,
-        undefined,
-        { ns0: 'http://example.com/main' },
       );
 
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -1134,80 +1278,49 @@ describe('XmlSchemaDocumentService', () => {
   </xs:complexType>
 </xs:schema>`;
 
-      const updatedNamespaceMap = XmlSchemaDocumentService.addSchemaFiles(document, {
-        'types.xsd': additionalSchema,
-      });
+      XmlSchemaDocumentService.addSchemaFiles(document, { 'types.xsd': additionalSchema });
 
-      expect(updatedNamespaceMap['ns0']).toBe('http://example.com/main');
-      expect(updatedNamespaceMap['ns1']).toBe('http://example.com/types');
-      expect(Object.keys(updatedNamespaceMap).length).toBe(2);
+      const customQName = new QName('http://example.com/types', 'CustomType');
+      expect(document.xmlSchemaCollection.getTypeByQName(customQName)).toBeDefined();
     });
 
-    it('should generate prefixes following sequential pattern (ns0, ns1, ns2, ...)', () => {
-      const prefix1 = DocumentUtilService.generateNamespacePrefix({});
-      expect(prefix1).toBe('ns0');
+    it('should register namespace with sequential prefix (ns0, ns1, ns2, ...)', () => {
+      const map1: Record<string, string> = {};
+      ensureNamespaceRegistered('http://example.com/test', map1);
+      expect(map1['ns0']).toBe('http://example.com/test');
 
-      const prefix2 = DocumentUtilService.generateNamespacePrefix({
-        ns0: 'http://example.com/test',
-      });
-      expect(prefix2).toBe('ns1');
+      const map2: Record<string, string> = { ns0: 'http://example.com/test' };
+      ensureNamespaceRegistered('http://example.com/other', map2);
+      expect(map2['ns1']).toBe('http://example.com/other');
 
-      const prefix3 = DocumentUtilService.generateNamespacePrefix({
+      const map3: Record<string, string> = {
         ns0: 'http://example.com/test',
         ns1: 'http://example.com/test2',
         ns2: 'http://example.com/other',
-      });
-      expect(prefix3).toBe('ns3');
+      };
+      ensureNamespaceRegistered('http://example.com/new', map3);
+      expect(map3['ns3']).toBe('http://example.com/new');
     });
 
-    it('should filter out standard XML/XSD namespaces', () => {
-      const xsdSchema = `<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="Test" type="xs:string"/>
-</xs:schema>`;
-
-      const customSchema = `<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="http://example.com/custom">
-  <xs:element name="Custom" type="xs:string"/>
-</xs:schema>`;
-
-      const namespaces = XmlSchemaDocumentService['extractNamespacesFromSchemas'](
-        {
-          'xsd.xsd': xsdSchema,
-          'custom.xsd': customSchema,
-        },
-        {},
-      );
-
-      expect(Object.values(namespaces)).not.toContain('http://www.w3.org/2001/XMLSchema');
-      expect(Object.values(namespaces)).toContain('http://example.com/custom');
-      expect(Object.keys(namespaces).length).toBe(1);
+    it('should be a no-op when namespace is already registered', () => {
+      const map = { ns0: 'http://example.com/test' };
+      ensureNamespaceRegistered('http://example.com/test', map);
+      expect(Object.keys(map)).toHaveLength(1);
     });
 
-    it('should not create duplicate entries for same namespace', () => {
-      const existingMap = { ns0: 'http://example.com/main' };
-
-      const mainSchema = `<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="http://example.com/main">
-  <xs:element name="Test" type="xs:string"/>
-</xs:schema>`;
-
-      const newNamespaces = XmlSchemaDocumentService['extractNamespacesFromSchemas'](
-        { 'duplicate.xsd': mainSchema },
-        existingMap,
-      );
-
-      expect(Object.keys(newNamespaces).length).toBe(0);
-
-      const merged = XmlSchemaDocumentService['mergeNamespaceMaps'](existingMap, newNamespaces);
-      expect(Object.keys(merged).length).toBe(1);
-      expect(merged['ns0']).toBe('http://example.com/main');
+    it('should use preferredPrefix when supplied and available', () => {
+      const map: Record<string, string> = {};
+      ensureNamespaceRegistered('http://example.com/test', map, 'tns');
+      expect(map['tns']).toBe('http://example.com/test');
     });
 
-    it('should maintain stable prefixes across multiple addSchemaFiles() calls', () => {
+    it('should fall back to sequential prefix when preferredPrefix is taken', () => {
+      const map: Record<string, string> = { tns: 'http://example.com/other' };
+      ensureNamespaceRegistered('http://example.com/test', map, 'tns');
+      expect(map['ns0']).toBe('http://example.com/test');
+    });
+
+    it('should support multiple sequential addSchemaFiles() calls', () => {
       const mainSchema = `<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            targetNamespace="http://example.com/main">
@@ -1219,10 +1332,6 @@ describe('XmlSchemaDocumentService', () => {
         DocumentDefinitionType.XML_SCHEMA,
         'test-doc',
         { 'main.xsd': mainSchema },
-        undefined,
-        undefined,
-        undefined,
-        { ns0: 'http://example.com/main' },
       );
 
       const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
@@ -1238,15 +1347,7 @@ describe('XmlSchemaDocumentService', () => {
   </xs:complexType>
 </xs:schema>`;
 
-      const map1 = XmlSchemaDocumentService.addSchemaFiles(document, {
-        'types.xsd': schemaA,
-      });
-
-      expect(map1['ns0']).toBe('http://example.com/main');
-      expect(map1['ns1']).toBe('http://example.com/types');
-      expect(Object.keys(map1).length).toBe(2);
-
-      document.definition.namespaceMap = map1;
+      XmlSchemaDocumentService.addSchemaFiles(document, { 'types.xsd': schemaA });
 
       const schemaB = `<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -1258,14 +1359,12 @@ describe('XmlSchemaDocumentService', () => {
   </xs:complexType>
 </xs:schema>`;
 
-      const map2 = XmlSchemaDocumentService.addSchemaFiles(document, {
-        'other.xsd': schemaB,
-      });
+      XmlSchemaDocumentService.addSchemaFiles(document, { 'other.xsd': schemaB });
 
-      expect(map2['ns0']).toBe('http://example.com/main');
-      expect(map2['ns1']).toBe('http://example.com/types');
-      expect(map2['ns2']).toBe('http://example.com/other');
-      expect(Object.keys(map2).length).toBe(3);
+      const typeAQName = new QName('http://example.com/types', 'TypeA');
+      const typeBQName = new QName('http://example.com/other', 'TypeB');
+      expect(document.xmlSchemaCollection.getTypeByQName(typeAQName)).toBeDefined();
+      expect(document.xmlSchemaCollection.getTypeByQName(typeBQName)).toBeDefined();
     });
   });
 
@@ -1427,7 +1526,7 @@ describe('XmlSchemaDocumentService', () => {
       const initialResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(initialResult.validationStatus).not.toBe('error');
 
-      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'CommonTypes.xsd');
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'CommonTypes.xsd', {});
       expect(removeResult.validationStatus).toBe('error');
       expect(removeResult.errors).toBeDefined();
       expect(removeResult.errors!.length).toBeGreaterThan(0);
@@ -1444,7 +1543,7 @@ describe('XmlSchemaDocumentService', () => {
         { 'shipOrder.xsd': getShipOrderXsd(), 'ImportedTypes.xsd': getImportedTypesXsd() },
       );
 
-      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'ImportedTypes.xsd');
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'ImportedTypes.xsd', {});
       expect(removeResult.validationStatus).toBe('success');
       expect(removeResult.document).toBeDefined();
     });
@@ -1457,7 +1556,7 @@ describe('XmlSchemaDocumentService', () => {
         { 'shipOrder.xsd': getShipOrderXsd() },
       );
 
-      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd');
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd', {});
       expect(removeResult.validationStatus).toBe('error');
       expect(removeResult.errors).toBeDefined();
     });
@@ -1473,7 +1572,7 @@ describe('XmlSchemaDocumentService', () => {
         },
       );
 
-      XmlSchemaDocumentService.removeSchemaFile(definition, 'CommonTypes.xsd');
+      XmlSchemaDocumentService.removeSchemaFile(definition, 'CommonTypes.xsd', {});
       expect(definition.definitionFiles!['CommonTypes.xsd']).toBeDefined();
     });
 
@@ -1489,7 +1588,7 @@ describe('XmlSchemaDocumentService', () => {
       const initialResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
       expect(initialResult.document).toBeDefined();
 
-      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd');
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd', {});
       expect(removeResult.validationStatus).not.toBe('error');
       expect(removeResult.document).toBeDefined();
       expect(removeResult.documentDefinition!.rootElementChoice).toBeUndefined();
@@ -1504,13 +1603,127 @@ describe('XmlSchemaDocumentService', () => {
         { namespaceUri: 'io.kaoto.datamapper.poc.test', name: 'ShipOrder' },
       );
 
-      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'element-ref.xsd');
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'element-ref.xsd', {});
       expect(removeResult.validationStatus).not.toBe('error');
       expect(removeResult.document).toBeDefined();
       expect(removeResult.documentDefinition!.rootElementChoice).toEqual({
         namespaceUri: 'io.kaoto.datamapper.poc.test',
         name: 'ShipOrder',
       });
+    });
+
+    it('should clear fieldTypeOverrides, choiceSelections and fieldSubstitutions when rootElementChoice file is removed', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'shipOrder.xsd': getShipOrderXsd(), 'element-ref.xsd': getElementRefXsd() },
+        { namespaceUri: 'io.kaoto.datamapper.poc.test', name: 'ShipOrder' },
+      );
+      definition.fieldTypeOverrides = [
+        { schemaPath: '/old/path', type: 'xs:int', originalType: 'xs:string', variant: FieldOverrideVariant.FORCE },
+      ];
+      definition.choiceSelections = [{ schemaPath: '/old/{choice:0}', selectedMemberIndex: 1 }];
+      const substitution: IFieldSubstitution = {
+        schemaPath: '/old/path',
+        name: 'ns0:newName',
+        originalName: 'ns0:oldName',
+      };
+      definition.fieldSubstitutions = [substitution];
+
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'shipOrder.xsd', {});
+
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.documentDefinition!.fieldTypeOverrides).toEqual([]);
+      expect(removeResult.documentDefinition!.choiceSelections).toEqual([]);
+      expect(removeResult.documentDefinition!.fieldSubstitutions).toEqual([]);
+    });
+
+    it('should clear metadata when file removal changes the effective root (no rootElementChoice set)', () => {
+      const schemaA = `<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/A">
+  <xs:element name="RootA" type="xs:string"/>
+</xs:schema>`;
+      const schemaB = `<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/B">
+  <xs:element name="RootB" type="xs:string"/>
+</xs:schema>`;
+
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'A.xsd': schemaA, 'B.xsd': schemaB },
+      );
+      const initialResult = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+      expect(initialResult.document).toBeDefined();
+      const initialRootLocal = initialResult.document!.rootElement?.getQName()?.getLocalPart();
+      expect(initialRootLocal).toBe('RootA');
+
+      definition.fieldTypeOverrides = [
+        {
+          schemaPath: '/ns_a:RootA',
+          type: 'xs:string',
+          originalType: 'xs:string',
+          variant: FieldOverrideVariant.FORCE,
+        },
+      ];
+      definition.choiceSelections = [{ schemaPath: '/ns_a:RootA/{choice:0}', selectedMemberIndex: 0 }];
+      definition.fieldSubstitutions = [{ schemaPath: '/ns_a:RootA', name: 'ns_a:RootA', originalName: 'ns_a:RootA' }];
+
+      const namespaceMap = { ns_a: 'http://example.com/A' };
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'A.xsd', namespaceMap);
+
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.document!.rootElement?.getQName()?.getLocalPart()).toBe('RootB');
+      expect(removeResult.documentDefinition!.fieldTypeOverrides).toEqual([]);
+      expect(removeResult.documentDefinition!.choiceSelections).toEqual([]);
+      expect(removeResult.documentDefinition!.fieldSubstitutions).toEqual([]);
+    });
+
+    it('should preserve metadata when removing a non-essential file with root field substituted', () => {
+      const secondarySchema = `<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.com/SECONDARY">
+  <xs:complexType name="Helper_t">
+    <xs:sequence>
+      <xs:element name="data" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>`;
+
+      const NS_SUBSTITUTION = 'http://www.example.com/SUBSTITUTION';
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        BODY_DOCUMENT_ID,
+        { 'FieldSubstitution.xsd': getFieldSubstitutionXsd(), 'Secondary.xsd': secondarySchema },
+      );
+      definition.fieldSubstitutions = [
+        { schemaPath: '/sub:AbstractAnimal', name: 'sub:Cat', originalName: 'sub:AbstractAnimal' },
+      ];
+      definition.fieldTypeOverrides = [
+        {
+          schemaPath: '/sub:Cat/name',
+          type: 'xs:int',
+          originalType: 'xs:string',
+          variant: FieldOverrideVariant.FORCE,
+        },
+      ];
+      const namespaceMap = { sub: NS_SUBSTITUTION, xs: NS_XML_SCHEMA };
+
+      const removeResult = XmlSchemaDocumentService.removeSchemaFile(definition, 'Secondary.xsd', namespaceMap);
+
+      expect(removeResult.validationStatus).not.toBe('error');
+      expect(removeResult.document).toBeDefined();
+      expect(removeResult.document!.rootElement?.getQName()?.getLocalPart()).toBe('AbstractAnimal');
+      expect(removeResult.documentDefinition!.fieldSubstitutions).toHaveLength(1);
+      expect(removeResult.documentDefinition!.fieldTypeOverrides).toHaveLength(1);
+      expect(removeResult.document!.fields[0].name).toBe('Cat');
+      const nameField = removeResult.document!.fields[0].fields.find((f) => f.name === 'name');
+      expect(nameField).toBeDefined();
+      expect(nameField!.type).toBe(Types.Integer);
     });
   });
 
@@ -1552,18 +1765,19 @@ describe('XmlSchemaDocumentService', () => {
     expect(elapsed).toBeLessThan(5000);
 
     const document = result.document as XmlSchemaDocument;
-    expect(document.namedTypeFragments['__elem::TypeA01']).toBeDefined();
-    expect(document.namedTypeFragments['__elem::TypeB01']).toBeDefined();
-    expect(document.namedTypeFragments['__elem::TypeC01']).toBeDefined();
-    expect(document.namedTypeFragments['__elem::TypeD01']).toBeDefined();
-    expect(document.namedTypeFragments['__elem::TypeE01']).toBeDefined();
-    expect(document.namedTypeFragments['__elem::TypeF01']).toBeDefined();
+    for (const name of ['TypeA01', 'TypeB01', 'TypeC01', 'TypeD01', 'TypeE01', 'TypeF01']) {
+      expect(
+        document.namedTypeFragments[XmlSchemaDocumentUtilService.buildElementFragmentKey(null, name)],
+      ).toBeDefined();
+    }
 
     const bigContainerFragment = document.namedTypeFragments['BigContainer'];
     expect(bigContainerFragment).toBeDefined();
-    const typeA01Field = bigContainerFragment.fields.find((f) => f.name === 'TypeA01');
+    // BigContainer has xs:choice wrapping all TypeA elements
+    const choiceWrapper = bigContainerFragment.fields.find((f) => f.isChoice);
+    expect(choiceWrapper).toBeDefined();
+    const typeA01Field = choiceWrapper!.fields.find((f) => f.name === 'TypeA01');
     expect(typeA01Field).toBeDefined();
     expect(typeA01Field!.type).toEqual(Types.Container);
-    expect(typeA01Field!.originalType).toEqual(Types.Container);
   });
 });

@@ -127,11 +127,11 @@ export class CamelUriHelper {
      * keys: [ 'transport', 'host', 'port', 'messageName' ]
      */
     const keys = syntaxWithoutScheme.split(delimitersRegex);
-    const values = keys.map((key) => {
+    const values = keys.map((key, keyIndex) => {
       const valueOrUndefined = parameters[key] === '' ? undefined : parameters[key];
       const value = valueOrUndefined ?? defaultValues[key] ?? '';
       const isRequired = requiredParameters.includes(key);
-      const previousDelimiter = keys.indexOf(key) > 0 ? delimiters[keys.indexOf(key) - 1] : ':';
+      const previousDelimiter = keyIndex > 0 ? delimiters[keyIndex - 1] : ':';
 
       return { key, value, isRequired, previousDelimiter };
     });
@@ -243,10 +243,9 @@ export class CamelUriHelper {
   /**
    * Remove the scheme from the URI syntax:
    * 'avro:transport:host:port/messageName' => { schema: 'avro', syntax: 'transport:host:port/messageName' } */
-  private static getSyntaxWithoutSchema(uriSyntax: string): { schema: string; syntax: string } {
-    const splitIndex = uriSyntax.indexOf(':');
-    const schema = uriSyntax.substring(0, splitIndex === -1 ? uriSyntax.length : splitIndex);
-    const syntax = splitIndex === -1 ? '' : uriSyntax.substring(splitIndex + 1);
+  static getSyntaxWithoutSchema(uriSyntax: string): { schema: string; syntax: string } {
+    const [schema, ...rest] = uriSyntax.split(':');
+    const syntax = rest.join(':');
     return { schema, syntax };
   }
 

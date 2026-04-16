@@ -1,6 +1,6 @@
-import { BaseCamelEntity, EntityType } from '../camel/entities';
-import { DefinedComponent } from '../camel-catalog-index';
+import { DefinedComponent } from '../camel/camel-catalog-index';
 import { CatalogKind } from '../catalog-kind';
+import { BaseEntity, EntityType } from '../entities';
 import { KaotoSchemaDefinition } from '../kaoto-schema';
 import { NodeLabelType } from '../settings/settings.model';
 import { IClipboardCopyObject } from '../visualization/clipboard';
@@ -12,7 +12,7 @@ import { IClipboardCopyObject } from '../visualization/clipboard';
  * f.i. Camel Route, Kamelet, KameletBinding, etc.
  * All dedicated Camel code should be implemented using this interface.
  */
-export interface BaseVisualCamelEntity extends BaseCamelEntity {
+export interface BaseVisualEntity extends BaseEntity {
   id: string;
   type: EntityType;
 
@@ -39,7 +39,7 @@ export interface BaseVisualCamelEntity extends BaseCamelEntity {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getNodeDefinition(path?: string): any;
 
-  /** Returnt fields that should be omitted when configuring this entity */
+  /** Return fields that should be omitted when configuring this entity */
   getOmitFormFields: () => string[];
 
   /** Given a path, update the model */
@@ -83,13 +83,11 @@ export interface BaseVisualCamelEntity extends BaseCamelEntity {
 
   /** Generates a IVisualizationNode from the underlying Camel entity */
   toVizNode: () => IVisualizationNode;
-
-  getGroupIcons: () => { icon: string; title: string }[];
 }
 
 export interface BaseVisualCamelEntityConstructor {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  new (...args: any[]): BaseVisualCamelEntity;
+  new (...args: any[]): BaseVisualEntity;
   isApplicable: (entity: unknown) => boolean;
 }
 
@@ -142,7 +140,7 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getNodeDefinition(): any;
 
-  /** Returnt fields that should be omitted when configuring this entity */
+  /** Return fields that should be omitted when configuring this entity */
   getOmitFormFields(): string[];
 
   updateModel(value: unknown): void;
@@ -167,16 +165,13 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
 
   /** Retrieve the node's validation status, relying into the underlying entity */
   getNodeValidationText(): string | undefined;
-
-  /** Return extra icons for the CustomGroup (entity-specific) */
-  getGroupIcons(): { icon: string; title: string }[];
 }
 
 export interface IVisualizationNodeData {
   catalogKind: CatalogKind;
   name: string;
   path?: string;
-  entity?: BaseVisualCamelEntity;
+  entity?: BaseVisualEntity;
   isPlaceholder?: boolean;
   isGroup?: boolean;
   [key: string]: unknown;

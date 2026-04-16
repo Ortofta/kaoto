@@ -1,67 +1,70 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "object",
-  "properties": {
-    "OrderId": {
-      "type": "string"
-    },
-    "OrderPerson": {
-      "type": "string"
-    },
-    "ShipTo": {
-      "type": "object",
-      "properties": {
-        "Name": {
-          "type": "string"
-        },
-        "Street": {
-          "type": "string"
-        },
-        "City": {
-          "type": "string"
-        },
-        "State": {
-          "type": "string"
-        },
-        "Country": {
-          "type": "string"
-        }
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "OrderId": {
+        "type": "string"
       },
-      "required": [
-        "Name",
-        "Street",
-        "City",
-        "State",
-        "Country"
-      ]
-    },
-    "Item": {
-      "type": "array",
-      "items": [
-        {
-          "type": "object",
-          "properties": {
-            "Title": {
-              "type": "string"
-            },
-            "Quantity": {
-              "type": "number"
-            },
-            "Price": {
-              "type": "number"
-            }
+      "OrderPerson": {
+        "type": "string"
+      },
+      "ShipTo": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
           },
-          "required": [
-            "Title",
-            "Quantity",
-            "Price"
-          ]
-        }
-      ]
-    }
-  },
-  "required": [
-    "OrderId",
-    "ShipTo"
-  ]
+          "Street": {
+            "type": "string"
+          },
+          "City": {
+            "type": "string"
+          },
+          "State": {
+            "type": "string"
+          },
+          "Country": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "Name",
+          "Street",
+          "City",
+          "State",
+          "Country"
+        ]
+      },
+      "Item": {
+        "type": "array",
+        "items": [
+          {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string"
+              },
+              "Quantity": {
+                "type": "number"
+              },
+              "Price": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "Title",
+              "Quantity",
+              "Price"
+            ]
+          }
+        ]
+      }
+    },
+    "required": [
+      "OrderId",
+      "ShipTo"
+    ]
+  }
 }

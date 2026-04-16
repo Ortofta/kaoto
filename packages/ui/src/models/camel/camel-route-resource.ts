@@ -20,6 +20,14 @@ import { isDefined } from '@kaoto/forms';
 import { TileFilter } from '../../components/Catalog';
 import { XmlCamelResourceSerializer, YamlCamelResourceSerializer } from '../../serializers';
 import { CatalogKind } from '../catalog-kind';
+import { BaseEntity, EntityType } from '../entities';
+import {
+  BaseVisualEntityDefinition,
+  BeansAwareResource,
+  KaotoResource,
+  KaotoResourceSerializer,
+  SerializerType,
+} from '../kaoto-resource';
 import { AddStepMode, BaseVisualCamelEntityConstructor } from '../visualization/base-visual-entity';
 import { CamelCatalogService, CamelRouteVisualEntity } from '../visualization/flows';
 import { CamelErrorHandlerVisualEntity } from '../visualization/flows/camel-error-handler-visual-entity';
@@ -36,51 +44,80 @@ import { CamelComponentFilterService } from '../visualization/flows/support/came
 import { CamelRouteVisualEntityData } from '../visualization/flows/support/camel-component-types';
 import { FlowTemplateService } from '../visualization/flows/support/flow-templates-service';
 import { BeansEntity, isBeans } from '../visualization/metadata';
-import {
-  BaseVisualCamelEntityDefinition,
-  BeansAwareResource,
-  CamelResource,
-  CamelResourceSerializer,
-  SerializerType,
-} from './camel-resource';
-import { BaseCamelEntity, EntityType } from './entities';
 import { EntityOrderingService } from './entity-ordering.service';
 import { SourceSchemaType } from './source-schema-type';
 
-export class CamelRouteResource implements CamelResource, BeansAwareResource {
+export class CamelRouteResource implements KaotoResource, BeansAwareResource {
   static readonly SUPPORTED_ENTITIES: {
     type: EntityType;
     group: string;
     Entity: BaseVisualCamelEntityConstructor;
+    isVisualEntity: boolean;
     isYamlOnly?: boolean;
   }[] = [
-    { type: EntityType.Route, group: '', Entity: CamelRouteVisualEntity },
-    { type: EntityType.RouteConfiguration, group: 'Configuration', Entity: CamelRouteConfigurationVisualEntity },
-    { type: EntityType.Intercept, group: 'Configuration', Entity: CamelInterceptVisualEntity, isYamlOnly: true },
+    { type: EntityType.Route, group: '', Entity: CamelRouteVisualEntity, isVisualEntity: true },
+    {
+      type: EntityType.RouteConfiguration,
+      group: 'Configuration',
+      Entity: CamelRouteConfigurationVisualEntity,
+      isVisualEntity: true,
+    },
+    {
+      type: EntityType.Intercept,
+      group: 'Configuration',
+      Entity: CamelInterceptVisualEntity,
+      isVisualEntity: true,
+      isYamlOnly: true,
+    },
     {
       type: EntityType.InterceptFrom,
       group: 'Configuration',
       Entity: CamelInterceptFromVisualEntity,
+      isVisualEntity: true,
       isYamlOnly: true,
     },
     {
       type: EntityType.InterceptSendToEndpoint,
       group: 'Configuration',
       Entity: CamelInterceptSendToEndpointVisualEntity,
+      isVisualEntity: true,
       isYamlOnly: true,
     },
-    { type: EntityType.OnCompletion, group: 'Configuration', Entity: CamelOnCompletionVisualEntity, isYamlOnly: true },
-    { type: EntityType.OnException, group: 'Error Handling', Entity: CamelOnExceptionVisualEntity, isYamlOnly: true },
-    { type: EntityType.ErrorHandler, group: 'Error Handling', Entity: CamelErrorHandlerVisualEntity, isYamlOnly: true },
-    { type: EntityType.RestConfiguration, group: 'Rest', Entity: CamelRestConfigurationVisualEntity },
-    { type: EntityType.Rest, group: 'Rest', Entity: CamelRestVisualEntity },
+    {
+      type: EntityType.OnCompletion,
+      group: 'Configuration',
+      Entity: CamelOnCompletionVisualEntity,
+      isVisualEntity: true,
+      isYamlOnly: true,
+    },
+    {
+      type: EntityType.OnException,
+      group: 'Error Handling',
+      Entity: CamelOnExceptionVisualEntity,
+      isVisualEntity: true,
+      isYamlOnly: true,
+    },
+    {
+      type: EntityType.ErrorHandler,
+      group: 'Error Handling',
+      Entity: CamelErrorHandlerVisualEntity,
+      isVisualEntity: true,
+      isYamlOnly: true,
+    },
+    {
+      type: EntityType.RestConfiguration,
+      group: 'Rest',
+      Entity: CamelRestConfigurationVisualEntity,
+      isVisualEntity: false,
+    },
+    { type: EntityType.Rest, group: 'Rest', Entity: CamelRestVisualEntity, isVisualEntity: false },
   ];
-  private entities: BaseCamelEntity[] = [];
-  private resolvedEntities: BaseVisualCamelEntityDefinition | undefined;
+  private entities: BaseEntity[] = [];
+  private resolvedEntities: BaseVisualEntityDefinition | undefined;
 
   constructor(
     rawEntities?: CamelYamlDsl,
-    private serializer: CamelResourceSerializer = new YamlCamelResourceSerializer(),
+    private serializer: KaotoResourceSerializer = new YamlCamelResourceSerializer(),
   ) {
     if (!rawEntities) return;
 
@@ -91,16 +128,17 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
         acc.push(entity);
       }
       return acc;
-    }, [] as BaseCamelEntity[]);
+    }, [] as BaseEntity[]);
 
     this.entities = EntityOrderingService.sortEntitiesForSerialization(parsedEntities);
   }
 
-  getCanvasEntityList(): BaseVisualCamelEntityDefinition {
+  getCanvasEntityList(): BaseVisualEntityDefinition {
     this.resolvedEntities = CamelRouteResource.SUPPORTED_ENTITIES.filter(
-      ({ isYamlOnly }) =>
-        this.serializer.getType() === SerializerType.YAML ||
-        (this.serializer.getType() !== SerializerType.YAML && !isYamlOnly),
+      ({ isVisualEntity, isYamlOnly }) =>
+        isVisualEntity &&
+        (this.serializer.getType() === SerializerType.YAML ||
+          (this.serializer.getType() !== SerializerType.YAML && !isYamlOnly)),
     ).reduce(
       (acc, { type, group }) => {
         const catalogEntity = CamelCatalogService.getComponent(CatalogKind.Entity, type);
@@ -119,7 +157,7 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
         acc.groups[group].push(entityDefinition);
         return acc;
       },
-      { common: [], groups: {} } as BaseVisualCamelEntityDefinition,
+      { common: [], groups: {} } as BaseVisualEntityDefinition,
     );
 
     return this.resolvedEntities;
@@ -139,14 +177,13 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
     this.serializer = serializer;
   }
 
-  addNewEntity(entityType?: EntityType, entityTemplate?: unknown): string {
+  addNewEntity(entityType?: EntityType, entityTemplate?: unknown, insertAfterEntityId?: string): string {
     if (entityType && entityType !== EntityType.Route) {
       const supportedEntity = CamelRouteResource.SUPPORTED_ENTITIES.find(({ type }) => type === entityType);
       if (supportedEntity) {
         const entity = new supportedEntity.Entity(entityTemplate);
 
-        // Find the correct insertion index based on XML schema order
-        const insertIndex = EntityOrderingService.findInsertionIndex(this.entities, entityType);
+        const insertIndex = this.getInsertionIndex(entityType, insertAfterEntityId);
         this.entities.splice(insertIndex, 0, entity);
 
         return entity.id;
@@ -162,11 +199,26 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
     }
     const entity = new CamelRouteVisualEntity(route);
 
-    // Find the correct insertion index for Route entities
-    const insertIndex = EntityOrderingService.findInsertionIndex(this.entities, EntityType.Route);
+    const insertIndex = this.getInsertionIndex(EntityType.Route, insertAfterEntityId);
     this.entities.splice(insertIndex, 0, entity);
 
     return entity.id;
+  }
+
+  /**
+   * Gets the insertion index for a new entity.
+   * If `insertAfterEntityId` is provided, the new entity is placed right after the entity with that ID.
+   * Otherwise, falls back to XML schema ordering via EntityOrderingService.
+   */
+  private getInsertionIndex(entityType: EntityType, insertAfterEntityId?: string): number {
+    if (insertAfterEntityId) {
+      const afterIndex = this.entities.findIndex((e) => e.id === insertAfterEntityId);
+      if (afterIndex !== -1) {
+        return afterIndex + 1;
+      }
+    }
+
+    return EntityOrderingService.findInsertionIndex(this.entities, entityType);
   }
 
   getType(): SourceSchemaType {
@@ -178,15 +230,15 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
   }
 
   getVisualEntities(): CamelRouteVisualEntity[] {
-    return this.entities.filter(
-      (entity) =>
-        entity instanceof CamelRouteVisualEntity ||
-        CamelRouteResource.SUPPORTED_ENTITIES.some(({ Entity }) => entity instanceof Entity),
+    return this.entities.filter((entity) =>
+      CamelRouteResource.SUPPORTED_ENTITIES.some(
+        ({ Entity, isVisualEntity }) => entity instanceof Entity && isVisualEntity,
+      ),
     ) as CamelRouteVisualEntity[];
   }
 
-  getEntities(): BaseCamelEntity[] {
-    return this.entities.filter((entity) => !(entity instanceof CamelRouteVisualEntity)) as BaseCamelEntity[];
+  getEntities(): BaseEntity[] {
+    return this.entities.filter((entity) => !(entity instanceof CamelRouteVisualEntity));
   }
 
   toJSON(): unknown {
@@ -227,7 +279,11 @@ export class CamelRouteResource implements CamelResource, BeansAwareResource {
     return CamelComponentFilterService.getCamelCompatibleComponents(mode, visualEntityData, definition);
   }
 
-  private getEntity(rawItem: unknown): BaseCamelEntity | undefined {
+  getCompatibleRuntimes(): string[] {
+    return ['Main', 'Quarkus', 'Spring Boot'];
+  }
+
+  private getEntity(rawItem: unknown): BaseEntity | undefined {
     if (!isDefined(rawItem) || Array.isArray(rawItem)) {
       return undefined;
     }

@@ -1,13 +1,14 @@
 import { KaotoFunction } from '@kaoto/camel-catalog/catalog-index.d.ts';
 
-import { ComponentsCatalog, ComponentsCatalogTypes } from '../../camel-catalog-index';
-import { ICamelComponentDefinition } from '../../camel-components-catalog';
-import { ICamelDataformatDefinition } from '../../camel-dataformats-catalog';
-import { ICamelLanguageDefinition } from '../../camel-languages-catalog';
-import { ICamelLoadBalancerDefinition } from '../../camel-loadbalancers-catalog';
-import { ICamelProcessorDefinition } from '../../camel-processors-catalog';
+import { ComponentsCatalog, ComponentsCatalogTypes } from '../../camel/camel-catalog-index';
+import { ICamelComponentDefinition } from '../../camel/camel-components-catalog';
+import { ICamelDataformatDefinition } from '../../camel/camel-dataformats-catalog';
+import { ICamelLanguageDefinition } from '../../camel/camel-languages-catalog';
+import { ICamelLoadBalancerDefinition } from '../../camel/camel-loadbalancers-catalog';
+import { ICamelProcessorDefinition } from '../../camel/camel-processors-catalog';
+import { IKameletDefinition } from '../../camel/kamelets-catalog';
 import { CatalogKind } from '../../catalog-kind';
-import { IKameletDefinition } from '../../kamelets-catalog';
+import { ICitrusComponentDefinition } from '../../citrus/citrus-catalog';
 
 export class CamelCatalogService {
   private static catalogs: ComponentsCatalog = {};
@@ -37,6 +38,30 @@ export class CamelCatalogService {
     loadBalancerName?: string,
   ): ICamelLoadBalancerDefinition | undefined;
   static getComponent(catalogKey: CatalogKind.Kamelet, componentName?: string): IKameletDefinition | undefined;
+  static getComponent(
+    catalogKey: CatalogKind.TestActionGroup,
+    componentName?: string,
+  ): ICitrusComponentDefinition | undefined;
+  static getComponent(
+    catalogKey: CatalogKind.TestAction,
+    componentName?: string,
+  ): ICitrusComponentDefinition | undefined;
+  static getComponent(
+    catalogKey: CatalogKind.TestContainer,
+    componentName?: string,
+  ): ICitrusComponentDefinition | undefined;
+  static getComponent(
+    catalogKey: CatalogKind.TestEndpoint,
+    componentName?: string,
+  ): ICitrusComponentDefinition | undefined;
+  static getComponent(
+    catalogKey: CatalogKind.TestFunction,
+    componentName?: string,
+  ): ICitrusComponentDefinition | undefined;
+  static getComponent(
+    catalogKey: CatalogKind.TestValidationMatcher,
+    componentName?: string,
+  ): ICitrusComponentDefinition | undefined;
   static getComponent(
     catalogKey: CatalogKind.Function,
     componentName?: string,

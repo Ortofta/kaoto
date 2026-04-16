@@ -43,11 +43,18 @@ Cypress.Commands.add('openHomePageWithPreExistingRoutes', () => {
 
 Cypress.Commands.add('waitSchemasLoading', () => {
   // Wait for the loading schemas to disappear
-  cy.get('[data-testid="loading-schemas"]').should('be.visible');
-  cy.get('[data-testid="loading-schemas"]').should('not.exist');
+  // Use a more flexible approach that handles cases where loading is very fast
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="loading-schemas"]').length > 0) {
+      cy.get('[data-testid="loading-schemas"]').should('not.exist');
+    }
+  });
   // Wait for the loading connectors to disappear
-  cy.get('[data-testid="loading-catalogs"]').should('be.visible');
-  cy.get('[data-testid="loading-catalogs"]').should('not.exist');
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="loading-catalogs"]').length > 0) {
+      cy.get('[data-testid="loading-catalogs"]').should('not.exist');
+    }
+  });
 });
 
 Cypress.Commands.add('expandVisualization', () => {
@@ -74,6 +81,11 @@ Cypress.Commands.add('openSourceCode', () => {
 Cypress.Commands.add('openBeans', () => {
   cy.get('[data-testid="Beans"]').click();
   cy.get('.metadata-editor-modal-details-view').should('be.visible');
+});
+
+Cypress.Commands.add('openRestEditor', () => {
+  cy.get('[data-testid="Editor"]').click();
+  cy.get('.resizable-split-panels').should('be.visible');
 });
 
 Cypress.Commands.add('openMetadata', () => {
@@ -122,7 +134,10 @@ Cypress.Commands.add('openCatalog', () => {
  * Possible values are - Integration, camelYamlDsl(Camel Route), Kamelet, KameletBinding
  */
 Cypress.Commands.add('switchIntegrationType', (type: string) => {
-  cy.get('[data-testid="integration-type-list-dropdown"]').click({ force: true });
+  const dropdownSelector = '[data-testid="integration-type-list-dropdown"]';
+  const listSelector = '[data-testid="integration-type-list"]';
+  cy.retryClickDropdown(dropdownSelector, listSelector);
+
   cy.get('#integration-type-list-select')
     .should('exist')
     .find(`[data-testid="integration-type-${type}"]`)
@@ -254,7 +269,7 @@ Cypress.Commands.add('allowClipboardAccess', () => {
         permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'],
         // make the permission tighter by allowing the current origin only
         // like "http://localhost:56978"
-        origin: window.location.origin,
+        origin: globalThis.location.origin,
       },
     }),
   );

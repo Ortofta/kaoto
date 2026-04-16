@@ -11,6 +11,7 @@ import {
   IfItem,
   MappingTree,
   OtherwiseItem,
+  UnknownMappingItem,
   ValueSelector,
   WhenItem,
 } from '../models/datamapper/mapping';
@@ -18,11 +19,20 @@ import { NS_XSL } from '../models/datamapper/standard-namespaces';
 import { Types } from '../models/datamapper/types';
 import {
   getInvoice850Xsd,
+  getRawTextNodeXslt,
+  getShipOrderManuallyEditedXslt,
   getShipOrderToShipOrderCollectionIndexXslt,
   getShipOrderToShipOrderInvalidForEachXslt,
   getShipOrderToShipOrderMultipleForEachXslt,
   getShipOrderToShipOrderXslt,
+  getShipOrderWithCommentXslt,
+  getShipOrderWithMultipleCommentsXslt,
+  getUnknownApplyTemplateAfterFieldXslt,
+  getUnknownApplyTemplateBeforeFieldXslt,
+  getUnknownApplyTemplateXslt,
+  getWhitespaceTextNodeXslt,
   getX12850ForEachXslt,
+  getXslTextNodeXslt,
   TestUtil,
 } from '../stubs/datamapper/data-mapper';
 import { EMPTY_XSL, MappingSerializerService } from './mapping-serializer.service';
@@ -178,6 +188,57 @@ describe('MappingSerializerService', () => {
       expect(selector.expression).toEqual('Price');
     });
 
+    it('should deserialize a raw text node as a literal ValueSelector', () => {
+      const mappingTree = new MappingTree(
+        DocumentType.TARGET_BODY,
+        BODY_DOCUMENT_ID,
+        DocumentDefinitionType.XML_SCHEMA,
+      );
+      const result = MappingSerializerService.deserialize(
+        getRawTextNodeXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      expect(result.children.length).toEqual(1);
+      const selector = result.children[0] as ValueSelector;
+      expect(selector.expression).toEqual('TEST');
+      expect(selector.isLiteral).toBeTruthy();
+    });
+
+    it('should deserialize xsl:text as a literal ValueSelector', () => {
+      const mappingTree = new MappingTree(
+        DocumentType.TARGET_BODY,
+        BODY_DOCUMENT_ID,
+        DocumentDefinitionType.XML_SCHEMA,
+      );
+      const result = MappingSerializerService.deserialize(
+        getXslTextNodeXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      expect(result.children.length).toEqual(1);
+      const selector = result.children[0] as ValueSelector;
+      expect(selector.expression).toEqual('TEST');
+      expect(selector.isLiteral).toBeTruthy();
+    });
+
+    it('should ignore whitespace-only text nodes', () => {
+      const mappingTree = new MappingTree(
+        DocumentType.TARGET_BODY,
+        BODY_DOCUMENT_ID,
+        DocumentDefinitionType.XML_SCHEMA,
+      );
+      const result = MappingSerializerService.deserialize(
+        getWhitespaceTextNodeXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      expect(result.children.length).toEqual(0);
+    });
+
     it('should deserialize incomplete XSLT', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
@@ -238,6 +299,43 @@ describe('MappingSerializerService', () => {
       expect(forEach2.children.length).toEqual(1);
       const item2 = forEach1.children[0] as FieldItem;
       expect(item2.field.name).toEqual('Item');
+    });
+
+    it('should clone UnknownMappingItem with a deep copy of the element', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getUnknownApplyTemplateXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const shipOrderItem = mappingTree.children[0];
+      const unknownItem = shipOrderItem.children[0] as UnknownMappingItem;
+
+      const cloned = unknownItem.clone() as UnknownMappingItem;
+
+      expect(cloned).toBeInstanceOf(UnknownMappingItem);
+      expect(cloned).not.toBe(unknownItem);
+      expect(cloned.element).not.toBe(unknownItem.element);
+      expect(cloned.element.localName).toEqual(unknownItem.element.localName);
+      expect(cloned.element.getAttribute('select')).toEqual(unknownItem.element.getAttribute('select'));
+      expect(cloned.element.children.length).toEqual(unknownItem.element.children.length);
+    });
+
+    it('should capture unrecognized XSL elements as UnknownMappingItem', () => {
+      const xslt = getUnknownApplyTemplateXslt();
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(xslt, targetDoc, mappingTree, sourceParameterMap);
+      expect(mappingTree.children.length).toEqual(1);
+      const shipOrderItem = mappingTree.children[0] as FieldItem;
+      expect(shipOrderItem.field.name).toEqual('ShipOrder');
+      expect(shipOrderItem.children.length).toEqual(1);
+      const unknownItem = shipOrderItem.children[0] as UnknownMappingItem;
+      expect(unknownItem).toBeInstanceOf(UnknownMappingItem);
+      expect(unknownItem.name).toEqual('unknown');
+      expect(unknownItem.element.localName).toEqual('apply-templates');
+      expect(unknownItem.element.getAttribute('select')).toEqual('/ns0:ShipOrder/Item');
+      expect(unknownItem.children.length).toEqual(0);
     });
 
     it('should deserialize multiple indexed collection mappings on a same target collection', () => {
@@ -368,6 +466,85 @@ describe('MappingSerializerService', () => {
       expect(chooseOtherwiseSelect?.nodeValue).toEqual('Title');
     });
 
+    it('should round-trip UnknownMappingItem verbatim including nested children', () => {
+      const xslt = getUnknownApplyTemplateXslt();
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(xslt, targetDoc, mappingTree, sourceParameterMap);
+      const serialized = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
+      const xsltDocument = domParser.parseFromString(serialized, 'text/xml');
+      const applyTemplates = xsltDocument
+        .evaluate(
+          '/xsl:stylesheet/xsl:template/ShipOrder/xsl:apply-templates/@select',
+          xsltDocument,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+        )
+        .iterateNext();
+      expect(applyTemplates?.nodeValue).toEqual('/ns0:ShipOrder/Item');
+      const sort = xsltDocument
+        .evaluate(
+          '/xsl:stylesheet/xsl:template/ShipOrder/xsl:apply-templates/xsl:sort/@select',
+          xsltDocument,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+        )
+        .iterateNext();
+      expect(sort?.nodeValue).toEqual('Title');
+      const withParam = xsltDocument
+        .evaluate(
+          '/xsl:stylesheet/xsl:template/ShipOrder/xsl:apply-templates/xsl:with-param/@name',
+          xsltDocument,
+          null,
+          XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+        )
+        .iterateNext();
+      expect(withParam?.nodeValue).toEqual('prefix');
+    });
+
+    it('should preserve original order when UnknownMappingItem appears after a FieldItem', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getUnknownApplyTemplateAfterFieldXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const serialized = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
+      const xsltDocument = domParser.parseFromString(serialized, 'text/xml');
+      const children = xsltDocument.evaluate(
+        '/xsl:stylesheet/xsl:template/ShipOrder/*',
+        xsltDocument,
+        null,
+        XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+      );
+      const first = children.iterateNext() as Element;
+      expect(first.nodeName).toEqual('xsl:attribute');
+      const second = children.iterateNext() as Element;
+      expect(second.nodeName).toEqual('xsl:apply-templates');
+    });
+
+    it('should preserve original order when UnknownMappingItem appears before a FieldItem', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getUnknownApplyTemplateBeforeFieldXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const serialized = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
+      const xsltDocument = domParser.parseFromString(serialized, 'text/xml');
+      const children = xsltDocument.evaluate(
+        '/xsl:stylesheet/xsl:template/ShipOrder/*',
+        xsltDocument,
+        null,
+        XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+      );
+      const first = children.iterateNext() as Element;
+      expect(first.nodeName).toEqual('xsl:apply-templates');
+      const second = children.iterateNext() as Element;
+      expect(second.nodeName).toEqual('xsl:attribute');
+    });
+
     it('should serialize mappings with respecting Document field order', () => {
       let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
       mappingTree = MappingSerializerService.deserialize(
@@ -396,6 +573,156 @@ describe('MappingSerializerService', () => {
       const xslForEach = shipOrderSelect.iterateNext() as Element;
       expect(xslForEach.nodeName).toEqual('xsl:for-each');
       expect(xslForEach.getAttribute('select')).toEqual('/ns0:ShipOrder/Item');
+    });
+
+    it('should serialize mapping with comment', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderToShipOrderXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const shipOrderItem = mappingTree.children[0];
+      shipOrderItem.comment = 'This is a test comment';
+      const xslt = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
+      expect(xslt).toContain('<!-- This is a test comment -->');
+      const xsltDocument = domParser.parseFromString(xslt, 'text/xml');
+      const template = xsltDocument.getElementsByTagNameNS(NS_XSL, 'template')[0];
+      // Find the comment node (skip text nodes)
+      let commentNode: Node | null = null;
+      for (const node of template.childNodes) {
+        if (node.nodeType === Node.COMMENT_NODE) {
+          commentNode = node;
+          break;
+        }
+      }
+      expect(commentNode).toBeTruthy();
+      expect((commentNode as Comment).data.trim()).toEqual('This is a test comment');
+    });
+
+    it('should serialize mapping with nested comments', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderToShipOrderXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const shipOrderItem = mappingTree.children[0];
+      shipOrderItem.comment = 'Root element comment';
+      const ifItem = shipOrderItem.children[1] as IfItem;
+      ifItem.comment = 'Conditional mapping comment';
+      const xslt = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
+      expect(xslt).toContain('<!-- Root element comment -->');
+      expect(xslt).toContain('<!-- Conditional mapping comment -->');
+    });
+
+    it('should deserialize mapping with comment', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderWithCommentXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      expect(mappingTree.children.length).toEqual(1);
+      const shipOrderItem = mappingTree.children[0];
+      expect(shipOrderItem.comment).toEqual('This is a test comment');
+    });
+
+    it('should preserve comments through serialize/deserialize cycle', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderToShipOrderXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+      const shipOrderItem = mappingTree.children[0];
+      shipOrderItem.comment = 'Root comment';
+      const ifItem = shipOrderItem.children[1] as IfItem;
+      ifItem.comment = 'Condition comment';
+      const forEachItem = shipOrderItem.children[3] as ForEachItem;
+      forEachItem.comment = 'Loop comment';
+
+      // Serialize
+      const xslt = MappingSerializerService.serialize(mappingTree, sourceParameterMap);
+
+      // Deserialize
+      let mappingTree2 = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree2 = MappingSerializerService.deserialize(xslt, targetDoc, mappingTree2, sourceParameterMap);
+
+      // Verify comments are preserved
+      const shipOrderItem2 = mappingTree2.children[0];
+      expect(shipOrderItem2.comment).toEqual('Root comment');
+      const ifItem2 = shipOrderItem2.children[1] as IfItem;
+      expect(ifItem2.comment).toEqual('Condition comment');
+      const forEachItem2 = shipOrderItem2.children[3] as ForEachItem;
+      expect(forEachItem2.comment).toEqual('Loop comment');
+    });
+
+    it('should deserialize complex XSL with multiple comments at different levels', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderWithMultipleCommentsXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+
+      expect(mappingTree.children.length).toEqual(1);
+      const shipOrderItem = mappingTree.children[0] as FieldItem;
+      expect(shipOrderItem.comment).toEqual('Main ShipOrder mapping');
+
+      // Check OrderId attribute comment
+      expect(shipOrderItem.children[0].comment).toEqual('Order ID attribute');
+
+      // Check if item comment
+      const ifItem = shipOrderItem.children[1] as IfItem;
+      expect(ifItem.comment).toEqual('Conditional mapping for OrderPerson');
+
+      // Check ShipTo comment
+      expect(shipOrderItem.children[2].comment).toEqual('Ship To information');
+
+      // Check for-each comment
+      const forEachItem = shipOrderItem.children[3] as ForEachItem;
+      expect(forEachItem.comment).toEqual('Loop through items');
+    });
+
+    it('should handle XSL without comments gracefully', () => {
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderToShipOrderXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+
+      expect(mappingTree.children.length).toBeGreaterThan(0);
+      const shipOrderItem = mappingTree.children[0];
+      expect(shipOrderItem.comment).toBeUndefined();
+    });
+
+    it('should deserialize external XSL file with comments correctly', () => {
+      // This simulates importing an XSL file that was manually edited with comments
+      let mappingTree = new MappingTree(DocumentType.TARGET_BODY, BODY_DOCUMENT_ID, DocumentDefinitionType.XML_SCHEMA);
+      mappingTree = MappingSerializerService.deserialize(
+        getShipOrderManuallyEditedXslt(),
+        targetDoc,
+        mappingTree,
+        sourceParameterMap,
+      );
+
+      expect(mappingTree.children.length).toEqual(1);
+      const shipOrderItem = mappingTree.children[0];
+      expect(shipOrderItem.comment).toEqual('Mapping created on 2024-01-15');
+
+      const orderIdAttr = shipOrderItem.children[0];
+      expect(orderIdAttr.comment).toEqual('Maps order ID from source');
+
+      const ifItem = shipOrderItem.children[1] as IfItem;
+      expect(ifItem.comment).toEqual('TODO: Add validation for OrderPerson');
     });
   });
 });

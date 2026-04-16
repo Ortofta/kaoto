@@ -211,6 +211,9 @@ export function getSimpleTypeRestrictionXsd(): string {
 export function getLazyLoadingTestXsd(): string {
   return readStubFile('./xml/LazyLoadingTest.xsd');
 }
+export function getLazyLoadingTestExtensionsXsd(): string {
+  return readStubFile('./xml/LazyLoadingTestExtensions.xsd');
+}
 export function getAdtInXsd(): string {
   return readStubFile('./xml/ADT_IN.xsd');
 }
@@ -255,6 +258,45 @@ export function getInlineAttrSimpleTypeXsd(): string {
 }
 export function getAnonymousGlobalElementRefLargeXsd(): string {
   return readStubFile('./xml/AnonymousGlobalElementRefLarge.xsd');
+}
+export function getUnknownApplyTemplateXslt(): string {
+  return readStubFile('./xml/UnknownApplyTemplate.xsl');
+}
+export function getUnknownApplyTemplateAfterFieldXslt(): string {
+  return readStubFile('./xml/UnknownApplyTemplateAfterField.xsl');
+}
+export function getUnknownApplyTemplateBeforeFieldXslt(): string {
+  return readStubFile('./xml/UnknownApplyTemplateBeforeField.xsl');
+}
+export function getDerivationMethodsXsd(): string {
+  return readStubFile('./xml/DerivationMethods.xsd');
+}
+export function getConstraintsXsd(): string {
+  return readStubFile('./xml/Constraints.xsd');
+}
+export function getFieldSubstitutionXsd(): string {
+  return readStubFile('./xml/FieldSubstitution.xsd');
+}
+export function getFieldSubstitutionNoNsXsd(): string {
+  return readStubFile('./xml/FieldSubstitutionNoNs.xsd');
+}
+export function getRawTextNodeXslt(): string {
+  return readStubFile('./xml/RawTextNode.xsl');
+}
+export function getXslTextNodeXslt(): string {
+  return readStubFile('./xml/XslTextNode.xsl');
+}
+export function getWhitespaceTextNodeXslt(): string {
+  return readStubFile('./xml/WhitespaceTextNode.xsl');
+}
+export function getShipOrderWithCommentXslt(): string {
+  return readStubFile('./xml/ShipOrderWithComment.xsl');
+}
+export function getShipOrderWithMultipleCommentsXslt(): string {
+  return readStubFile('./xml/ShipOrderWithMultipleComments.xsl');
+}
+export function getShipOrderManuallyEditedXslt(): string {
+  return readStubFile('./xml/ShipOrderManuallyEdited.xsl');
 }
 
 export class TestUtil {

@@ -1,0 +1,146 @@
+import './NodeTitle.scss';
+
+import { NullSign } from '@carbon/icons-react';
+import { Label, Popover, Title } from '@patternfly/react-core';
+import clsx from 'clsx';
+import { FunctionComponent } from 'react';
+
+import OptIcon from '../../../assets/data-mapper/field-icons/OptIcon';
+import Repeat0Icon from '../../../assets/data-mapper/field-icons/Repeat0Icon';
+import Repeat1Icon from '../../../assets/data-mapper/field-icons/Repeat1Icon';
+import { FieldOverrideVariant } from '../../../models/datamapper/types';
+import {
+  AddMappingNodeData,
+  ChoiceFieldNodeData,
+  FieldItemNodeData,
+  FieldNodeData,
+  MappingNodeData,
+  NodeData,
+  TargetChoiceFieldNodeData,
+  UnknownMappingNodeData,
+  VariableNodeData,
+} from '../../../models/datamapper/visualization';
+import { formatQNameWithPrefix } from '../../../services/namespace-util';
+import { VisualizationService } from '../../../services/visualization.service';
+import { UnknownMappingLabel } from './UnknownMappingLabel';
+
+interface INodeTitle {
+  className?: string;
+  rank: number;
+  nodeData: NodeData;
+  isDocument: boolean;
+  namespaceMap?: Record<string, string>;
+}
+
+export const NodeTitle: FunctionComponent<INodeTitle> = ({
+  className,
+  rank,
+  nodeData,
+  isDocument,
+  namespaceMap = {},
+}) => {
+  const title = VisualizationService.createNodeTitle(nodeData);
+  const content = (
+    <span className={clsx('node-title__text', className)} data-rank={rank}>
+      {title}
+    </span>
+  );
+
+  if (nodeData instanceof UnknownMappingNodeData) {
+    return <UnknownMappingLabel nodeData={nodeData} content={content} />;
+  }
+
+  if (nodeData instanceof VariableNodeData) {
+    return (
+      <>
+        <Label isCompact>$</Label>
+        {content}
+      </>
+    );
+  }
+
+  if (nodeData instanceof MappingNodeData && !(nodeData instanceof FieldItemNodeData)) {
+    return <Label>{content}</Label>;
+  }
+
+  if (isDocument) {
+    return <Title headingLevel="h5">{content}</Title>;
+  }
+
+  // Wrap with popover if the nodeData is a field representation
+  if (
+    nodeData instanceof FieldNodeData ||
+    nodeData instanceof FieldItemNodeData ||
+    nodeData instanceof AddMappingNodeData
+  ) {
+    const isChoiceWrapper =
+      (nodeData instanceof ChoiceFieldNodeData || nodeData instanceof TargetChoiceFieldNodeData) &&
+      !nodeData.choiceField;
+    const optionalField = nodeData.field.minOccurs === 0;
+    const repeatingField0 = nodeData.field.minOccurs >= 0 && nodeData.field.maxOccurs === 'unbounded';
+    const repeatingField1 = nodeData.field.minOccurs >= 1 && nodeData.field.maxOccurs === 'unbounded';
+    const hasTypeOverride = nodeData.field.typeOverride !== FieldOverrideVariant.NONE;
+
+    // Format type names with namespace prefixes for display
+    const originalTypeDisplay = hasTypeOverride
+      ? formatQNameWithPrefix(nodeData.field.originalField?.typeQName, namespaceMap, nodeData.field.originalField?.type)
+      : '';
+    const overriddenTypeDisplay = hasTypeOverride
+      ? formatQNameWithPrefix(nodeData.field.typeQName, namespaceMap, nodeData.field.type)
+      : '';
+
+    return (
+      <Popover
+        triggerAction="hover"
+        position="right"
+        aria-label="Hoverable popover"
+        bodyContent={
+          <div>
+            <div className="popover__row">
+              <span className="popover__cell">minOccurs :&nbsp;</span>
+              <span className="popover__cell">{nodeData.field.minOccurs}</span>
+            </div>
+            <div className="popover__row">
+              <span className="popover__cell">maxOccurs :&nbsp;</span>
+              <span className="popover__cell">{nodeData.field.maxOccurs}</span>
+            </div>
+            {hasTypeOverride && (
+              <>
+                <div className="popover__row">
+                  <span className="popover__cell">Original type :&nbsp;</span>
+                  <span className="popover__cell">{originalTypeDisplay}</span>
+                </div>
+                <div className="popover__row">
+                  <span className="popover__cell">Overridden type :&nbsp;</span>
+                  <span className="popover__cell">{overriddenTypeDisplay}</span>
+                </div>
+              </>
+            )}
+          </div>
+        }
+      >
+        <div className="node-title-container">
+          {isChoiceWrapper && <Label>choice</Label>}
+          <span
+            className={clsx('node-title__text', isChoiceWrapper && 'node-title__text__choice', className)}
+            data-rank={rank}
+          >
+            {title}
+          </span>
+          {optionalField && !repeatingField0 && (
+            <OptIcon className="node__spacer datamapper-marker-field" aria-label="Optional" />
+          )}
+          {repeatingField0 && !repeatingField1 && (
+            <Repeat0Icon className="node__spacer datamapper-marker-field" aria-label="Repeat0" />
+          )}
+          {repeatingField1 && <Repeat1Icon className="node__spacer datamapper-marker-field" aria-label="Repeat1" />}
+          {nodeData.field.nillable && (
+            <NullSign className="node__spacer datamapper-marker-field" aria-label="Nullable" />
+          )}
+        </div>
+      </Popover>
+    );
+  }
+
+  return content;
+};

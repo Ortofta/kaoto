@@ -1,16 +1,14 @@
 import { Button } from '@patternfly/react-core';
 import { ImageIcon } from '@patternfly/react-icons';
-import { useVisualizationController } from '@patternfly/react-topology';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 
-import { EntitiesContext } from '../../../../providers/entities.provider';
-import { LayoutType } from '../../Canvas/canvas.models';
+import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityContext';
+import { useGraphLayout } from '../../Custom/hooks/use-graph-layout.hook';
 import { HiddenCanvas } from './HiddenCanvas';
 
 export function FlowExportImage() {
-  const controller = useVisualizationController();
   const [isExporting, setIsExporting] = useState(false);
-  const entitiesContext = useContext(EntitiesContext);
+  const { visualEntities } = useEntityContext();
 
   const onClick = () => {
     setIsExporting(true);
@@ -20,9 +18,7 @@ export function FlowExportImage() {
     setIsExporting(false);
   };
 
-  if (!entitiesContext) return null;
-
-  const currentLayout = controller.getGraph().getLayout() as LayoutType | undefined;
+  const currentLayout = useGraphLayout();
 
   return (
     <>
@@ -36,11 +32,7 @@ export function FlowExportImage() {
       />
 
       {isExporting && (
-        <HiddenCanvas
-          entities={entitiesContext.visualEntities}
-          layout={currentLayout}
-          onComplete={handleExportComplete}
-        />
+        <HiddenCanvas autoDownload entities={visualEntities} layout={currentLayout} onComplete={handleExportComplete} />
       )}
     </>
   );

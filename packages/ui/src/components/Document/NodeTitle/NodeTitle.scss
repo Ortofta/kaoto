@@ -1,0 +1,34 @@
+.node-title {
+  &__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
+    vertical-align: middle;
+
+    &__choice {
+      font-style: italic;
+    }
+  }
+}
+
+.popover {
+  &__row {
+    display: table-row;
+  }
+
+  &__cell {
+    display: table-cell;
+  }
+}
+
+div.node-title-container {
+  display: flex;
+  align-items: center;
+}
+
+.datamapper-marker-field {
+  width: 1.75rem;
+  height: 1.25rem;
+}

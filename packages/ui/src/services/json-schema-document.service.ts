@@ -41,7 +41,10 @@ export class JsonSchemaDocumentService {
    * @param definition The DocumentDefinition containing schema information
    * @returns CreateJsonSchemaDocumentResult with document and validation status
    */
-  static createJsonSchemaDocument(definition: DocumentDefinition): CreateJsonSchemaDocumentResult {
+  static createJsonSchemaDocument(
+    definition: DocumentDefinition,
+    namespaceMap: Record<string, string> = {},
+  ): CreateJsonSchemaDocumentResult {
     const filePaths = Object.keys(definition.definitionFiles || {});
     if (filePaths.length === 0) {
       return {
@@ -106,8 +109,10 @@ export class JsonSchemaDocumentService {
       document,
       definition.fieldTypeOverrides ?? [],
       definition.choiceSelections ?? [],
-      definition.namespaceMap || {},
+      [],
+      namespaceMap,
       JsonSchemaTypesService.parseTypeOverride,
+      () => undefined,
     );
 
     const validationWarnings = analysisResult.warnings;
@@ -127,9 +132,8 @@ export class JsonSchemaDocumentService {
    * This is useful when field type overrides reference types defined in additional schema files.
    * @param document - The document whose schema collection will be updated
    * @param additionalFiles - Map of file paths to file contents to add
-   * @returns Empty namespace map (JSON Schema doesn't use namespaces, but this maintains API consistency)
    */
-  static addSchemaFiles(document: JsonSchemaDocument, additionalFiles: Record<string, string>): Record<string, string> {
+  static addSchemaFiles(document: JsonSchemaDocument, additionalFiles: Record<string, string>): void {
     const collection = document.schemaCollection;
 
     collection.addDefinitionFiles(additionalFiles);
@@ -143,8 +147,6 @@ export class JsonSchemaDocumentService {
         throw new Error(`Failed to add schema file "${filePath}": ${errorMessage}`);
       }
     }
-
-    return {};
   }
 
   /**
@@ -157,7 +159,11 @@ export class JsonSchemaDocumentService {
    * @param filePath - The key of the schema file to remove from {@link DocumentDefinition.definitionFiles}
    * @returns A {@link CreateJsonSchemaDocumentResult} with updated validation status, errors/warnings, and definition
    */
-  static removeSchemaFile(definition: DocumentDefinition, filePath: string): CreateJsonSchemaDocumentResult {
+  static removeSchemaFile(
+    definition: DocumentDefinition,
+    filePath: string,
+    namespaceMap: Record<string, string> = {},
+  ): CreateJsonSchemaDocumentResult {
     const updatedFiles = { ...definition.definitionFiles };
     delete updatedFiles[filePath];
 
@@ -169,21 +175,49 @@ export class JsonSchemaDocumentService {
       definition.rootElementChoice,
       definition.fieldTypeOverrides,
       definition.choiceSelections,
-      definition.namespaceMap,
+      definition.fieldSubstitutions,
     );
 
     // Try to create the Document object. It could fail if the primary schema is the removed schema file.
     // In that case, we unset updatedDefinition.rootElementChoice and retry.
-    const result = JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition);
+    const result = JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition, namespaceMap);
 
-    // If it succeeds or a primary schema not set, return as it is
-    if (result.document || !definition.rootElementChoice) {
+    if (!definition.rootElementChoice) {
+      // When there is no explicit primary schema, the implicit primary (schemas[0]) may have shifted
+      // because the removed file was first. Clear overrides to avoid stale metadata in that case.
+      const prevFirstKey = Object.keys(definition.definitionFiles ?? {})[0];
+      const newFirstKey = Object.keys(updatedFiles)[0];
+      if (prevFirstKey !== newFirstKey) {
+        updatedDefinition.fieldTypeOverrides = [];
+        updatedDefinition.choiceSelections = [];
+        updatedDefinition.fieldSubstitutions = [];
+        return JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition, namespaceMap);
+      }
       return result;
     }
 
-    // Unset the primary schema and retry
+    // If document was created successfully with explicit rootElementChoice, return it
+    if (result.document) {
+      return result;
+    }
+
+    if (filePath !== definition.rootElementChoice.name) {
+      let removedId: string | undefined;
+      try {
+        removedId = JSON.parse(definition.definitionFiles?.[filePath] ?? '{}').$id;
+      } catch {
+        /* ignore malformed JSON */
+      }
+      if (removedId !== definition.rootElementChoice.name) {
+        return result;
+      }
+    }
+
     updatedDefinition.rootElementChoice = undefined;
-    return JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition);
+    updatedDefinition.fieldTypeOverrides = [];
+    updatedDefinition.choiceSelections = [];
+    updatedDefinition.fieldSubstitutions = [];
+    return JsonSchemaDocumentService.createJsonSchemaDocument(updatedDefinition, namespaceMap);
   }
 
   private static populateDependencyMetadata(
@@ -523,7 +557,6 @@ export class JsonSchemaDocumentService {
   private assignRefTypeQName(field: JsonSchemaField, ref: string): void {
     const refQName = new QName(null, ref);
     field.typeQName = refQName;
-    field.originalTypeQName = refQName;
   }
 
   private assignTypeMetadata(field: JsonSchemaField, schema: JsonSchemaMetadata): void {
@@ -532,7 +565,6 @@ export class JsonSchemaDocumentService {
       const typeString = typeArray[0];
       const typeQName = new QName(null, typeString);
       field.typeQName = typeQName;
-      field.originalTypeQName = typeQName;
     }
 
     if (schema.required) {

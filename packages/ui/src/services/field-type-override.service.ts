@@ -1,18 +1,20 @@
 import { DocumentDefinition, IDocument, IField, PrimitiveDocument } from '../models/datamapper/document';
-import { IChoiceSelection, IFieldTypeOverride } from '../models/datamapper/metadata';
-import { IFieldTypeInfo, TypeOverrideVariant, Types } from '../models/datamapper/types';
+import { IChoiceSelection, IFieldSubstitution, IFieldTypeOverride } from '../models/datamapper/metadata';
+import { FieldOverrideVariant, IFieldSubstituteInfo, IFieldTypeInfo, Types } from '../models/datamapper/types';
 import { DocumentUtilService, ParseTypeOverrideFn } from './document-util.service';
 import { JsonSchemaDocument } from './json-schema-document.model';
 import { JsonSchemaDocumentService } from './json-schema-document.service';
 import { JsonSchemaTypesService } from './json-schema-types.service';
+import { ensureNamespaceRegistered, formatQNameWithPrefix, formatWithPrefix } from './namespace-util';
 import { SchemaPathService } from './schema-path.service';
 import { XmlSchemaDocument } from './xml-schema-document.model';
 import { XmlSchemaDocumentService } from './xml-schema-document.service';
 import { XmlSchemaTypesService } from './xml-schema-types.service';
 
 /**
- * Service for field type override operations.
- * Provides high-level orchestration for applying, removing, and managing type overrides.
+ * Service for field type override and element substitution operations.
+ * Provides high-level orchestration for applying, removing, and managing type overrides,
+ * choice selections, and element substitutions (apply/revert).
  *
  * This service consolidates all field type override functionality in one place, reducing
  * code duplication and improving maintainability by eliminating if-XML/if-JSON patterns
@@ -25,15 +27,14 @@ import { XmlSchemaTypesService } from './xml-schema-types.service';
  *
  * // Apply a type override
  * FieldTypeOverrideService.applyFieldTypeOverride(
- *   document,
  *   field,
  *   selectedCandidate,
  *   namespaceMap,
- *   TypeOverrideVariant.FORCE
+ *   FieldOverrideVariant.FORCE
  * );
  *
  * // Remove a type override
- * FieldTypeOverrideService.revertFieldTypeOverride(document, field, namespaceMap);
+ * FieldTypeOverrideService.revertFieldTypeOverride(field, namespaceMap);
  * ```
  */
 export class FieldTypeOverrideService {
@@ -67,7 +68,7 @@ export class FieldTypeOverrideService {
     field: IField,
     namespaceMap: Record<string, string>,
   ): Record<string, IFieldTypeInfo> {
-    if (field.originalType === Types.AnyType) {
+    if ((field.originalField?.type ?? field.type) === Types.AnyType) {
       return FieldTypeOverrideService.getAllOverrideCandidates(field.ownerDocument, namespaceMap);
     }
 
@@ -155,13 +156,13 @@ export class FieldTypeOverrideService {
    *   orderPersonField,
    *   candidate,
    *   namespaceMap,
-   *   TypeOverrideVariant.FORCE
+   *   FieldOverrideVariant.FORCE
    * );
    * // Returns: {
    * //   schemaPath: '/ns0:ShipOrder/ns0:OrderPerson',
    * //   type: 'xs:int',
    * //   originalType: 'xs:string',
-   * //   variant: TypeOverrideVariant.FORCE
+   * //   variant: FieldOverrideVariant.FORCE
    * // }
    *
    * // Apply the override
@@ -178,13 +179,16 @@ export class FieldTypeOverrideService {
     field: IField,
     candidate: IFieldTypeInfo,
     namespaceMap: Record<string, string>,
-    variant: TypeOverrideVariant.SAFE | TypeOverrideVariant.FORCE,
+    variant: FieldOverrideVariant.SAFE | FieldOverrideVariant.FORCE,
   ): IFieldTypeOverride {
     const schemaPath = SchemaPathService.build(field, namespaceMap);
-    const originalTypeString = field.originalTypeQName?.toString() ?? field.originalType;
+    const origTypeQName = field.originalField?.typeQName ?? field.typeQName;
+    const origType = field.originalField?.type ?? field.type;
+    const originalTypeString = formatQNameWithPrefix(origTypeQName, namespaceMap, origType);
+    const typeString = formatQNameWithPrefix(candidate.typeQName, namespaceMap);
     return {
       schemaPath,
-      type: candidate.typeString,
+      type: typeString,
       originalType: originalTypeString,
       variant,
     };
@@ -201,7 +205,6 @@ export class FieldTypeOverrideService {
    * The document is modified in place. After calling this method, use
    * `dataMapperProvider.updateDocument()` to persist changes and trigger re-visualization.
    *
-   * @param document - The document containing the field
    * @param field - The field to override
    * @param candidate - The type to override to
    * @param namespaceMap - Namespace map for XPath generation
@@ -219,14 +222,14 @@ export class FieldTypeOverrideService {
    * };
    *
    * FieldTypeOverrideService.applyFieldTypeOverride(
-   *   document,
    *   field,
    *   candidate,
    *   namespaceMap,
-   *   TypeOverrideVariant.FORCE
+   *   FieldOverrideVariant.FORCE
    * );
    *
    * // Persist changes via provider
+   * const document = field.ownerDocument;
    * const previousRefId = document.getReferenceId(namespaceMap);
    * updateDocument(document, document.definition, previousRefId);
    * ```
@@ -235,12 +238,12 @@ export class FieldTypeOverrideService {
    * @see createFieldTypeOverride
    */
   static applyFieldTypeOverride(
-    document: IDocument,
     field: IField,
     candidate: IFieldTypeInfo,
     namespaceMap: Record<string, string>,
-    variant: TypeOverrideVariant.SAFE | TypeOverrideVariant.FORCE,
+    variant: FieldOverrideVariant.SAFE | FieldOverrideVariant.FORCE,
   ): void {
+    const document = field.ownerDocument;
     if (document instanceof PrimitiveDocument) {
       throw new TypeError('Field type override is not supported for primitive documents');
     }
@@ -254,6 +257,7 @@ export class FieldTypeOverrideService {
       throw new TypeError(`Unsupported document type: ${document.constructor.name}`);
     }
 
+    ensureNamespaceRegistered(candidate.typeQName.getNamespaceURI(), namespaceMap);
     const override = FieldTypeOverrideService.createFieldTypeOverride(field, candidate, namespaceMap, variant);
     const changed = DocumentUtilService.processTypeOverride(document, override, namespaceMap, parseTypeOverrideFn);
     if (changed) {
@@ -269,23 +273,26 @@ export class FieldTypeOverrideService {
    * The document is modified in place. After calling this method, use
    * `dataMapperProvider.updateDocument()` to persist changes and trigger re-visualization.
    *
-   * @param document - The document containing the field
    * @param field - The field to restore
    * @param namespaceMap - Namespace map for XPath generation
    *
    * @example
    * ```typescript
-   * FieldTypeOverrideService.revertFieldTypeOverride(document, field, namespaceMap);
+   * FieldTypeOverrideService.revertFieldTypeOverride(field, namespaceMap);
    *
    * // Persist changes via provider
+   * const document = field.ownerDocument;
    * const previousRefId = document.getReferenceId(namespaceMap);
    * updateDocument(document, document.definition, previousRefId);
    * ```
    *
    * @see applyFieldTypeOverride
    */
-  static revertFieldTypeOverride(document: IDocument, field: IField, namespaceMap: Record<string, string>): void {
-    if (field.typeOverride === TypeOverrideVariant.NONE) return;
+  static revertFieldTypeOverride(field: IField, namespaceMap: Record<string, string>): void {
+    const document = field.ownerDocument;
+    if (![FieldOverrideVariant.SAFE, FieldOverrideVariant.FORCE].includes(field.typeOverride)) {
+      return;
+    }
     const schemaPath = SchemaPathService.build(field, namespaceMap);
     const changed = DocumentUtilService.removeTypeOverride(document, schemaPath, namespaceMap);
     if (changed) {
@@ -300,14 +307,12 @@ export class FieldTypeOverrideService {
    * 1. Adding files to the document's schema collection (via format-specific service)
    * 2. Updating DocumentDefinition.definitionFiles with new files
    * 3. Synchronizing namespace maps (for XML Schema documents)
-   * 4. Returning updated definition for re-visualization via provider
    *
-   * The returned DocumentDefinition should be passed to `dataMapperProvider.updateDocument()`
-   * to trigger full synchronization across all three namespace map levels and persist changes.
+   * The document is modified in place. After calling this method, use
+   * {@link DataMapperProvider.updateDocument()} to persist changes and trigger re-visualization.
    *
    * @param document - The document to enhance with additional schemas
    * @param additionalFiles - Map of file paths to file contents
-   * @returns Updated DocumentDefinition with merged files and synchronized namespace map
    * @throws Error if document is PrimitiveDocument or unsupported type
    * @throws Error if schema parsing fails (propagated from format-specific service)
    *
@@ -318,59 +323,38 @@ export class FieldTypeOverrideService {
    *   'CustomTypes.xsd': schemaContent,
    * };
    *
-   * // Create updated definition
-   * const updatedDefinition = FieldTypeOverrideService.addSchemaFilesForTypeOverride(
-   *   targetDocument,
-   *   additionalFiles
-   * );
+   * FieldTypeOverrideService.addSchemaFilesForTypeOverride(targetDocument, additionalFiles);
    *
    * // Apply via provider - triggers full namespace synchronization
    * dataMapperProvider.updateDocument(
    *   targetDocument,
-   *   updatedDefinition,
+   *   targetDocument.definition,
    *   previousReferenceId
    * );
-   *
-   * // Now custom types are available for field type overrides
-   * const candidates = FieldTypeOverrideService.getAllOverrideCandidates(
-   *   targetDocument,
-   *   updatedDefinition.namespaceMap || {}
-   * );
-   * // candidates now includes types from CustomTypes.xsd
    * ```
    */
-  static addSchemaFilesForTypeOverride(
-    document: IDocument,
-    additionalFiles: Record<string, string>,
-  ): DocumentDefinition {
+  static addSchemaFilesForTypeOverride(document: IDocument, additionalFiles: Record<string, string>): void {
     if (document instanceof PrimitiveDocument) {
       throw new TypeError('Cannot add schema files to primitive document');
     }
 
-    let updatedNamespaceMap: Record<string, string>;
-
     if (document instanceof XmlSchemaDocument) {
-      updatedNamespaceMap = XmlSchemaDocumentService.addSchemaFiles(document, additionalFiles);
+      XmlSchemaDocumentService.addSchemaFiles(document, additionalFiles);
     } else if (document instanceof JsonSchemaDocument) {
-      updatedNamespaceMap = JsonSchemaDocumentService.addSchemaFiles(document, additionalFiles);
+      JsonSchemaDocumentService.addSchemaFiles(document, additionalFiles);
     } else {
       throw new TypeError(`Unsupported document type: ${document.constructor.name}`);
     }
 
-    const mergedDefinitionFiles = {
-      ...document.definition.definitionFiles,
-      ...additionalFiles,
-    };
-
-    return new DocumentDefinition(
+    document.definition = new DocumentDefinition(
       document.definition.documentType,
       document.definition.definitionType,
       document.definition.name,
-      mergedDefinitionFiles,
+      { ...document.definition.definitionFiles, ...additionalFiles },
       document.definition.rootElementChoice,
       document.definition.fieldTypeOverrides,
       document.definition.choiceSelections,
-      updatedNamespaceMap,
+      document.definition.fieldSubstitutions,
     );
   }
 
@@ -446,6 +430,114 @@ export class FieldTypeOverrideService {
     const changed = DocumentUtilService.removeChoiceSelection(document, schemaPath, namespaceMap);
     if (changed) {
       DocumentUtilService.invalidateDescendants(document, schemaPath);
+    }
+  }
+
+  /**
+   * Get substitution group member candidates for a field.
+   *
+   * Delegates to {@link XmlSchemaTypesService.getFieldSubstitutionCandidates} for XML Schema documents.
+   * Returns empty Record for JSON Schema documents (substitution groups are XML-only).
+   *
+   * @param field - The field to get substitution candidates for
+   * @param namespaceMap - Namespace prefix to URI mapping for qualified name resolution
+   * @returns Record of substitution candidates, or `{}` when none found
+   */
+  static getFieldSubstitutionCandidates(
+    field: IField,
+    namespaceMap: Record<string, string>,
+  ): Record<string, IFieldSubstituteInfo> {
+    if (!(field.ownerDocument instanceof XmlSchemaDocument) || !field.ownerDocument.xmlSchemaCollection) return {};
+    return XmlSchemaTypesService.getFieldSubstitutionCandidates(
+      field,
+      field.ownerDocument.xmlSchemaCollection,
+      namespaceMap,
+    );
+  }
+
+  /**
+   * Apply an element substitution to a field in a document.
+   *
+   * Stores the substitution entry in the definition, applies it to the live field,
+   * and invalidates any stale descendant overrides.
+   *
+   * The document is modified in place. After calling this method, use
+   * `dataMapperProvider.updateDocument()` to persist changes and trigger re-visualization.
+   *
+   * @param field - The field to substitute
+   * @param substituteElementQName - The substitute element name in `prefix:localName` form
+   * @param namespaceMap - Namespace prefix to URI mapping
+   */
+  static applyFieldSubstitution(
+    field: IField,
+    substituteElementQName: string,
+    namespaceMap: Record<string, string>,
+  ): void {
+    const document = field.ownerDocument;
+    if (!(document instanceof XmlSchemaDocument) || !document.xmlSchemaCollection) return;
+    const candidates = XmlSchemaTypesService.getFieldSubstitutionCandidates(
+      field,
+      document.xmlSchemaCollection,
+      namespaceMap,
+    );
+    const candidate = candidates[substituteElementQName];
+    if (!candidate) return;
+    const originalNsURI = field.originalField?.namespaceURI ?? field.namespaceURI;
+    const originalNsPrefix = field.originalField?.namespacePrefix ?? field.namespacePrefix ?? undefined;
+    ensureNamespaceRegistered(originalNsURI, namespaceMap, originalNsPrefix);
+    ensureNamespaceRegistered(candidate.qname.getNamespaceURI(), namespaceMap);
+    ensureNamespaceRegistered(candidate.typeQName?.getNamespaceURI() ?? null, namespaceMap);
+    const schemaPath = SchemaPathService.buildOriginal(field, namespaceMap);
+    const origName = field.originalField?.name ?? field.name;
+    const originalName = formatWithPrefix(originalNsURI, origName, namespaceMap);
+    const canonicalName = formatWithPrefix(
+      candidate.qname.getNamespaceURI() || null,
+      candidate.qname.getLocalPart()!,
+      namespaceMap,
+    );
+    const entry: IFieldSubstitution = { schemaPath, name: canonicalName, originalName };
+    document.definition.fieldSubstitutions ??= [];
+    const existingIndex = document.definition.fieldSubstitutions.findIndex((s) => s.schemaPath === schemaPath);
+    if (existingIndex >= 0) {
+      document.definition.fieldSubstitutions[existingIndex] = entry;
+    } else {
+      document.definition.fieldSubstitutions.push(entry);
+    }
+    const livePath = SchemaPathService.build(field, namespaceMap);
+    DocumentUtilService.applySubstitutionToField(field, candidate);
+    DocumentUtilService.invalidateDescendants(document, schemaPath);
+    if (livePath !== schemaPath) {
+      DocumentUtilService.invalidateDescendants(document, livePath);
+    }
+  }
+
+  /**
+   * Revert an element substitution from a field in a document.
+   * Restores the field to its original element name and type.
+   *
+   * The document is modified in place. After calling this method, use
+   * `dataMapperProvider.updateDocument()` to persist changes and trigger re-visualization.
+   *
+   * @param field - The substituted field to revert
+   * @param namespaceMap - Namespace prefix to URI mapping
+   */
+  static revertFieldSubstitution(field: IField, namespaceMap: Record<string, string>): void {
+    const document = field.ownerDocument;
+    if (!(document instanceof XmlSchemaDocument)) return;
+    const originalPath = SchemaPathService.buildOriginal(field, namespaceMap);
+    const livePath = SchemaPathService.build(field, namespaceMap);
+    if (!document.definition.fieldSubstitutions) return;
+    const entryIndex = document.definition.fieldSubstitutions.findIndex((s) => s.schemaPath === originalPath);
+    if (entryIndex < 0) return;
+    document.definition.fieldSubstitutions = document.definition.fieldSubstitutions.filter(
+      (s) => s.schemaPath !== originalPath,
+    );
+    if (field.typeOverride === FieldOverrideVariant.SUBSTITUTION) {
+      DocumentUtilService.restoreOriginalField(field);
+      DocumentUtilService.invalidateDescendants(document, originalPath);
+      if (livePath !== originalPath) {
+        DocumentUtilService.invalidateDescendants(document, livePath);
+      }
     }
   }
 }

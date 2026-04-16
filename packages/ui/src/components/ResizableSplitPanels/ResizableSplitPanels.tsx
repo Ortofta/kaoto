@@ -28,6 +28,7 @@ const getGapPercent = (container: HTMLElement | null, handle: HTMLElement | null
   const gapPx =
     (Number.parseFloat(styles.width) || 0) +
     (Number.parseFloat(styles.marginRight) || 0) +
+    (Number.parseFloat(styles.marginLeft) || 0) +
     (Number.parseFloat(styles.borderLeftWidth) || 0) +
     (Number.parseFloat(styles.borderRightWidth) || 0);
 
@@ -123,7 +124,7 @@ export const ResizableSplitPanels: FunctionComponent<ResizableSplitPanelsProps> 
         aria-label="Drag to resize panels"
         onMouseDown={handleMouseDown}
       >
-        <ArrowsHorizontal />
+        <ArrowsHorizontal size={20} />
       </button>
 
       <SplitPanel width={rightWidth} position="right">

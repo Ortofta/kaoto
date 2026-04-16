@@ -1,15 +1,18 @@
 import './RuntimeSelector.scss';
 
+import { isDefined } from '@kaoto/forms';
 import { Icon, Menu, MenuContainer, MenuContent, MenuItem, MenuList, MenuToggle } from '@patternfly/react-core';
-import { FunctionComponent, ReactElement, useCallback, useRef, useState } from 'react';
+import { FunctionComponent, ReactElement, useCallback, useContext, useRef, useState } from 'react';
 
 import camelLogo from '../../../../assets/camel-logo.svg';
+import citrusLogo from '../../../../assets/citrus-logo.png';
 import quarkusLogo from '../../../../assets/quarkus-logo.svg';
 import redhatLogo from '../../../../assets/redhat-logo.svg';
 import springBootLogo from '../../../../assets/springboot-logo.svg';
 import { useLocalStorage } from '../../../../hooks';
 import { useRuntimeContext } from '../../../../hooks/useRuntimeContext/useRuntimeContext';
 import { LocalStorageKeys } from '../../../../models';
+import { EntitiesContext } from '../../../../providers';
 
 const SPACE_REGEX = /\s/g;
 const getIcon = (name: string) => {
@@ -17,6 +20,12 @@ const getIcon = (name: string) => {
     return (
       <Icon>
         <img src={redhatLogo} alt="Red Hat logo" />
+      </Icon>
+    );
+  } else if (name.includes('Citrus')) {
+    return (
+      <Icon>
+        <img src={citrusLogo} alt="Citrus logo" />
       </Icon>
     );
   } else if (name.includes('Quarkus')) {
@@ -45,28 +54,27 @@ export const RuntimeSelector: FunctionComponent = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const runtimeContext = useRuntimeContext();
+  const entitiesContext = useContext(EntitiesContext);
+  const compatibleRuntimes = entitiesContext?.camelResource.getCompatibleRuntimes() ?? [];
   const [_, setSelectedCatalogLocalStorage] = useLocalStorage(
     LocalStorageKeys.SelectedCatalog,
     runtimeContext.selectedCatalog,
   );
   const groupedRuntimes =
-    runtimeContext.catalogLibrary?.definitions.reduce(
-      (acc, catalog) => {
-        /** Temporary Citrus filter */
-        if (catalog.runtime.includes('Citrus')) {
+    runtimeContext.catalogLibrary?.definitions
+      .filter((catalog) => compatibleRuntimes.includes(catalog.runtime))
+      .reduce(
+        (acc, catalog) => {
+          if (acc[catalog.runtime]) {
+            acc[catalog.runtime].push(catalog.name);
+          } else {
+            acc[catalog.runtime] = [catalog.name];
+          }
+
           return acc;
-        }
-
-        if (acc[catalog.runtime]) {
-          acc[catalog.runtime].push(catalog.name);
-        } else {
-          acc[catalog.runtime] = [catalog.name];
-        }
-
-        return acc;
-      },
-      {} as Record<string, string[]>,
-    ) ?? {};
+        },
+        {} as Record<string, string[]>,
+      ) ?? {};
 
   const onSelect = useCallback(
     (_event: unknown, runtimeVersion: string | number | undefined) => {
@@ -78,12 +86,11 @@ export const RuntimeSelector: FunctionComponent = () => {
         (catalog) => catalog.name === runtimeVersion,
       );
 
-      if (!selectedCatalog) {
-        return;
+      if (isDefined(selectedCatalog)) {
+        runtimeContext.setSelectedCatalog(selectedCatalog);
+        setSelectedCatalogLocalStorage(selectedCatalog);
       }
 
-      runtimeContext.setSelectedCatalog(selectedCatalog);
-      setSelectedCatalogLocalStorage(selectedCatalog);
       setIsOpen(false);
     },
     [runtimeContext, setSelectedCatalogLocalStorage],
@@ -140,7 +147,7 @@ export const RuntimeSelector: FunctionComponent = () => {
       menu={
         <Menu ref={menuRef} containsFlyout onSelect={onSelect}>
           <MenuContent>
-            <MenuList>
+            <MenuList data-testid="runtime-selector-list">
               {Object.entries(groupedRuntimes).map(([group, runtimes]) => {
                 const flyoutMenu = (
                   <Menu className="runtime-selector__submenu" onSelect={onSelect}>

@@ -36,6 +36,7 @@ declare global {
       openDesignPage(): Chainable<JQuery<Element>>;
       openSourceCode(): Chainable<JQuery<Element>>;
       openBeans(): Chainable<JQuery<Element>>;
+      openRestEditor(): Chainable<JQuery<Element>>;
       openMetadata(): Chainable<JQuery<Element>>;
       openSettings(): Chainable<JQuery<Element>>;
       openPipeErrorHandler(): Chainable<JQuery<Element>>;
@@ -99,6 +100,7 @@ declare global {
       switchCodeToYaml(): Chainable<JQuery<Element>>;
       DnDOnNode(sourceNode: string, targetNode: string): Chainable<JQuery<Element>>;
       DnDOnEdge(sourceNode: string, targetEdge: string): Chainable<JQuery<Element>>;
+      retryClickDropdown(dropdownSelector: string, listSelector: string): Chainable<JQuery<Element>>;
       // nodeConfiguration
       interactWithConfigInputObject(inputName: string, value?: string): Chainable<JQuery<Element>>;
       interactWithExpressionInputObject(inputName: string, value?: string, index?: number): Chainable<JQuery<Element>>;

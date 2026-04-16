@@ -7,12 +7,12 @@ import { CamelRouteResource, KameletResource } from '../../../models/camel';
 import { LocalStorageKeys } from '../../../models/local-storage-keys';
 import { DefaultSettingsAdapter } from '../../../models/settings';
 import { CanvasLayoutDirection } from '../../../models/settings/settings.model';
-import { BaseVisualCamelEntity } from '../../../models/visualization/base-visual-entity';
+import { BaseVisualEntity } from '../../../models/visualization/base-visual-entity';
 import { CamelRouteVisualEntity } from '../../../models/visualization/flows';
 import { ActionConfirmationModalContextProvider } from '../../../providers/action-confirmation-modal.provider';
 import { SettingsProvider } from '../../../providers/settings.provider';
 import { VisibleFlowsContextResult } from '../../../providers/visible-flows.provider';
-import { TestProvidersWrapper } from '../../../stubs';
+import { TestProvidersWrapper, TestRuntimeProviderWrapper } from '../../../stubs';
 import { camelRouteJson } from '../../../stubs/camel-route';
 import { kameletJson } from '../../../stubs/kamelet-route';
 import { Canvas } from './Canvas';
@@ -137,9 +137,9 @@ describe('Canvas', () => {
     const fromModelSpy = jest.spyOn(controller, 'fromModel');
 
     // Stateful child so we can update entities without re-rendering Provider
-    let setEntitiesState: (next: BaseVisualCamelEntity[]) => void = () => {};
+    let setEntitiesState: (next: BaseVisualEntity[]) => void = () => {};
     const Inner = () => {
-      const [entities, setEntities] = useState<BaseVisualCamelEntity[]>([entity]);
+      const [entities, setEntities] = useState<BaseVisualEntity[]>([entity]);
       setEntitiesState = setEntities;
       return (
         <VisualizationProvider controller={controller}>
@@ -348,6 +348,7 @@ describe('Canvas', () => {
 
   describe('Empty state', () => {
     it('should render empty state when there is no visual entity', async () => {
+      const RuntimeProvider = TestRuntimeProviderWrapper().Provider;
       const { Provider } = TestProvidersWrapper({
         visibleFlowsContext: { visibleFlows: {} } as unknown as VisibleFlowsContextResult,
       });
@@ -356,11 +357,13 @@ describe('Canvas', () => {
 
       await act(async () => {
         result = render(
-          <Provider>
-            <VisualizationProvider controller={ControllerService.createController()}>
-              <Canvas entities={[]} />
-            </VisualizationProvider>
-          </Provider>,
+          <RuntimeProvider>
+            <Provider>
+              <VisualizationProvider controller={ControllerService.createController()}>
+                <Canvas entities={[]} />
+              </VisualizationProvider>
+            </Provider>
+          </RuntimeProvider>,
         );
       });
 
@@ -373,6 +376,7 @@ describe('Canvas', () => {
     });
 
     it('should render empty state when there is no visible flows', async () => {
+      const RuntimeProvider = TestRuntimeProviderWrapper().Provider;
       const { Provider } = TestProvidersWrapper({
         visibleFlowsContext: { visibleFlows: { ['route-8888']: false } } as unknown as VisibleFlowsContextResult,
       });
@@ -380,11 +384,13 @@ describe('Canvas', () => {
 
       await act(async () => {
         result = render(
-          <Provider>
-            <VisualizationProvider controller={ControllerService.createController()}>
-              <Canvas entities={[entity]} />
-            </VisualizationProvider>
-          </Provider>,
+          <RuntimeProvider>
+            <Provider>
+              <VisualizationProvider controller={ControllerService.createController()}>
+                <Canvas entities={[entity]} />
+              </VisualizationProvider>
+            </Provider>
+          </RuntimeProvider>,
         );
       });
 

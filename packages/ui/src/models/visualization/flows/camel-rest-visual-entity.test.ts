@@ -3,9 +3,9 @@ import { CatalogLibrary, ProcessorDefinition, Rest, To2 } from '@kaoto/camel-cat
 
 import { restStub } from '../../../stubs/rest';
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
-import { EntityType } from '../../camel/entities';
-import { DefinedComponent } from '../../camel-catalog-index';
+import { DefinedComponent } from '../../camel/camel-catalog-index';
 import { CatalogKind } from '../../catalog-kind';
+import { EntityType } from '../../entities';
 import { KaotoSchemaDefinition } from '../../kaoto-schema';
 import { PlaceholderType } from '../../placeholder.constants';
 import { REST_ELEMENT_NAME } from '../../special-processors.constants';
@@ -212,7 +212,15 @@ describe('CamelRestVisualEntity', () => {
   it('should return omit form fields', () => {
     const entity = new CamelRestVisualEntity(restDef);
 
-    expect(entity.getOmitFormFields()).toEqual(['get', 'post', 'put', 'delete', 'patch', 'head', 'uri']);
+    expect(entity.getOmitFormFields()).toEqual([
+      'from',
+      'outputs',
+      'steps',
+      'when',
+      'otherwise',
+      'doCatch',
+      'doFinally',
+    ]);
   });
 
   it('should return root path', () => {

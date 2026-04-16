@@ -1,5 +1,6 @@
 import './CustomNode.scss';
 
+import { isDefined } from '@kaoto/forms';
 import { Icon } from '@patternfly/react-core';
 import { ExclamationCircleIcon } from '@patternfly/react-icons';
 import {
@@ -41,10 +42,10 @@ import { CanvasDefaults } from '../../Canvas/canvas.defaults';
 import { CanvasNode } from '../../Canvas/canvas.models';
 import { StepToolbar } from '../../Canvas/StepToolbar/StepToolbar';
 import { NodeContextMenuFn } from '../ContextMenu/NodeContextMenu';
-import { GROUP_DRAG_TYPE, NODE_DRAG_TYPE } from '../customComponentUtils';
+import { getDropTargetContainerClassNames, GROUP_DRAG_TYPE, NODE_DRAG_TYPE } from '../customComponentUtils';
 import { TargetAnchor } from '../target-anchor';
 import { CustomNodeContainer } from './CustomNodeContainer';
-import { checkNodeDropCompatibility, handleValidNodeDrop } from './CustomNodeUtils';
+import { checkNodeDropCompatibility, getNodeDragAndDropDirection, handleValidNodeDrop } from './CustomNodeUtils';
 
 type DefaultNodeProps = Parameters<typeof DefaultNode>[0];
 
@@ -98,6 +99,16 @@ const CustomNodeLabel: FunctionComponent<CustomNodeLabelProps> = ({
   </foreignObject>
 );
 
+function getShouldShowToolbar(
+  trigger: NodeToolbarTrigger | undefined,
+  isGHover: boolean,
+  isToolbarHover: boolean,
+  selected: boolean | undefined,
+): boolean {
+  const isHoverTrigger = trigger === NodeToolbarTrigger.onHover;
+  return isHoverTrigger ? isGHover || isToolbarHover || !!selected : !!selected;
+}
+
 const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
   ({ element, onContextMenu, onCollapseToggle, selected, onSelect }) => {
     if (!isNode(element)) {
@@ -125,10 +136,12 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       CanvasDefaults.HOVER_DELAY_OUT,
     );
     const childCount = element.getAllNodeChildren().length;
-    const shouldShowToolbar =
-      settingsAdapter.getSettings().nodeToolbarTrigger === NodeToolbarTrigger.onHover
-        ? isGHover || isToolbarHover || selected
-        : selected;
+    const shouldShowToolbar = getShouldShowToolbar(
+      settingsAdapter.getSettings().nodeToolbarTrigger,
+      isGHover,
+      isToolbarHover,
+      selected,
+    );
     const canDragNode = vizNode?.canDragNode() ?? false;
 
     const hasSomeInteractions = useMemo(
@@ -158,7 +171,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       DragObjectWithType,
       DragSpecOperationType<EditableDragOperationType>,
       GraphElement,
-      { node: GraphElement | undefined },
+      object,
       GraphElementProps
     > = useMemo(
       () => ({
@@ -174,9 +187,6 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
             element.getGraph().layout();
           }
         },
-        collect: (monitor) => ({
-          node: monitor.getItem(),
-        }),
       }),
       [canDragNode, element, entitiesContext, nodeInteractionAddonContext],
     );
@@ -194,7 +204,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       GraphElementProps
     > = useMemo(
       () => ({
-        accept: [NODE_DRAG_TYPE],
+        accept: [NODE_DRAG_TYPE, GROUP_DRAG_TYPE],
         canDrop: (item, _monitor, _props) => {
           const targetNode = element;
           const draggedNode = item as Node;
@@ -226,17 +236,19 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       [element, vizNode, entitiesContext, catalogModalContext],
     );
 
-    const [dragNodeProps, dragNodeRef] = useDragNode(nodeDragSourceSpec);
+    const [, dragNodeRef] = useDragNode(nodeDragSourceSpec);
     const [dndDropProps, dndDropRef] = useDndDrop(customNodeDropTargetSpec);
     const gCombinedRef = useCombineRefs<SVGGElement>(gHoverRef, dragNodeRef);
-    const isDraggingNode = dragNodeProps.node?.getId() === element.getId();
+    const isDraggingNode = dndDropProps.dragItem?.getId() === element.getId();
     const isDraggingNodeType = dndDropProps.dragItemType === NODE_DRAG_TYPE;
     const isDraggingGroupType = dndDropProps.dragItemType === GROUP_DRAG_TYPE;
     const draggedVizNode = dndDropProps.dragItem?.getData().vizNode;
+    const draggedVizNodePath = draggedVizNode?.data.path;
     const isDraggingWithinGroup =
       isDraggingGroupType &&
       draggedVizNode?.getId() === element.getData().vizNode.getId() &&
-      element.getData().vizNode.data.path.slice(0, draggedVizNode?.data.path.length) === draggedVizNode?.data.path;
+      isDefined(draggedVizNodePath) &&
+      element.getData().vizNode.data.path.startsWith(draggedVizNodePath + '.');
     const isDraggedNode = isDraggingNode || isDraggingWithinGroup;
     const loadGhostNode = dndDropProps.droppable && ((isDraggingGroupType && isDraggingWithinGroup) || isDraggingNode);
     const box = element.getBounds();
@@ -249,8 +261,24 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
     const toolbarX = (box.width - toolbarWidth) / 2;
     const toolbarY = CanvasDefaults.STEP_TOOLBAR_HEIGHT * -1;
 
+    const dropDirection: 'forward' | 'backward' | null =
+      dndDropProps.droppable && dndDropProps.canDrop && draggedVizNode
+        ? getNodeDragAndDropDirection(draggedVizNode, vizNode, false)
+        : null;
+
+    const showMainNodeContainer = !dndDropProps.droppable || isDraggingNodeType || !isDraggingWithinGroup;
+    const showLabelWhenDragging =
+      (isDraggingNodeType && !isDraggingNode) || (isDraggingGroupType && !isDraggingWithinGroup);
+    const showToolbarSection = !dndDropProps.droppable && shouldShowToolbar && hasSomeInteractions;
+
+    const mainContainerClassNames = {
+      ...getDropTargetContainerClassNames('custom-node__container', dropDirection, dndDropProps.hover),
+      ['custom-node__container__draggable']: canDragNode,
+      ['custom-node__container__draggedNode']: isDraggedNode,
+    };
+
     return (
-      <Layer id={isDraggingWithinGroup ? TOP_LAYER : DEFAULT_LAYER} data-lastupdate={lastUpdate}>
+      <Layer id={DEFAULT_LAYER} data-lastupdate={lastUpdate}>
         <g
           ref={gCombinedRef}
           className="custom-node"
@@ -266,21 +294,14 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
           {/** The original node (appears when nothing is dragging, it also acts as the dragged node when node drag action is performed.
            * When a group/container is being dragged, the within-group nodes are hidden but the rest of the nodes show this original node.
            */}
-          {(!dndDropProps.droppable || isDraggingNodeType || !isDraggingWithinGroup) && (
+          {showMainNodeContainer && (
             <CustomNodeContainer
               width={box.width}
               height={box.height}
               dataNodelabel={label}
-              foreignObjectRef={dndDropRef}
+              foreignObjectRef={isDraggingNode ? null : dndDropRef}
               dataTestId={vizNode.id}
-              containerClassNames={{
-                'custom-node__container__dropTarget':
-                  dndDropProps.droppable && dndDropProps.canDrop && dndDropProps.hover,
-                'custom-node__container__possibleDropTargets':
-                  dndDropProps.canDrop && dndDropProps.droppable && !dndDropProps.hover,
-                'custom-node__container__draggable': canDragNode,
-                'custom-node__container__draggedNode': isDraggedNode,
-              }}
+              containerClassNames={mainContainerClassNames}
               vizNode={vizNode}
               tooltipContent={tooltipContent}
               childCount={childCount}
@@ -298,9 +319,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
               dataNodelabel={label}
               transform={`translate(${boxXRef.current - box.x}, ${boxYRef.current - box.y})`}
               dataTestId={`${vizNode.id}-dummy`}
-              containerClassNames={{
-                'custom-node__container__draggedNode': isDraggedNode,
-              }}
+              containerClassNames={{ 'custom-node__container__draggedNode': isDraggedNode }}
               vizNode={vizNode}
               tooltipContent={tooltipContent}
               childCount={childCount}
@@ -309,8 +328,9 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
               isDisabled={isDisabled}
             />
           )}
+
           {/** This label, appears for the node which are not dragging */}
-          {label && ((isDraggingNodeType && !isDraggingNode) || (isDraggingGroupType && !isDraggingWithinGroup)) && (
+          {label && showLabelWhenDragging && (
             <CustomNodeLabel
               label={label}
               doesHaveWarnings={doesHaveWarnings}
@@ -341,7 +361,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
             />
           )}
 
-          {!dndDropProps.droppable && shouldShowToolbar && hasSomeInteractions && (
+          {showToolbarSection && (
             <Layer id={TOP_LAYER}>
               <foreignObject
                 ref={toolbarHoverRef}

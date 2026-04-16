@@ -66,13 +66,14 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-33"
+                  data-ouia-component-id="OUIA-Generated-NavItem-37"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     aria-current="page"
                     class="pf-v6-c-nav__link pf-m-current"
+                    data-discover="true"
                     data-testid="Design"
                     href="/"
                   >
@@ -81,12 +82,13 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
                 </li>
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-34"
+                  data-ouia-component-id="OUIA-Generated-NavItem-38"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Source Code"
                     href="/code"
                   >
@@ -101,14 +103,14 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
             data-ouia-component-id="OUIA-Generated-NavExpandable-10"
             data-ouia-component-type="PF6/NavExpandable"
             data-ouia-safe="true"
-            data-testid="Rest DSL"
+            data-testid="Rest"
           >
             <button
               aria-expanded="true"
               class="pf-v6-c-nav__link"
-              id="Rest DSL"
+              id="Rest"
             >
-              Rest DSL
+              Rest
               <span
                 class="pf-v6-c-nav__toggle"
               >
@@ -132,7 +134,7 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
               </span>
             </button>
             <section
-              aria-labelledby="Rest DSL"
+              aria-labelledby="Rest"
               class="pf-v6-c-nav__subnav"
             >
               <ul
@@ -141,16 +143,32 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-35"
+                  data-ouia-component-id="OUIA-Generated-NavItem-39"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Import"
                     href="/rest/import"
                   >
                     Import
+                  </a>
+                </li>
+                <li
+                  class="pf-v6-c-nav__item"
+                  data-ouia-component-id="OUIA-Generated-NavItem-40"
+                  data-ouia-component-type="PF6/NavItem"
+                  data-ouia-safe="true"
+                >
+                  <a
+                    class="pf-v6-c-nav__link"
+                    data-discover="true"
+                    data-testid="Editor"
+                    href="/rest"
+                  >
+                    Editor
                   </a>
                 </li>
               </ul>
@@ -158,12 +176,13 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item pf-v6-u-hidden"
-            data-ouia-component-id="OUIA-Generated-NavItem-36"
+            data-ouia-component-id="OUIA-Generated-NavItem-41"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Beans"
               href="/beans"
             >
@@ -172,12 +191,13 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-37"
+            data-ouia-component-id="OUIA-Generated-NavItem-42"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Metadata"
               href="/metadata"
             >
@@ -186,12 +206,13 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item pf-v6-u-hidden"
-            data-ouia-component-id="OUIA-Generated-NavItem-38"
+            data-ouia-component-id="OUIA-Generated-NavItem-43"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Pipe ErrorHandler"
               href="/pipe-error-handler"
             >
@@ -200,12 +221,13 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item pf-v6-u-hidden"
-            data-ouia-component-id="OUIA-Generated-NavItem-39"
+            data-ouia-component-id="OUIA-Generated-NavItem-44"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="DataMapper"
               href="/datamapper"
             >
@@ -214,12 +236,13 @@ exports[`Navigation Component navigation sidebar for: Integration 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-40"
+            data-ouia-component-id="OUIA-Generated-NavItem-45"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Catalog"
               href="/catalog"
             >
@@ -299,13 +322,14 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-9"
+                  data-ouia-component-id="OUIA-Generated-NavItem-10"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     aria-current="page"
                     class="pf-v6-c-nav__link pf-m-current"
+                    data-discover="true"
                     data-testid="Design"
                     href="/"
                   >
@@ -314,12 +338,13 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
                 </li>
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-10"
+                  data-ouia-component-id="OUIA-Generated-NavItem-11"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Source Code"
                     href="/code"
                   >
@@ -334,15 +359,15 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
             data-ouia-component-id="OUIA-Generated-NavExpandable-4"
             data-ouia-component-type="PF6/NavExpandable"
             data-ouia-safe="true"
-            data-testid="Rest DSL"
+            data-testid="Rest"
             hidden=""
           >
             <button
               aria-expanded="true"
               class="pf-v6-c-nav__link"
-              id="Rest DSL"
+              id="Rest"
             >
-              Rest DSL
+              Rest
               <span
                 class="pf-v6-c-nav__toggle"
               >
@@ -366,7 +391,7 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
               </span>
             </button>
             <section
-              aria-labelledby="Rest DSL"
+              aria-labelledby="Rest"
               class="pf-v6-c-nav__subnav"
             >
               <ul
@@ -375,16 +400,32 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-11"
+                  data-ouia-component-id="OUIA-Generated-NavItem-12"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Import"
                     href="/rest/import"
                   >
                     Import
+                  </a>
+                </li>
+                <li
+                  class="pf-v6-c-nav__item"
+                  data-ouia-component-id="OUIA-Generated-NavItem-13"
+                  data-ouia-component-type="PF6/NavItem"
+                  data-ouia-safe="true"
+                >
+                  <a
+                    class="pf-v6-c-nav__link"
+                    data-discover="true"
+                    data-testid="Editor"
+                    href="/rest"
+                  >
+                    Editor
                   </a>
                 </li>
               </ul>
@@ -392,44 +433,17 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-12"
-            data-ouia-component-type="PF6/NavItem"
-            data-ouia-safe="true"
-          >
-            <a
-              class="pf-v6-c-nav__link"
-              data-testid="Beans"
-              href="/beans"
-            >
-              Beans
-            </a>
-          </li>
-          <li
-            class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-13"
-            data-ouia-component-type="PF6/NavItem"
-            data-ouia-safe="true"
-          >
-            <a
-              class="pf-v6-c-nav__link"
-              data-testid="Metadata"
-              href="/metadata"
-            >
-              Metadata
-            </a>
-          </li>
-          <li
-            class="pf-v6-c-nav__item pf-v6-u-hidden"
             data-ouia-component-id="OUIA-Generated-NavItem-14"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
-              data-testid="Pipe ErrorHandler"
-              href="/pipe-error-handler"
+              data-discover="true"
+              data-testid="Beans"
+              href="/beans"
             >
-              Pipe ErrorHandler
+              Beans
             </a>
           </li>
           <li
@@ -440,6 +454,37 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
+              data-testid="Metadata"
+              href="/metadata"
+            >
+              Metadata
+            </a>
+          </li>
+          <li
+            class="pf-v6-c-nav__item pf-v6-u-hidden"
+            data-ouia-component-id="OUIA-Generated-NavItem-16"
+            data-ouia-component-type="PF6/NavItem"
+            data-ouia-safe="true"
+          >
+            <a
+              class="pf-v6-c-nav__link"
+              data-discover="true"
+              data-testid="Pipe ErrorHandler"
+              href="/pipe-error-handler"
+            >
+              Pipe ErrorHandler
+            </a>
+          </li>
+          <li
+            class="pf-v6-c-nav__item"
+            data-ouia-component-id="OUIA-Generated-NavItem-17"
+            data-ouia-component-type="PF6/NavItem"
+            data-ouia-safe="true"
+          >
+            <a
+              class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="DataMapper"
               href="/datamapper"
             >
@@ -448,12 +493,13 @@ exports[`Navigation Component navigation sidebar for: Kamelet 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-16"
+            data-ouia-component-id="OUIA-Generated-NavItem-18"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Catalog"
               href="/catalog"
             >
@@ -533,13 +579,14 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-25"
+                  data-ouia-component-id="OUIA-Generated-NavItem-28"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     aria-current="page"
                     class="pf-v6-c-nav__link pf-m-current"
+                    data-discover="true"
                     data-testid="Design"
                     href="/"
                   >
@@ -548,12 +595,13 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
                 </li>
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-26"
+                  data-ouia-component-id="OUIA-Generated-NavItem-29"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Source Code"
                     href="/code"
                   >
@@ -568,15 +616,15 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
             data-ouia-component-id="OUIA-Generated-NavExpandable-8"
             data-ouia-component-type="PF6/NavExpandable"
             data-ouia-safe="true"
-            data-testid="Rest DSL"
+            data-testid="Rest"
             hidden=""
           >
             <button
               aria-expanded="true"
               class="pf-v6-c-nav__link"
-              id="Rest DSL"
+              id="Rest"
             >
-              Rest DSL
+              Rest
               <span
                 class="pf-v6-c-nav__toggle"
               >
@@ -600,7 +648,7 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
               </span>
             </button>
             <section
-              aria-labelledby="Rest DSL"
+              aria-labelledby="Rest"
               class="pf-v6-c-nav__subnav"
             >
               <ul
@@ -609,16 +657,32 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-27"
+                  data-ouia-component-id="OUIA-Generated-NavItem-30"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Import"
                     href="/rest/import"
                   >
                     Import
+                  </a>
+                </li>
+                <li
+                  class="pf-v6-c-nav__item"
+                  data-ouia-component-id="OUIA-Generated-NavItem-31"
+                  data-ouia-component-type="PF6/NavItem"
+                  data-ouia-safe="true"
+                >
+                  <a
+                    class="pf-v6-c-nav__link"
+                    data-discover="true"
+                    data-testid="Editor"
+                    href="/rest"
+                  >
+                    Editor
                   </a>
                 </li>
               </ul>
@@ -626,12 +690,13 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item pf-v6-u-hidden"
-            data-ouia-component-id="OUIA-Generated-NavItem-28"
+            data-ouia-component-id="OUIA-Generated-NavItem-32"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Beans"
               href="/beans"
             >
@@ -640,12 +705,13 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-29"
+            data-ouia-component-id="OUIA-Generated-NavItem-33"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Metadata"
               href="/metadata"
             >
@@ -654,12 +720,13 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-30"
+            data-ouia-component-id="OUIA-Generated-NavItem-34"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Pipe ErrorHandler"
               href="/pipe-error-handler"
             >
@@ -668,12 +735,13 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item pf-v6-u-hidden"
-            data-ouia-component-id="OUIA-Generated-NavItem-31"
+            data-ouia-component-id="OUIA-Generated-NavItem-35"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="DataMapper"
               href="/datamapper"
             >
@@ -682,12 +750,13 @@ exports[`Navigation Component navigation sidebar for: KameletBinding 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-32"
+            data-ouia-component-id="OUIA-Generated-NavItem-36"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Catalog"
               href="/catalog"
             >
@@ -767,13 +836,14 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-17"
+                  data-ouia-component-id="OUIA-Generated-NavItem-19"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     aria-current="page"
                     class="pf-v6-c-nav__link pf-m-current"
+                    data-discover="true"
                     data-testid="Design"
                     href="/"
                   >
@@ -782,12 +852,13 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
                 </li>
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-18"
+                  data-ouia-component-id="OUIA-Generated-NavItem-20"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Source Code"
                     href="/code"
                   >
@@ -802,15 +873,15 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
             data-ouia-component-id="OUIA-Generated-NavExpandable-6"
             data-ouia-component-type="PF6/NavExpandable"
             data-ouia-safe="true"
-            data-testid="Rest DSL"
+            data-testid="Rest"
             hidden=""
           >
             <button
               aria-expanded="true"
               class="pf-v6-c-nav__link"
-              id="Rest DSL"
+              id="Rest"
             >
-              Rest DSL
+              Rest
               <span
                 class="pf-v6-c-nav__toggle"
               >
@@ -834,7 +905,7 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
               </span>
             </button>
             <section
-              aria-labelledby="Rest DSL"
+              aria-labelledby="Rest"
               class="pf-v6-c-nav__subnav"
             >
               <ul
@@ -843,62 +914,36 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
               >
                 <li
                   class="pf-v6-c-nav__item"
-                  data-ouia-component-id="OUIA-Generated-NavItem-19"
+                  data-ouia-component-id="OUIA-Generated-NavItem-21"
                   data-ouia-component-type="PF6/NavItem"
                   data-ouia-safe="true"
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Import"
                     href="/rest/import"
                   >
                     Import
                   </a>
                 </li>
+                <li
+                  class="pf-v6-c-nav__item"
+                  data-ouia-component-id="OUIA-Generated-NavItem-22"
+                  data-ouia-component-type="PF6/NavItem"
+                  data-ouia-safe="true"
+                >
+                  <a
+                    class="pf-v6-c-nav__link"
+                    data-discover="true"
+                    data-testid="Editor"
+                    href="/rest"
+                  >
+                    Editor
+                  </a>
+                </li>
               </ul>
             </section>
-          </li>
-          <li
-            class="pf-v6-c-nav__item pf-v6-u-hidden"
-            data-ouia-component-id="OUIA-Generated-NavItem-20"
-            data-ouia-component-type="PF6/NavItem"
-            data-ouia-safe="true"
-          >
-            <a
-              class="pf-v6-c-nav__link"
-              data-testid="Beans"
-              href="/beans"
-            >
-              Beans
-            </a>
-          </li>
-          <li
-            class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-21"
-            data-ouia-component-type="PF6/NavItem"
-            data-ouia-safe="true"
-          >
-            <a
-              class="pf-v6-c-nav__link"
-              data-testid="Metadata"
-              href="/metadata"
-            >
-              Metadata
-            </a>
-          </li>
-          <li
-            class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-22"
-            data-ouia-component-type="PF6/NavItem"
-            data-ouia-safe="true"
-          >
-            <a
-              class="pf-v6-c-nav__link"
-              data-testid="Pipe ErrorHandler"
-              href="/pipe-error-handler"
-            >
-              Pipe ErrorHandler
-            </a>
           </li>
           <li
             class="pf-v6-c-nav__item pf-v6-u-hidden"
@@ -908,10 +953,11 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
           >
             <a
               class="pf-v6-c-nav__link"
-              data-testid="DataMapper"
-              href="/datamapper"
+              data-discover="true"
+              data-testid="Beans"
+              href="/beans"
             >
-              DataMapper
+              Beans
             </a>
           </li>
           <li
@@ -922,6 +968,52 @@ exports[`Navigation Component navigation sidebar for: Pipe 1`] = `
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
+              data-testid="Metadata"
+              href="/metadata"
+            >
+              Metadata
+            </a>
+          </li>
+          <li
+            class="pf-v6-c-nav__item"
+            data-ouia-component-id="OUIA-Generated-NavItem-25"
+            data-ouia-component-type="PF6/NavItem"
+            data-ouia-safe="true"
+          >
+            <a
+              class="pf-v6-c-nav__link"
+              data-discover="true"
+              data-testid="Pipe ErrorHandler"
+              href="/pipe-error-handler"
+            >
+              Pipe ErrorHandler
+            </a>
+          </li>
+          <li
+            class="pf-v6-c-nav__item pf-v6-u-hidden"
+            data-ouia-component-id="OUIA-Generated-NavItem-26"
+            data-ouia-component-type="PF6/NavItem"
+            data-ouia-safe="true"
+          >
+            <a
+              class="pf-v6-c-nav__link"
+              data-discover="true"
+              data-testid="DataMapper"
+              href="/datamapper"
+            >
+              DataMapper
+            </a>
+          </li>
+          <li
+            class="pf-v6-c-nav__item"
+            data-ouia-component-id="OUIA-Generated-NavItem-27"
+            data-ouia-component-type="PF6/NavItem"
+            data-ouia-safe="true"
+          >
+            <a
+              class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Catalog"
               href="/catalog"
             >
@@ -1008,6 +1100,7 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
                   <a
                     aria-current="page"
                     class="pf-v6-c-nav__link pf-m-current"
+                    data-discover="true"
                     data-testid="Design"
                     href="/"
                   >
@@ -1022,6 +1115,7 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Source Code"
                     href="/code"
                   >
@@ -1036,14 +1130,14 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
             data-ouia-component-id="OUIA-Generated-NavExpandable-2"
             data-ouia-component-type="PF6/NavExpandable"
             data-ouia-safe="true"
-            data-testid="Rest DSL"
+            data-testid="Rest"
           >
             <button
               aria-expanded="true"
               class="pf-v6-c-nav__link"
-              id="Rest DSL"
+              id="Rest"
             >
-              Rest DSL
+              Rest
               <span
                 class="pf-v6-c-nav__toggle"
               >
@@ -1067,7 +1161,7 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
               </span>
             </button>
             <section
-              aria-labelledby="Rest DSL"
+              aria-labelledby="Rest"
               class="pf-v6-c-nav__subnav"
             >
               <ul
@@ -1082,10 +1176,26 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
                 >
                   <a
                     class="pf-v6-c-nav__link"
+                    data-discover="true"
                     data-testid="Import"
                     href="/rest/import"
                   >
                     Import
+                  </a>
+                </li>
+                <li
+                  class="pf-v6-c-nav__item"
+                  data-ouia-component-id="OUIA-Generated-NavItem-4"
+                  data-ouia-component-type="PF6/NavItem"
+                  data-ouia-safe="true"
+                >
+                  <a
+                    class="pf-v6-c-nav__link"
+                    data-discover="true"
+                    data-testid="Editor"
+                    href="/rest"
+                  >
+                    Editor
                   </a>
                 </li>
               </ul>
@@ -1093,30 +1203,17 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
           </li>
           <li
             class="pf-v6-c-nav__item"
-            data-ouia-component-id="OUIA-Generated-NavItem-4"
-            data-ouia-component-type="PF6/NavItem"
-            data-ouia-safe="true"
-          >
-            <a
-              class="pf-v6-c-nav__link"
-              data-testid="Beans"
-              href="/beans"
-            >
-              Beans
-            </a>
-          </li>
-          <li
-            class="pf-v6-c-nav__item pf-v6-u-hidden"
             data-ouia-component-id="OUIA-Generated-NavItem-5"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
-              data-testid="Metadata"
-              href="/metadata"
+              data-discover="true"
+              data-testid="Beans"
+              href="/beans"
             >
-              Metadata
+              Beans
             </a>
           </li>
           <li
@@ -1127,24 +1224,26 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
           >
             <a
               class="pf-v6-c-nav__link"
-              data-testid="Pipe ErrorHandler"
-              href="/pipe-error-handler"
+              data-discover="true"
+              data-testid="Metadata"
+              href="/metadata"
             >
-              Pipe ErrorHandler
+              Metadata
             </a>
           </li>
           <li
-            class="pf-v6-c-nav__item"
+            class="pf-v6-c-nav__item pf-v6-u-hidden"
             data-ouia-component-id="OUIA-Generated-NavItem-7"
             data-ouia-component-type="PF6/NavItem"
             data-ouia-safe="true"
           >
             <a
               class="pf-v6-c-nav__link"
-              data-testid="DataMapper"
-              href="/datamapper"
+              data-discover="true"
+              data-testid="Pipe ErrorHandler"
+              href="/pipe-error-handler"
             >
-              DataMapper
+              Pipe ErrorHandler
             </a>
           </li>
           <li
@@ -1155,6 +1254,22 @@ exports[`Navigation Component navigation sidebar for: Route 1`] = `
           >
             <a
               class="pf-v6-c-nav__link"
+              data-discover="true"
+              data-testid="DataMapper"
+              href="/datamapper"
+            >
+              DataMapper
+            </a>
+          </li>
+          <li
+            class="pf-v6-c-nav__item"
+            data-ouia-component-id="OUIA-Generated-NavItem-9"
+            data-ouia-component-type="PF6/NavItem"
+            data-ouia-safe="true"
+          >
+            <a
+              class="pf-v6-c-nav__link"
+              data-discover="true"
               data-testid="Catalog"
               href="/catalog"
             >

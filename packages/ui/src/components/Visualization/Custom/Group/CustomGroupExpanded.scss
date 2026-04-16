@@ -1,4 +1,5 @@
 @use '../custom';
+@use '../../../../styles/dnd';
 
 .custom-group {
   @include custom.highligth {
@@ -79,19 +80,25 @@
       }
 
       &__dropTarget-right {
-        border-right: var(--custom-group-border-dropTarget);
+        border-right: var(--custom-component-border-dropTarget);
       }
 
       &__dropTarget-left {
-        border-left: var(--custom-group-border-dropTarget);
+        border-left: var(--custom-component-border-dropTarget);
       }
 
       &__possibleDropTarget-right {
-        border-right: var(--custom-group-border-possibleDropTarget);
+        border-right: var(--custom-component-border-possibleDropTarget);
       }
 
       &__possibleDropTarget-left {
-        border-left: var(--custom-group-border-possibleDropTarget);
+        border-left: var(--custom-component-border-possibleDropTarget);
+      }
+
+      & &__text {
+        &__draggable {
+          @include dnd.cursor-grab;
+        }
       }
     }
 
@@ -102,17 +109,17 @@
       margin: var(--pf-t--global--spacer--xs);
     }
 
-    &__autostart-icon {
+    &__autostart-container {
       position: absolute;
-      top: 2px;
       right: 8px;
-      margin: var(--pf-t--global--spacer--xs);
-      font-size: 16px;
+      top: 50%;
+      transform: translateY(-50%);
       z-index: 2;
+    }
 
-      > * {
-        color: var(--pf-t--global--icon--color--on-brand--default);
-      }
+    &__autostart-switch {
+      // Make the switch smaller to fit in the header
+      --pf-v6-c-switch--FontSize: 0.75rem;
     }
   }
 

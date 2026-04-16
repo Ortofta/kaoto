@@ -1,4 +1,5 @@
 import { DocumentDefinition, RootElementOption } from '../models/datamapper/document';
+import { NS_XML_SCHEMA_INSTANCE } from '../models/datamapper/standard-namespaces';
 import { Types } from '../models/datamapper/types';
 import { capitalize } from '../serializers/xml/utils/xml-utils';
 import {
@@ -12,7 +13,6 @@ import {
   XmlSchemaAttributeGroupRef,
   XmlSchemaAttributeOrGroupRef,
   XmlSchemaChoice,
-  XmlSchemaChoiceMember,
   XmlSchemaCollection,
   XmlSchemaComplexContentExtension,
   XmlSchemaComplexContentRestriction,
@@ -38,6 +38,7 @@ import { XmlSchemaSimpleTypeList } from '../xml-schema-ts/simple/XmlSchemaSimple
 import { XmlSchemaSimpleTypeRestriction } from '../xml-schema-ts/simple/XmlSchemaSimpleTypeRestriction';
 import { XmlSchemaSimpleTypeUnion } from '../xml-schema-ts/simple/XmlSchemaSimpleTypeUnion';
 import { DocumentUtilService } from './document-util.service';
+import { parseQNameString } from './namespace-util';
 import { XmlSchemaAnalysisService } from './xml-schema-analysis.service';
 import type {
   CreateXmlSchemaDocumentResult,
@@ -62,21 +63,89 @@ export class XmlSchemaDocumentService {
    * @param definition The DocumentDefinition containing schema information and configuration
    * @returns {@link CreateXmlSchemaDocumentResult} with document, root element options, and validation status
    */
-  static createXmlSchemaDocument(definition: DocumentDefinition): CreateXmlSchemaDocumentResult {
+  static createXmlSchemaDocument(
+    definition: DocumentDefinition,
+    namespaceMap: Record<string, string> = {},
+  ): CreateXmlSchemaDocumentResult {
     const collection = new XmlSchemaCollection();
     const definitionFiles = definition.definitionFiles || {};
     collection.getSchemaResolver().addFiles(definitionFiles);
 
     const analysis = XmlSchemaAnalysisService.analyze(definitionFiles);
     if (analysis.errors.length > 0) {
-      return {
-        validationStatus: 'error',
-        errors: analysis.errors,
-        warnings: analysis.warnings,
-        documentDefinition: definition,
-      };
+      return XmlSchemaDocumentService.createErrorResult(analysis.errors, analysis.warnings, definition);
     }
 
+    const loadResult = XmlSchemaDocumentService.loadSchemaFiles(collection, analysis, definitionFiles);
+    if (loadResult.error) {
+      return XmlSchemaDocumentService.createErrorResult(
+        [{ message: loadResult.error.message, filePath: loadResult.error.filePath }],
+        analysis.warnings,
+        definition,
+      );
+    }
+
+    const validationResult = XmlSchemaDocumentService.validateCollection(collection, definition);
+    if (validationResult) {
+      return validationResult;
+    }
+
+    const rootElement = XmlSchemaDocumentService.getRootElement(collection, definition);
+    if ('validationStatus' in rootElement) {
+      return rootElement;
+    }
+
+    const document = new XmlSchemaDocument(definition, collection, rootElement);
+
+    XmlSchemaDocumentService.populateNamedTypeFragments(document);
+    XmlSchemaDocumentService.populateElement(document, document.fields, document.rootElement!);
+
+    DocumentUtilService.processOverrides(
+      document,
+      definition.fieldTypeOverrides ?? [],
+      definition.choiceSelections ?? [],
+      definition.fieldSubstitutions ?? [],
+      namespaceMap,
+      XmlSchemaTypesService.parseTypeOverride,
+      XmlSchemaTypesService.resolveSubstitution,
+    );
+
+    const rootElementOptions = XmlSchemaDocumentUtilService.collectRootElementOptions(collection);
+    const validationStatus = analysis.warnings.length > 0 ? 'warning' : 'success';
+
+    return {
+      validationStatus,
+      warnings: analysis.warnings.length > 0 ? analysis.warnings : undefined,
+      documentDefinition: definition,
+      document,
+      rootElementOptions,
+    } as CreateXmlSchemaDocumentResult;
+  }
+
+  /**
+   * Helper method to create an error result.
+   */
+  private static createErrorResult(
+    errors: Array<{ message: string; filePath?: string }>,
+    warnings: Array<{ message: string; filePath?: string }>,
+    definition: DocumentDefinition,
+  ): CreateXmlSchemaDocumentResult {
+    return {
+      validationStatus: 'error',
+      errors,
+      warnings,
+      documentDefinition: definition,
+    };
+  }
+
+  /**
+   * Helper method to load schema files into the collection.
+   */
+  private static loadSchemaFiles(
+    collection: XmlSchemaCollection,
+    analysis: { loadOrder: string[]; edges: Array<{ directive: { type: string }; to: string }> },
+    definitionFiles: Record<string, string>,
+  ): { error?: { message: string; filePath?: string } } {
     const includeTargets = new Set(analysis.edges.filter((e) => e.directive.type === 'include').map((e) => e.to));
 
     try {
@@ -84,18 +153,22 @@ export class XmlSchemaDocumentService {
         if (includeTargets.has(path)) continue;
         collection.read(definitionFiles[path], () => {}, path);
       }
+      return {};
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const baseUriMatch = REGEX_BASE_URI.exec(errorMessage);
       const filePath = baseUriMatch?.[1];
-      return {
-        validationStatus: 'error',
-        errors: [{ message: errorMessage, filePath }],
-        warnings: analysis.warnings,
-        documentDefinition: definition,
-      };
+      return { error: { message: errorMessage, filePath } };
     }
+  }
 
+  /**
+   * Helper method to validate the schema collection.
+   */
+  private static validateCollection(
+    collection: XmlSchemaCollection,
+    definition: DocumentDefinition,
+  ): CreateXmlSchemaDocumentResult | null {
     if (collection.getXmlSchemas().length === 0) {
       return {
         validationStatus: 'error',
@@ -113,9 +186,18 @@ export class XmlSchemaDocumentService {
       };
     }
 
-    let rootElement: XmlSchemaElement;
+    return null;
+  }
+
+  /**
+   * Helper method to get the root element.
+   */
+  private static getRootElement(
+    collection: XmlSchemaCollection,
+    definition: DocumentDefinition,
+  ): XmlSchemaElement | CreateXmlSchemaDocumentResult {
     try {
-      rootElement = XmlSchemaDocumentUtilService.determineRootElement(collection, definition.rootElementChoice);
+      return XmlSchemaDocumentUtilService.determineRootElement(collection, definition.rootElementChoice);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return {
@@ -124,32 +206,6 @@ export class XmlSchemaDocumentService {
         documentDefinition: definition,
       };
     }
-
-    const document = new XmlSchemaDocument(definition, collection, rootElement);
-
-    XmlSchemaDocumentService.populateNamedTypeFragments(document);
-    XmlSchemaDocumentService.populateElement(document, document.fields, document.rootElement!);
-
-    DocumentUtilService.processOverrides(
-      document,
-      definition.fieldTypeOverrides ?? [],
-      definition.choiceSelections ?? [],
-      definition.namespaceMap || {},
-      XmlSchemaTypesService.parseTypeOverride,
-    );
-
-    const rootElementOptions = XmlSchemaDocumentUtilService.collectRootElementOptions(collection);
-    const validationWarnings = analysis.warnings;
-
-    const validationStatus = validationWarnings.length > 0 ? 'warning' : 'success';
-
-    return {
-      validationStatus,
-      warnings: validationWarnings.length > 0 ? validationWarnings : undefined,
-      documentDefinition: definition,
-      document,
-      rootElementOptions,
-    } as CreateXmlSchemaDocumentResult;
   }
 
   /**
@@ -157,21 +213,12 @@ export class XmlSchemaDocumentService {
    * This is useful when field type overrides reference types defined in additional schema files.
    * @param document - The document whose schema collection will be updated
    * @param additionalFiles - Map of file paths to file contents to add
-   * @returns Updated namespace map with new namespaces from added schemas
    */
-  static addSchemaFiles(document: XmlSchemaDocument, additionalFiles: Record<string, string>): Record<string, string> {
+  static addSchemaFiles(document: XmlSchemaDocument, additionalFiles: Record<string, string>): void {
     const collection = document.xmlSchemaCollection;
-    const resolver = collection.getSchemaResolver();
-
-    resolver.addFiles(additionalFiles);
-
+    collection.getSchemaResolver().addFiles(additionalFiles);
     XmlSchemaDocumentUtilService.loadXmlSchemaFiles(collection, additionalFiles);
     XmlSchemaDocumentService.populateNamedTypeFragments(document);
-
-    const existingNamespaceMap = document.definition.namespaceMap || {};
-    const newNamespaces = XmlSchemaDocumentService.extractNamespacesFromSchemas(additionalFiles, existingNamespaceMap);
-
-    return XmlSchemaDocumentService.mergeNamespaceMaps(existingNamespaceMap, newNamespaces);
   }
 
   /**
@@ -182,9 +229,14 @@ export class XmlSchemaDocumentService {
    *
    * @param definition - The current document definition containing schema files
    * @param filePath - The key of the schema file to remove from {@link DocumentDefinition.definitionFiles}
+   * @param namespaceMap namespace prefix-URI map
    * @returns A {@link CreateXmlSchemaDocumentResult} with updated validation status, errors/warnings, and definition
    */
-  static removeSchemaFile(definition: DocumentDefinition, filePath: string): CreateXmlSchemaDocumentResult {
+  static removeSchemaFile(
+    definition: DocumentDefinition,
+    filePath: string,
+    namespaceMap: Record<string, string>,
+  ): CreateXmlSchemaDocumentResult {
     const updatedFiles = { ...definition.definitionFiles };
     delete updatedFiles[filePath];
 
@@ -196,89 +248,70 @@ export class XmlSchemaDocumentService {
       definition.rootElementChoice,
       definition.fieldTypeOverrides,
       definition.choiceSelections,
-      definition.namespaceMap,
+      definition.fieldSubstitutions,
     );
 
     // Try to create the Document object. It could fail if the root element user chose was defined in the removed
     // schema file. In that case, we unset `updatedDefinition.rootElementChoice` and retry.
-    const result = XmlSchemaDocumentService.createXmlSchemaDocument(updatedDefinition);
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(updatedDefinition, namespaceMap);
 
-    // If it succeeds or a root element was not set, return as it is
-    if (result.document || !definition.rootElementChoice) {
+    if (result.document) {
+      // When no explicit rootElementChoice, check if the effective root changed; if so, stale paths must be cleared.
+      if (
+        !definition.rootElementChoice &&
+        XmlSchemaDocumentService.hasRootElementChanged(result.document, definition, namespaceMap)
+      ) {
+        updatedDefinition.fieldTypeOverrides = [];
+        updatedDefinition.choiceSelections = [];
+        updatedDefinition.fieldSubstitutions = [];
+        return XmlSchemaDocumentService.createXmlSchemaDocument(updatedDefinition, namespaceMap);
+      }
+      return result;
+    }
+
+    if (!definition.rootElementChoice) {
       return result;
     }
 
     // Unset the root element and retry
     updatedDefinition.rootElementChoice = undefined;
-    return XmlSchemaDocumentService.createXmlSchemaDocument(updatedDefinition);
+    updatedDefinition.fieldTypeOverrides = [];
+    updatedDefinition.choiceSelections = [];
+    updatedDefinition.fieldSubstitutions = [];
+    return XmlSchemaDocumentService.createXmlSchemaDocument(updatedDefinition, namespaceMap);
   }
 
   /**
-   * Extracts namespace mappings from XML schema files.
-   * Parses each schema file to extract targetNamespace and generates appropriate prefixes.
-   * Filters out standard XML/XSD namespaces.
-   *
-   * @param schemaFiles - Map of file paths to schema file contents
-   * @param existingNamespaceMap - Existing namespace map to check for conflicts
-   * @returns Map of generated prefix -> namespace URI
+   * Returns true when the effective root element of `document` differs from the root implied by the
+   * first schema path stored in `definition`'s path-based metadata. Used by {@link removeSchemaFile}
+   * to detect a silent root change when no explicit rootElementChoice is set.
    */
-  private static extractNamespacesFromSchemas(
-    schemaFiles: Record<string, string>,
-    existingNamespaceMap: Record<string, string>,
-  ): Record<string, string> {
-    const newNamespaces: Record<string, string> = {};
-    const tempCollection = new XmlSchemaCollection();
-
-    for (const [filePath, content] of Object.entries(schemaFiles)) {
-      try {
-        const schema = tempCollection.read(content, () => {}, filePath);
-        const targetNamespace = schema.getTargetNamespace();
-
-        if (!targetNamespace) {
-          continue;
-        }
-
-        const standardNamespaces = new Set([
-          'http://www.w3.org/2001/XMLSchema',
-          'http://www.w3.org/XML/1998/namespace',
-        ]);
-
-        if (standardNamespaces.has(targetNamespace)) {
-          continue;
-        }
-
-        const alreadyMapped =
-          Object.values(existingNamespaceMap).includes(targetNamespace) ||
-          Object.values(newNamespaces).includes(targetNamespace);
-
-        if (alreadyMapped) {
-          continue;
-        }
-
-        const combinedMap = { ...existingNamespaceMap, ...newNamespaces };
-        const prefix = DocumentUtilService.generateNamespacePrefix(combinedMap);
-        newNamespaces[prefix] = targetNamespace;
-      } catch (error) {
-        console.warn(`Failed to extract namespace from ${filePath}:`, error);
-      }
+  private static hasRootElementChanged(
+    document: XmlSchemaDocument,
+    definition: DocumentDefinition,
+    namespaceMap: Record<string, string>,
+  ): boolean {
+    const newRootQName = document.rootElement?.getQName();
+    const rootSubstitutionPath = (definition.fieldSubstitutions ?? [])
+      .map((s) => s.schemaPath)
+      .find((path) => path.split('/').filter(Boolean).length === 1);
+    const firstPath =
+      rootSubstitutionPath ??
+      (definition.fieldTypeOverrides ?? [])
+        .map((o) => o.schemaPath)
+        .concat((definition.choiceSelections ?? []).map((o) => o.schemaPath))
+        .concat((definition.fieldSubstitutions ?? []).map((o) => o.schemaPath))[0];
+    if (!newRootQName || !firstPath) return false;
+    // Schema paths are formatted as "/<prefix>:<localPart>/..." (prefix may be absent for no-namespace schemas).
+    // Extract the first non-empty segment, split on ':', resolve the prefix to a namespace URI via namespaceMap,
+    // and compare namespace URI + localPart against the new document's root element QName.
+    const rootSegment = firstPath.split('/').find((s) => s.length > 0) ?? '';
+    const { prefix, localPart } = parseQNameString(rootSegment);
+    if (prefix && !(prefix in namespaceMap)) {
+      return true;
     }
-
-    return newNamespaces;
-  }
-
-  /**
-   * Merges existing namespace map with newly extracted namespaces.
-   * Existing mappings take precedence to avoid breaking existing references.
-   *
-   * @param existingMap - Current namespace map from DocumentDefinition
-   * @param newNamespaces - Newly extracted namespace mappings
-   * @returns Merged namespace map
-   */
-  private static mergeNamespaceMaps(
-    existingMap: Record<string, string>,
-    newNamespaces: Record<string, string>,
-  ): Record<string, string> {
-    return { ...existingMap, ...newNamespaces };
+    const nsURI = prefix ? namespaceMap[prefix] : '';
+    return nsURI !== (newRootQName.getNamespaceURI() ?? '') || localPart !== newRootQName.getLocalPart();
   }
 
   /**
@@ -298,6 +331,7 @@ export class XmlSchemaDocumentService {
 
     document.definition.fieldTypeOverrides = [];
     document.definition.choiceSelections = [];
+    document.definition.fieldSubstitutions = [];
 
     const newDocument = new XmlSchemaDocument(document.definition, document.xmlSchemaCollection, newRootElement);
 
@@ -338,7 +372,7 @@ export class XmlSchemaDocumentService {
     }
 
     const fields: XmlSchemaField[] = [];
-    const typeFragment: XmlSchemaTypeFragment = { fields, namedTypeFragmentRefs: [] };
+    const typeFragment: XmlSchemaTypeFragment = { type: Types.Container, fields, namedTypeFragmentRefs: [] };
     document.namedTypeFragments[typeFragmentName] = typeFragment;
 
     XmlSchemaDocumentService.populateContentModel(document, typeFragment, schemaType.getContentModel());
@@ -369,6 +403,9 @@ export class XmlSchemaDocumentService {
     const schemas = document.xmlSchemaCollection.getUserSchemas();
     for (const schema of schemas) {
       XmlSchemaDocumentService.populateNamedTypeFragmentsForSchema(document, schema);
+    }
+    for (const schema of schemas) {
+      XmlSchemaDocumentService.populateGlobalElementFragmentsForSchema(document, schema);
     }
   }
 
@@ -412,6 +449,7 @@ export class XmlSchemaDocumentService {
     field.namespaceURI = namespaceURI;
     field.namespacePrefix = resolvedElement.getWireName()!.getPrefix();
     field.defaultValue = resolvedElement.defaultValue || resolvedElement.fixedValue;
+    field.nillable = resolvedElement.isNillable();
     field.minOccurs = element.getMinOccurs();
     field.maxOccurs = element.getMaxOccurs();
     field.minOccursExplicit = element.isMinOccursExplicit();
@@ -426,16 +464,22 @@ export class XmlSchemaDocumentService {
     } else {
       XmlSchemaDocumentService.populateSchemaType(ownerDoc, field, schemaType);
     }
+
+    if (field.nillable) {
+      XmlSchemaDocumentService.populateNillableAttribute(field);
+    }
   }
 
-  private static populateGlobalElementFragment(
+  private static ensureGlobalElementFragment(
     document: XmlSchemaDocument,
     element: XmlSchemaElement,
     schemaType: XmlSchemaComplexType,
-    field: XmlSchemaField,
-  ) {
+  ): string {
     const wireName = element.getWireName()!;
-    const fragmentKey = `__elem:${wireName.getNamespaceURI() ?? ''}:${wireName.getLocalPart()}`;
+    const fragmentKey = XmlSchemaDocumentUtilService.buildElementFragmentKey(
+      wireName.getNamespaceURI(),
+      wireName.getLocalPart()!,
+    );
 
     if (!document.namedTypeFragments[fragmentKey]) {
       const fragmentFields: XmlSchemaField[] = [];
@@ -450,9 +494,30 @@ export class XmlSchemaDocumentService {
       XmlSchemaDocumentService.populateParticle(document, fragmentFields, schemaType.getParticle());
     }
 
+    return fragmentKey;
+  }
+
+  private static populateGlobalElementFragment(
+    document: XmlSchemaDocument,
+    element: XmlSchemaElement,
+    schemaType: XmlSchemaComplexType,
+    field: XmlSchemaField,
+  ) {
+    const fragmentKey = XmlSchemaDocumentService.ensureGlobalElementFragment(document, element, schemaType);
     field.type = Types.Container;
-    field.originalType = Types.Container;
     field.namedTypeFragmentRefs.push(fragmentKey);
+  }
+
+  private static populateGlobalElementFragmentsForSchema(document: XmlSchemaDocument, schema: XmlSchema) {
+    for (const element of schema.getElements().values()) {
+      const schemaType = element.getSchemaType();
+      if (schemaType instanceof XmlSchemaComplexType && !schemaType.getQName()) {
+        const wireName = element.getWireName();
+        if (wireName?.getLocalPart()) {
+          XmlSchemaDocumentService.ensureGlobalElementFragment(document, element, schemaType);
+        }
+      }
+    }
   }
 
   private static populateSchemaType(
@@ -465,12 +530,10 @@ export class XmlSchemaDocumentService {
       const newType = XmlSchemaDocumentUtilService.getFieldTypeFromName(schemaType.getName());
       if (!field.type || field.type === Types.AnyType) {
         field.type = newType;
-        field.originalType = newType;
       }
       const simpleTypeQName = schemaType.getQName();
       if (simpleTypeQName) {
         field.typeQName = simpleTypeQName;
-        field.originalTypeQName = simpleTypeQName;
       }
       return;
     } else if (!(schemaType instanceof XmlSchemaComplexType)) {
@@ -478,11 +541,9 @@ export class XmlSchemaDocumentService {
     }
 
     field.type = Types.Container;
-    field.originalType = Types.Container;
     const typeQName = schemaType.getQName();
     if (typeQName) {
       field.typeQName = typeQName;
-      field.originalTypeQName = typeQName;
       const namespace = typeQName.getNamespaceURI();
       if (!XmlSchemaDocumentUtilService.isStandardXmlNamespace(namespace)) {
         if (!field.namedTypeFragmentRefs.includes(typeQName.toString())) {
@@ -513,6 +574,31 @@ export class XmlSchemaDocumentService {
   }
 
   /**
+   * Adds a synthetic xsi:nil attribute child to a nillable XML element field.
+   * This allows the Document tree to represent the nil state distinctly from an empty element.
+   */
+  private static populateNillableAttribute(parent: XmlSchemaField) {
+    const alreadyExists = parent.fields.some(
+      (field) => field.isAttribute && field.name === 'nil' && field.namespaceURI === NS_XML_SCHEMA_INSTANCE,
+    );
+    if (alreadyExists) {
+      return;
+    }
+
+    const nillableField = new XmlSchemaField(parent, 'nil', true);
+    nillableField.displayName = 'xsi:nil';
+    nillableField.namespacePrefix = 'xsi';
+    nillableField.namespaceURI = NS_XML_SCHEMA_INSTANCE;
+    nillableField.type = Types.Boolean;
+    nillableField.minOccurs = 0;
+    nillableField.maxOccurs = 1;
+    nillableField.minOccursExplicit = true;
+    nillableField.maxOccursExplicit = true;
+    parent.fields.push(nillableField);
+    parent.ownerDocument.totalFieldCount++;
+  }
+
+  /**
    * Populates an XML attribute as an {@link XmlSchemaField} into the given fields array.
    * Skips attributes that already exist in fields (by name, namespace, and isAttribute). Handles required,
    * optional, and prohibited use cases by setting minOccurs and maxOccurs accordingly.
@@ -536,7 +622,6 @@ export class XmlSchemaDocumentService {
     field.defaultValue = attr.getDefaultValue() || attr.getFixedValue();
     const attrTypeName = attr.getSchemaTypeName()?.getLocalPart();
     field.type = (attrTypeName ? Types[capitalize(attrTypeName) as keyof typeof Types] : null) || Types.AnyType;
-    field.originalType = field.type;
     fields.push(field);
 
     ownerDoc.totalFieldCount++;
@@ -544,7 +629,6 @@ export class XmlSchemaDocumentService {
     const attrSchemaTypeQName = attr.getSchemaTypeName();
     if (attrSchemaTypeQName) {
       field.typeQName = attrSchemaTypeQName;
-      field.originalTypeQName = attrSchemaTypeQName;
     }
     const userDefinedAttrType =
       attrSchemaTypeQName &&
@@ -649,15 +733,45 @@ export class XmlSchemaDocumentService {
     if (groupParticle == null) {
       return;
     }
-    if (groupParticle instanceof XmlSchemaChoice || groupParticle instanceof XmlSchemaSequence) {
+    if (groupParticle instanceof XmlSchemaChoice) {
+      XmlSchemaDocumentService.populateChoice(parent, fields, groupParticle, visitedGroupRefs);
+    } else if (groupParticle instanceof XmlSchemaSequence) {
       for (const member of groupParticle.getItems()) {
-        XmlSchemaDocumentService.populateSequenceOrChoiceMember(parent, fields, member, visitedGroupRefs);
+        XmlSchemaDocumentService.populateSequenceMember(parent, fields, member, visitedGroupRefs);
       }
     } else if (groupParticle instanceof XmlSchemaAll) {
       for (const member of groupParticle.getItems()) {
         XmlSchemaDocumentService.populateAllMember(parent, fields, member, visitedGroupRefs);
       }
     }
+  }
+
+  /**
+   * Creates a choice wrapper {@link XmlSchemaField} with {@link XmlSchemaField.isChoice} set to true,
+   * preserving minOccurs/maxOccurs from the xs:choice particle, and populates its children
+   * from the choice's member items. The `{choice:N}` path index is derived at runtime by
+   * {@link SchemaPathService.getChoiceSiblingIndex} from the field's position among sibling
+   * isChoice fields — no explicit index is stored on the field.
+   */
+  private static populateChoice(
+    parent: XmlSchemaParentType,
+    fields: XmlSchemaField[],
+    choice: XmlSchemaChoice,
+    visitedGroupRefs?: Set<string>,
+  ) {
+    const ownerDoc = ('ownerDocument' in parent ? parent.ownerDocument : parent) as XmlSchemaDocument;
+    const choiceField = new XmlSchemaField(parent, '__choice__', false);
+    choiceField.isChoice = true;
+    choiceField.minOccurs = choice.getMinOccurs();
+    choiceField.maxOccurs = choice.getMaxOccurs();
+    choiceField.minOccursExplicit = choice.isMinOccursExplicit();
+    choiceField.maxOccursExplicit = choice.isMaxOccursExplicit();
+    fields.push(choiceField);
+    ownerDoc.totalFieldCount++;
+    for (const member of choice.getItems()) {
+      XmlSchemaDocumentService.populateSequenceMember(choiceField, choiceField.fields, member, visitedGroupRefs);
+    }
+    choiceField.displayName = 'choice';
   }
 
   private static populateGroupRef(
@@ -683,10 +797,10 @@ export class XmlSchemaDocumentService {
     visitedGroupRefs.delete(key);
   }
 
-  private static populateSequenceOrChoiceMember(
+  private static populateSequenceMember(
     parent: XmlSchemaParentType,
     fields: XmlSchemaField[],
-    member: XmlSchemaSequenceMember | XmlSchemaChoiceMember,
+    member: XmlSchemaSequenceMember,
     visitedGroupRefs?: Set<string>,
   ) {
     if (member instanceof XmlSchemaGroupRef) {

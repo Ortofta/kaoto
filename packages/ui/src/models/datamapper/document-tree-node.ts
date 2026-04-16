@@ -51,4 +51,29 @@ export class DocumentTreeNode {
 
     return undefined;
   }
+
+  /**
+   * Invalidate this node and all its descendants.
+   * Clears children and marks as unparsed, forcing re-parsing on next expansion.
+   * Used when a type override or choice selection changes the structure.
+   */
+  invalidate(): void {
+    this.isParsed = false;
+    this.children = [];
+  }
+
+  /**
+   * Invalidate all descendant nodes and mark this node as unparsed.
+   * Children are recursed into before being invalidated, then cleared.
+   * Sets isParsed = false so TreeUIService.toggleNode() triggers re-parse on next expansion.
+   * Used when a parent's type changes, invalidating all nested structures.
+   */
+  invalidateDescendants(): void {
+    for (const child of this.children) {
+      child.invalidateDescendants();
+      child.invalidate();
+    }
+    this.children = [];
+    this.isParsed = false;
+  }
 }

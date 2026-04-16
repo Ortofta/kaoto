@@ -5,7 +5,7 @@ import { PlusIcon } from '@patternfly/react-icons';
 import { FunctionComponent, ReactElement, useCallback, useRef, useState } from 'react';
 
 import { useCanvasEntities } from '../../../../hooks/useCanvasEntities';
-import { EntityType } from '../../../../models/camel/entities';
+import { EntityType } from '../../../../models/entities';
 
 export const NewEntity: FunctionComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,7 +60,7 @@ export const NewEntity: FunctionComponent = () => {
       menu={
         <Menu ref={menuRef} containsFlyout onSelect={onSelect}>
           <MenuContent>
-            <MenuList>
+            <MenuList data-testid="new-entity-list">
               {commonEntities.map((entityDef) => getMenuItem(entityDef))}
 
               {Object.entries(groupedEntities).map(([group, entities]) => {

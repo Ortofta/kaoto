@@ -1,5 +1,5 @@
 import { IField } from '../models/datamapper/document';
-import { IFieldTypeInfo, TypeOverrideVariant, Types } from '../models/datamapper/types';
+import { FieldOverrideVariant, IFieldTypeInfo, Types } from '../models/datamapper/types';
 import { QName } from '../xml-schema-ts/QName';
 import { JsonSchemaDocument } from './json-schema-document.model';
 
@@ -31,7 +31,7 @@ export class JsonSchemaTypesService {
    * @example
    * ```typescript
    * const result = JsonSchemaTypesService.parseTypeOverride('number', {}, field);
-   * // result = { type: Types.Numeric, typeQName: QName, variant: TypeOverrideVariant.SAFE }
+   * // result = { type: Types.Numeric, typeQName: QName, variant: FieldOverrideVariant.SAFE }
    *
    * const refResult = JsonSchemaTypesService.parseTypeOverride('#/definitions/Address', {}, field);
    * // result = { type: Types.Container, typeQName: QName, variant: ... }
@@ -41,7 +41,7 @@ export class JsonSchemaTypesService {
     typeString: string,
     _namespaceMap: Record<string, string>,
     field: IField,
-  ): { type: Types; typeQName: QName; variant: TypeOverrideVariant } {
+  ): { type: Types; typeQName: QName; variant: FieldOverrideVariant } {
     const type = typeString.startsWith('#/') ? Types.Container : JsonSchemaTypesService.mapTypeStringToEnum(typeString);
 
     const typeQName = new QName(null, typeString);
@@ -63,12 +63,12 @@ export class JsonSchemaTypesService {
    * @param _typeString - The type string (unused but kept for interface consistency)
    * @returns SAFE if original type is AnyType, FORCE otherwise
    */
-  static determineOverrideVariant(field: IField, _newType: Types, _typeString: string): TypeOverrideVariant {
-    if (field.originalType === Types.AnyType) {
-      return TypeOverrideVariant.SAFE;
+  static determineOverrideVariant(field: IField, _newType: Types, _typeString: string): FieldOverrideVariant {
+    if ((field.originalField?.type ?? field.type) === Types.AnyType) {
+      return FieldOverrideVariant.SAFE;
     }
 
-    return TypeOverrideVariant.FORCE;
+    return FieldOverrideVariant.FORCE;
   }
 
   /**
@@ -131,31 +131,31 @@ export class JsonSchemaTypesService {
     const results: Record<string, IFieldTypeInfo> = {};
 
     const builtInTypes = [
-      { typeString: 'string', type: Types.String },
-      { typeString: 'number', type: Types.Numeric },
-      { typeString: 'integer', type: Types.Integer },
-      { typeString: 'boolean', type: Types.Boolean },
-      { typeString: 'object', type: Types.Container },
-      { typeString: 'array', type: Types.Array },
+      { localName: 'string', type: Types.String },
+      { localName: 'number', type: Types.Numeric },
+      { localName: 'integer', type: Types.Integer },
+      { localName: 'boolean', type: Types.Boolean },
+      { localName: 'object', type: Types.Container },
+      { localName: 'array', type: Types.Array },
     ];
 
     for (const bt of builtInTypes) {
-      results[bt.typeString] = {
-        displayName: bt.typeString,
-        typeString: bt.typeString,
+      const typeQName = new QName(null, bt.localName);
+      results[typeQName.getLocalPart()!] = {
+        displayName: bt.localName,
+        typeQName,
         type: bt.type,
-        namespaceURI: null,
         isBuiltIn: true,
       };
     }
 
     const definitions = document.schemaCollection.getDefinitions();
     for (const [path, _definition] of definitions) {
-      results[path] = {
+      const typeQName = new QName(null, path);
+      results[typeQName.getLocalPart()!] = {
         displayName: path,
-        typeString: path,
+        typeQName,
         type: Types.Container,
-        namespaceURI: null,
         isBuiltIn: false,
       };
     }
@@ -179,7 +179,7 @@ export class JsonSchemaTypesService {
    * // Always returns {}
    * ```
    */
-  static getTypeOverrideCandidatesForField(_field: { originalTypeQName?: unknown }): Record<string, IFieldTypeInfo> {
+  static getTypeOverrideCandidatesForField(_field: IField): Record<string, IFieldTypeInfo> {
     return {};
   }
 }

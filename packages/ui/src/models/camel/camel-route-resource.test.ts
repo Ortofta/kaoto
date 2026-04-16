@@ -5,16 +5,16 @@ import { beansJson } from '../../stubs/beans';
 import { camelFromJson } from '../../stubs/camel-from';
 import { camelRouteJson, camelRouteYaml } from '../../stubs/camel-route';
 import { CatalogKind } from '../catalog-kind';
+import { EntityType } from '../entities';
+import { SerializerType } from '../kaoto-resource';
 import { AddStepMode } from '../visualization/base-visual-entity';
 import { CamelRouteVisualEntity } from '../visualization/flows/camel-route-visual-entity';
 import { NonVisualEntity } from '../visualization/flows/non-visual-entity';
 import { CamelComponentFilterService } from '../visualization/flows/support/camel-component-filter.service';
 import { FlowTemplateService } from '../visualization/flows/support/flow-templates-service';
 import { BeansEntity } from '../visualization/metadata/beansEntity';
-import { SerializerType } from './camel-resource';
 import { CamelResourceFactory } from './camel-resource-factory';
 import { CamelRouteResource } from './camel-route-resource';
-import { EntityType } from './entities';
 import { SourceSchemaType } from './source-schema-type';
 
 describe('CamelRouteResource', () => {
@@ -36,9 +36,9 @@ describe('CamelRouteResource', () => {
     it('should sort entities according to XML schema order during construction', () => {
       const mixedEntities: CamelYamlDsl = [
         { from: { uri: 'direct:route1', steps: [] } },
-        { restConfiguration: { port: '8080' } },
+        { intercept: { description: 'Intercept' } },
         { from: { uri: 'direct:route2', steps: [] } },
-        { rest: { path: '/api' } },
+        { onCompletion: { description: 'onCompletion' } },
         { routeConfiguration: { id: 'config1' } },
       ];
 
@@ -47,8 +47,8 @@ describe('CamelRouteResource', () => {
 
       // Should be sorted: RestConfiguration, Rest, RouteConfiguration, Route, Route
       expect(entities).toHaveLength(5);
-      expect(entities[0].type).toBe(EntityType.RestConfiguration);
-      expect(entities[1].type).toBe(EntityType.Rest);
+      expect(entities[0].type).toBe(EntityType.OnCompletion);
+      expect(entities[1].type).toBe(EntityType.Intercept);
       expect(entities[2].type).toBe(EntityType.RouteConfiguration);
       expect(entities[3].type).toBe(EntityType.Route);
       expect(entities[4].type).toBe(EntityType.Route);
@@ -82,23 +82,22 @@ describe('CamelRouteResource', () => {
       ];
 
       const resource = new CamelRouteResource(mixedWithMultiples);
-      const entities = resource.getVisualEntities();
 
-      expect(entities).toHaveLength(5);
-      // Should be: RestConfiguration, RouteConfiguration(config2), RouteConfiguration(config1), Route(route1), Route(route2)
-      expect(entities[0].type).toBe(EntityType.RestConfiguration);
-      expect(entities[1].type).toBe(EntityType.RouteConfiguration);
-      expect(
-        (entities[1].toJSON() as unknown as { routeConfiguration: RouteConfigurationDefinition }).routeConfiguration.id,
-      ).toBe('config2'); // First routeConfig
-      expect(entities[2].type).toBe(EntityType.RouteConfiguration);
-      expect(
-        (entities[2].toJSON() as unknown as { routeConfiguration: RouteConfigurationDefinition }).routeConfiguration.id,
-      ).toBe('config1'); // Second routeConfig
-      expect(entities[3].type).toBe(EntityType.Route);
-      expect((entities[3].toJSON() as unknown as { route: RouteDefinition }).route.from.uri).toBe('direct:route1'); // First route
-      expect(entities[4].type).toBe(EntityType.Route);
-      expect((entities[4].toJSON() as unknown as { route: RouteDefinition }).route.from.uri).toBe('direct:route2'); // Second route
+      // Verify internal ordering via toJSON: RestConfiguration, RouteConfiguration(config2), RouteConfiguration(config1), Route(route1), Route(route2)
+      const json = resource.toJSON() as Record<string, unknown>[];
+      expect(json).toHaveLength(5);
+      expect(Object.keys(json[0])[0]).toBe('restConfiguration');
+      expect(Object.keys(json[1])[0]).toBe('routeConfiguration');
+      expect((json[1] as { routeConfiguration: RouteConfigurationDefinition }).routeConfiguration.id).toBe('config2');
+      expect(Object.keys(json[2])[0]).toBe('routeConfiguration');
+      expect((json[2] as { routeConfiguration: RouteConfigurationDefinition }).routeConfiguration.id).toBe('config1');
+      expect(Object.keys(json[3])[0]).toBe('route');
+      expect((json[3] as { route: RouteDefinition }).route.from.uri).toBe('direct:route1');
+      expect(Object.keys(json[4])[0]).toBe('route');
+      expect((json[4] as { route: RouteDefinition }).route.from.uri).toBe('direct:route2');
+
+      // Visual entities exclude Rest/RestConfiguration
+      expect(resource.getVisualEntities()).toHaveLength(4);
     });
   });
 
@@ -220,6 +219,88 @@ describe('CamelRouteResource', () => {
       expect(resource.getVisualEntities()).toHaveLength(2);
       expect(resource.getVisualEntities()[0].id).toEqual(id);
     });
+
+    describe('insertAfterEntityId', () => {
+      it('should insert a duplicated route right after the original route', () => {
+        const resource = new CamelRouteResource([
+          { from: { uri: 'direct:route1', steps: [] } },
+          { from: { uri: 'direct:route2', steps: [] } },
+          { from: { uri: 'direct:route3', steps: [] } },
+        ]);
+
+        const entities = resource.getVisualEntities();
+        expect(entities).toHaveLength(3);
+
+        const route1Id = entities[0].id;
+
+        // Duplicate route1 - should be inserted right after route1
+        const newId = resource.addNewEntity(EntityType.Route, undefined, route1Id);
+
+        const updatedEntities = resource.getVisualEntities();
+        expect(updatedEntities).toHaveLength(4);
+        expect(updatedEntities[0].id).toBe(route1Id);
+        expect(updatedEntities[1].id).toBe(newId); // Duplicate placed right after route1
+      });
+
+      it('should insert a duplicated route after the last route when duplicating the last route', () => {
+        const resource = new CamelRouteResource([
+          { from: { uri: 'direct:route1', steps: [] } },
+          { from: { uri: 'direct:route2', steps: [] } },
+        ]);
+
+        const entities = resource.getVisualEntities();
+        const route2Id = entities[1].id;
+
+        const newId = resource.addNewEntity(EntityType.Route, undefined, route2Id);
+
+        const updatedEntities = resource.getVisualEntities();
+        expect(updatedEntities).toHaveLength(3);
+        expect(updatedEntities[1].id).toBe(route2Id);
+        expect(updatedEntities[2].id).toBe(newId); // Duplicate placed right after route2
+      });
+
+      it('should insert after the specified entity among mixed entity types', () => {
+        const resource = new CamelRouteResource([
+          { routeConfiguration: { id: 'config1' } },
+          { from: { uri: 'direct:route1', steps: [] } },
+          { from: { uri: 'direct:route2', steps: [] } },
+        ]);
+
+        const entities = resource.getVisualEntities();
+        const route1Id = entities.find((e) => e.type === EntityType.Route)!.id;
+
+        const newId = resource.addNewEntity(EntityType.Route, undefined, route1Id);
+
+        const updatedEntities = resource.getVisualEntities();
+        expect(updatedEntities).toHaveLength(4);
+
+        // Find the route entities in order
+        const routeEntities = updatedEntities.filter((e) => e.type === EntityType.Route);
+        expect(routeEntities).toHaveLength(3);
+        expect(routeEntities[0].id).toBe(route1Id);
+        expect(routeEntities[1].id).toBe(newId); // Duplicate right after route1
+      });
+
+      it('should fall back to default ordering when insertAfterEntityId is not found', () => {
+        const resource = new CamelRouteResource([{ from: { uri: 'direct:route1', steps: [] } }]);
+
+        const newId = resource.addNewEntity(EntityType.Route, undefined, 'non-existing-id');
+
+        const updatedEntities = resource.getVisualEntities();
+        expect(updatedEntities).toHaveLength(2);
+        expect(updatedEntities[1].id).toBe(newId); // Falls back to end
+      });
+
+      it('should fall back to default ordering when insertAfterEntityId is not provided', () => {
+        const resource = new CamelRouteResource([{ from: { uri: 'direct:route1', steps: [] } }]);
+
+        const newId = resource.addNewEntity(EntityType.Route);
+
+        const updatedEntities = resource.getVisualEntities();
+        expect(updatedEntities).toHaveLength(2);
+        expect(updatedEntities[1].id).toBe(newId);
+      });
+    });
   });
 
   it('should return the right type', () => {
@@ -240,7 +321,7 @@ describe('CamelRouteResource', () => {
   });
 
   describe('getVisualEntities ordering', () => {
-    it('should return entities in XML schema order', () => {
+    it('should return visual entities in XML schema order (excluding Rest/RestConfiguration)', () => {
       const mixedEntities = [
         { from: { uri: 'direct:route1', steps: [] } },
         { routeConfiguration: { id: 'config1' } },
@@ -251,12 +332,18 @@ describe('CamelRouteResource', () => {
       const resource = new CamelRouteResource(mixedEntities);
       const visualEntities = resource.getVisualEntities();
 
-      expect(visualEntities).toHaveLength(4);
-      // Should follow XML schema order: RestConfiguration, Rest, RouteConfiguration, Route
-      expect(visualEntities[0].type).toBe(EntityType.RestConfiguration);
-      expect(visualEntities[1].type).toBe(EntityType.Rest);
-      expect(visualEntities[2].type).toBe(EntityType.RouteConfiguration);
-      expect(visualEntities[3].type).toBe(EntityType.Route);
+      // Rest and RestConfiguration are non-visual entities
+      expect(visualEntities).toHaveLength(2);
+      expect(visualEntities[0].type).toBe(EntityType.RouteConfiguration);
+      expect(visualEntities[1].type).toBe(EntityType.Route);
+
+      // Full ordering (including non-visual) verified via toJSON
+      const json = resource.toJSON() as Record<string, unknown>[];
+      expect(json).toHaveLength(4);
+      expect(Object.keys(json[0])[0]).toBe('restConfiguration');
+      expect(Object.keys(json[1])[0]).toBe('rest');
+      expect(Object.keys(json[2])[0]).toBe('routeConfiguration');
+      expect(Object.keys(json[3])[0]).toBe('route');
     });
 
     it('should maintain consistent ordering after adding entities', () => {
@@ -268,15 +355,17 @@ describe('CamelRouteResource', () => {
 
       const visualEntities = resource.getVisualEntities();
 
-      expect(visualEntities).toHaveLength(3);
-      // After adding, the order should still reflect proper positioning
-      // Note: addNewEntity doesn't re-sort, it just adds at the correct position
-      const entityTypes = visualEntities.map((e) => e.type);
+      // Visual entities: RouteConfiguration, Route (RestConfiguration is non-visual)
+      expect(visualEntities).toHaveLength(2);
+      expect(visualEntities.map((e) => e.type)).toContain(EntityType.Route);
+      expect(visualEntities.map((e) => e.type)).toContain(EntityType.RouteConfiguration);
 
-      // We should have all three entity types
-      expect(entityTypes).toContain(EntityType.Route);
-      expect(entityTypes).toContain(EntityType.RestConfiguration);
-      expect(entityTypes).toContain(EntityType.RouteConfiguration);
+      // Full ordering verified via toJSON
+      const json = resource.toJSON() as Record<string, unknown>[];
+      expect(json).toHaveLength(3);
+      expect(Object.keys(json[0])[0]).toBe('restConfiguration');
+      expect(Object.keys(json[1])[0]).toBe('routeConfiguration');
+      expect(Object.keys(json[2])[0]).toBe('route');
     });
 
     it('should return entities sorted by XML schema order with preserved internal order', () => {
@@ -291,26 +380,24 @@ describe('CamelRouteResource', () => {
       const resource = new CamelRouteResource(multipleEntitiesPerType);
       const visualEntities = resource.getVisualEntities();
 
-      expect(visualEntities).toHaveLength(5);
-
-      // Should be: RestConfiguration, RouteConfiguration(config2), RouteConfiguration(config1), Route(route3), Route(route1)
-      expect(visualEntities[0].type).toBe(EntityType.RestConfiguration);
+      // Visual entities: RouteConfiguration(config2), RouteConfiguration(config1), Route(route3), Route(route1)
+      expect(visualEntities).toHaveLength(4);
+      expect(visualEntities[0].type).toBe(EntityType.RouteConfiguration);
+      expect(
+        (visualEntities[0].toJSON() as unknown as { routeConfiguration: RouteConfigurationDefinition })
+          .routeConfiguration.id,
+      ).toBe('config2');
       expect(visualEntities[1].type).toBe(EntityType.RouteConfiguration);
       expect(
         (visualEntities[1].toJSON() as unknown as { routeConfiguration: RouteConfigurationDefinition })
           .routeConfiguration.id,
-      ).toBe('config2');
-      expect(visualEntities[2].type).toBe(EntityType.RouteConfiguration);
-      expect(
-        (visualEntities[2].toJSON() as unknown as { routeConfiguration: RouteConfigurationDefinition })
-          .routeConfiguration.id,
       ).toBe('config1');
-      expect(visualEntities[3].type).toBe(EntityType.Route);
-      expect((visualEntities[3].toJSON() as unknown as { route: RouteDefinition }).route.from.uri).toBe(
+      expect(visualEntities[2].type).toBe(EntityType.Route);
+      expect((visualEntities[2].toJSON() as unknown as { route: RouteDefinition }).route.from.uri).toBe(
         'direct:route3',
       );
-      expect(visualEntities[4].type).toBe(EntityType.Route);
-      expect((visualEntities[4].toJSON() as unknown as { route: RouteDefinition }).route.from.uri).toBe(
+      expect(visualEntities[3].type).toBe(EntityType.Route);
+      expect((visualEntities[3].toJSON() as unknown as { route: RouteDefinition }).route.from.uri).toBe(
         'direct:route1',
       );
     });
@@ -494,12 +581,6 @@ describe('CamelRouteResource', () => {
           expect.objectContaining({ name: EntityType.ErrorHandler }),
         ]),
       );
-      expect(entityList.groups['Rest']).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: EntityType.RestConfiguration }),
-          expect.objectContaining({ name: EntityType.Rest }),
-        ]),
-      );
     });
 
     it('should filter out YAML-only entities for XML serializer', () => {
@@ -576,10 +657,70 @@ describe('CamelRouteResource', () => {
       // Check that entities are properly grouped
       expect(entityList.groups).toHaveProperty('Configuration');
       expect(entityList.groups).toHaveProperty('Error Handling');
-      expect(entityList.groups).toHaveProperty('Rest');
 
       // Route should be in common (empty group)
       expect(entityList.common).toEqual([expect.objectContaining({ name: EntityType.Route })]);
+    });
+  });
+
+  describe('isVisualEntity classification', () => {
+    it('should exclude Rest and RestConfiguration from getVisualEntities', () => {
+      const resource = new CamelRouteResource([
+        { restConfiguration: { port: '8080' } },
+        { rest: { path: '/api' } },
+        { from: { uri: 'direct:route1', steps: [] } },
+      ]);
+
+      const visualEntities = resource.getVisualEntities();
+      expect(visualEntities).toHaveLength(1);
+      expect(visualEntities[0].type).toBe(EntityType.Route);
+    });
+
+    it('should include Rest and RestConfiguration in getEntities', () => {
+      const resource = new CamelRouteResource([
+        { restConfiguration: { port: '8080' } },
+        { rest: { path: '/api' } },
+        { from: { uri: 'direct:route1', steps: [] } },
+      ]);
+
+      const entities = resource.getEntities();
+      const entityTypes = entities.map((e) => e.type);
+      expect(entityTypes).toContain(EntityType.RestConfiguration);
+      expect(entityTypes).toContain(EntityType.Rest);
+    });
+
+    it('should not include Rest and RestConfiguration in getCanvasEntityList', () => {
+      const resource = new CamelRouteResource();
+      resource.setSerializer(SerializerType.YAML);
+
+      const entityList = resource.getCanvasEntityList();
+
+      const allEntityNames = [
+        ...entityList.common.map((e) => e.name),
+        ...Object.values(entityList.groups)
+          .flat()
+          .map((e) => e.name),
+      ];
+
+      expect(allEntityNames).not.toContain(EntityType.Rest);
+      expect(allEntityNames).not.toContain(EntityType.RestConfiguration);
+    });
+
+    it('should still allow adding Rest and RestConfiguration via addNewEntity', () => {
+      const resource = new CamelRouteResource();
+
+      const restConfigId = resource.addNewEntity(EntityType.RestConfiguration);
+      const restId = resource.addNewEntity(EntityType.Rest);
+
+      // They should be in getEntities
+      const entities = resource.getEntities();
+      expect(entities.find((e) => e.id === restConfigId)).toBeDefined();
+      expect(entities.find((e) => e.id === restId)).toBeDefined();
+
+      // But not in getVisualEntities
+      const visualEntities = resource.getVisualEntities();
+      expect(visualEntities.find((e) => e.id === restConfigId)).toBeUndefined();
+      expect(visualEntities.find((e) => e.id === restId)).toBeUndefined();
     });
   });
 
@@ -679,6 +820,29 @@ describe('CamelRouteResource', () => {
     });
   });
 
+  describe('getCompatibleRuntimes', () => {
+    it('should return the correct list of compatible runtimes', () => {
+      const resource = new CamelRouteResource();
+      const compatibleRuntimes = resource.getCompatibleRuntimes();
+
+      expect(compatibleRuntimes).toEqual(['Main', 'Quarkus', 'Spring Boot']);
+    });
+
+    it('should return the same list regardless of resource content', () => {
+      const emptyResource = new CamelRouteResource();
+      const resourceWithRoutes = new CamelRouteResource([camelRouteJson, camelFromJson]);
+
+      expect(emptyResource.getCompatibleRuntimes()).toEqual(resourceWithRoutes.getCompatibleRuntimes());
+    });
+
+    it('should return an array with three runtime names', () => {
+      const resource = new CamelRouteResource();
+      const compatibleRuntimes = resource.getCompatibleRuntimes();
+
+      expect(compatibleRuntimes).toEqual(['Main', 'Quarkus', 'Spring Boot']);
+    });
+  });
+
   describe('edge cases and error handling', () => {
     it('should handle empty entities array in constructor', () => {
       const resource = new CamelRouteResource([]);
@@ -717,23 +881,29 @@ describe('CamelRouteResource', () => {
         { from: { uri: 'direct:route1', steps: [] } },
       ]);
 
-      const initialCount = resource.getVisualEntities().length;
+      const initialVisualCount = resource.getVisualEntities().length;
 
       // Add more entities
       resource.addNewEntity(EntityType.RestConfiguration);
       resource.addNewEntity(EntityType.OnException); // Priority entity
 
-      const entities = resource.getVisualEntities();
+      const visualEntities = resource.getVisualEntities();
 
-      const result = entities.map((entity) => entity.type);
-
-      expect(result).toEqual([
-        EntityType.RestConfiguration,
+      // Visual entities: OnException, RouteConfiguration, Route (RestConfiguration is non-visual)
+      expect(visualEntities.map((entity) => entity.type)).toEqual([
         EntityType.OnException,
         EntityType.RouteConfiguration,
         EntityType.Route,
       ]);
-      expect(entities).toHaveLength(initialCount + 2);
+      expect(visualEntities).toHaveLength(initialVisualCount + 1);
+
+      // Full ordering verified via toJSON
+      const json = resource.toJSON() as Record<string, unknown>[];
+      expect(json).toHaveLength(4);
+      expect(Object.keys(json[0])[0]).toBe('restConfiguration');
+      expect(Object.keys(json[1])[0]).toBe('onException');
+      expect(Object.keys(json[2])[0]).toBe('routeConfiguration');
+      expect(Object.keys(json[3])[0]).toBe('route');
     });
 
     it('should handle getEntity with array input', () => {

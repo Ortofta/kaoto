@@ -3,9 +3,9 @@ import { CatalogLibrary, RestConfiguration } from '@kaoto/camel-catalog/types';
 
 import { restConfigurationSchema, restConfigurationStub } from '../../../stubs/rest-configuration';
 import { getFirstCatalogMap } from '../../../stubs/test-load-catalog';
-import { EntityType } from '../../camel/entities';
 import { SourceSchemaType } from '../../camel/source-schema-type';
 import { CatalogKind } from '../../catalog-kind';
+import { EntityType } from '../../entities';
 import { CamelCatalogService } from './camel-catalog.service';
 import { CamelRestConfigurationVisualEntity } from './camel-rest-configuration-visual-entity';
 
@@ -228,13 +228,5 @@ describe('CamelRestConfigurationVisualEntity', () => {
     const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
 
     expect(entity.toJSON()).toEqual(restConfigurationDef);
-  });
-
-  describe('getGroupIcons', () => {
-    it('should return empty array for rest configuration entity', () => {
-      const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
-
-      expect(entity.getGroupIcons()).toEqual([]);
-    });
   });
 });

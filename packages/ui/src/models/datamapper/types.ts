@@ -1,3 +1,5 @@
+import { QName } from '../../xml-schema-ts/QName';
+
 /**
  * The data types mapped from XML Schema +.
  */
@@ -30,10 +32,11 @@ export enum Types {
   Array = 'Array',
 }
 
-export enum TypeOverrideVariant {
+export enum FieldOverrideVariant {
   NONE = 'NONE',
   SAFE = 'SAFE',
   FORCE = 'FORCE',
+  SUBSTITUTION = 'SUBSTITUTION',
 }
 
 /**
@@ -45,24 +48,34 @@ export enum TypeDerivation {
 }
 
 /**
+ * Represents the resolved state of a substitute element used when applying a field substitution.
+ * Contains the wire name, namespace, and type information of the substitute element.
+ */
+export interface IFieldSubstituteInfo {
+  qname: QName;
+  displayName: string;
+  type: Types;
+  typeQName: QName | null;
+  namedTypeFragmentRefs: string[];
+}
+
+/**
  * Represents metadata about a field type that can be used for type selection, documentation, and validation.
  * Includes type inheritance information for XML Schema types.
  */
 export interface IFieldTypeInfo {
   /** Human-readable display name (simple local name for user types like "Person", prefixed for built-ins like "xs:string") */
   displayName: string;
-  /** Full qualified type name to pass to parseTypeOverride (e.g., "xs:string", "tns:CustomType") */
-  typeString: string;
+  /** Qualified name of the type, encapsulating namespace URI and local part */
+  typeQName: QName;
   /** Mapped DataMapper type enum value */
   type: Types;
-  /** Namespace URI of the type (null for types without namespace) */
-  namespaceURI: string | null;
   /** Optional description extracted from xs:annotation/xs:documentation for tooltip/help text */
   description?: string;
   /** True for XML Schema built-in types (xs:string, xs:int, etc.), false for user-defined types */
   isBuiltIn: boolean;
-  /** TypeString reference to base type for extensions/restrictions */
-  base?: string;
+  /** QName of the base type for extensions/restrictions */
+  baseQName?: QName;
   /** How this type derives from its base type (extension or restriction) */
   derivation?: TypeDerivation;
 }

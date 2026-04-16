@@ -1,28 +1,32 @@
 import './BaseNode.scss';
 
-import { At, ChevronDown, ChevronRight, Choices, Draggable } from '@carbon/icons-react';
-import { Icon } from '@patternfly/react-core';
+import { At, ChevronDown, ChevronRight, Choices, DocumentComment, Draggable, ValueVariable } from '@carbon/icons-react';
+import { Button, Icon, Tooltip } from '@patternfly/react-core';
 import { LayerGroupIcon } from '@patternfly/react-icons';
-import { FunctionComponent, MouseEventHandler, PropsWithChildren, ReactNode } from 'react';
+import { FunctionComponent, MouseEventHandler, PropsWithChildren, ReactNode, useCallback, useState } from 'react';
 
 import { IDataTestID } from '../../../models';
-import { Types } from '../../../models/datamapper';
+import { MappingItem } from '../../../models/datamapper/mapping';
+import {
+  AddMappingNodeData,
+  NodeData,
+  UnknownMappingNodeData,
+  VariableNodeData,
+} from '../../../models/datamapper/visualization';
+import { VisualizationService } from '../../../services/visualization.service';
+import { CommentModal } from '../actions/Comment/CommentModal';
 import { FieldIcon } from '../FieldIcon';
 
 interface BaseNodeProps extends IDataTestID {
+  /** Node data containing all node information */
+  nodeData: NodeData;
+
   /** Controls whether the Expansion icon is shown */
   isExpandable?: boolean;
   /** Expansion status. Requires `isExpandable=true` */
   isExpanded?: boolean;
   /** Expansion handler */
   onExpandChange?: MouseEventHandler<HTMLElement>;
-
-  /** Controls whether the Drag icon is shown */
-  isDraggable?: boolean;
-  iconType?: Types;
-  isCollectionField?: boolean;
-  isChoiceField?: boolean;
-  isAttributeField?: boolean;
 
   /** Title node */
   title: ReactNode;
@@ -32,23 +36,63 @@ interface BaseNodeProps extends IDataTestID {
 
   /** Selection state */
   isSelected?: boolean;
+
+  /** Node path for connection port identification */
+  nodePath?: string;
+
+  /** Mapping item for comment editing */
+  mapping?: MappingItem;
+
+  /** Callback when mapping is updated */
+  onUpdate?: () => void;
+
+  /** Document ID for connection port identification */
+  documentId?: string;
 }
 
 export const BaseNode: FunctionComponent<PropsWithChildren<BaseNodeProps>> = ({
+  nodeData,
   isExpandable,
   isExpanded,
   onExpandChange,
-  isDraggable,
-  iconType,
-  isCollectionField,
-  isChoiceField,
-  isAttributeField,
+  mapping,
+  onUpdate,
   title,
   rank,
   isSelected,
+  nodePath,
+  documentId,
   'data-testid': dataTestId,
   children,
 }) => {
+  // Derive properties from nodeData
+  const field = VisualizationService.getField(nodeData);
+  const iconType = field?.type ?? nodeData.type;
+  const isCollectionField = VisualizationService.isCollectionField(nodeData);
+  const isChoiceField = VisualizationService.isChoiceField(nodeData);
+  const isAttributeField = VisualizationService.isAttributeField(nodeData);
+  const isVariableNode = nodeData instanceof VariableNodeData;
+  const isDocument = VisualizationService.isDocumentNode(nodeData);
+  const isDraggable =
+    !(nodeData instanceof UnknownMappingNodeData) &&
+    !(nodeData instanceof AddMappingNodeData) &&
+    (!isDocument || VisualizationService.isPrimitiveDocumentNode(nodeData));
+  const isSource = nodeData.isSource;
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+
+  const handleOpenCommentModal = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      if (mapping && onUpdate) {
+        setIsCommentModalOpen(true);
+      }
+    },
+    [mapping, onUpdate],
+  );
+
+  const handleCloseCommentModal = useCallback(() => {
+    setIsCommentModalOpen(false);
+  }, []);
   return (
     <section
       className="node__row"
@@ -57,6 +101,16 @@ export const BaseNode: FunctionComponent<PropsWithChildren<BaseNodeProps>> = ({
       data-selected={isSelected}
       style={{ '--node-rank': rank } as React.CSSProperties}
     >
+      {nodePath && documentId && (
+        <span
+          className={`node__connection-port ${isSource ? 'node__connection-port--source' : 'node__connection-port--target'}`}
+          data-testid={`connection-port-${dataTestId}`}
+          data-connection-port="true"
+          data-node-path={nodePath}
+          data-document-id={documentId}
+        />
+      )}
+
       {isExpandable && (
         <Icon className="node__expand" onClick={onExpandChange}>
           {isExpanded && <ChevronDown data-testid={`expand-icon-${dataTestId}`} />}
@@ -87,8 +141,36 @@ export const BaseNode: FunctionComponent<PropsWithChildren<BaseNodeProps>> = ({
           <At />
         </Icon>
       )}
+      {isVariableNode && (
+        <Icon className="node__spacer" data-testid="variable-node-icon">
+          <ValueVariable />
+        </Icon>
+      )}
 
+      {mapping?.comment && mapping && onUpdate && (
+        <Tooltip content={mapping?.comment}>
+          <Icon className="node__spacer" data-testid="comment-indicator-icon">
+            <Button
+              variant="plain"
+              icon={<DocumentComment />}
+              onClick={handleOpenCommentModal}
+              aria-label="Edit comment"
+            />
+          </Icon>
+        </Tooltip>
+      )}
       {children}
+
+      {mapping && onUpdate && (
+        <CommentModal
+          isOpen={isCommentModalOpen}
+          onClose={handleCloseCommentModal}
+          mapping={mapping}
+          onUpdate={onUpdate}
+          showDeleteButton={true}
+          withFormGroup={true}
+        />
+      )}
     </section>
   );
 };

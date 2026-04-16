@@ -8,8 +8,17 @@ import {
   Types,
 } from '../models/datamapper';
 import { NS_XML_SCHEMA } from '../models/datamapper/standard-namespaces';
-import { TypeOverrideVariant } from '../models/datamapper/types';
-import { getImportedTypesXsd, getNamedTypesXsd, getShipOrderXsd, TestUtil } from '../stubs/datamapper/data-mapper';
+import { FieldOverrideVariant } from '../models/datamapper/types';
+import {
+  getFieldSubstitutionNoNsXsd,
+  getFieldSubstitutionXsd,
+  getImportedTypesXsd,
+  getNamedTypesXsd,
+  getShipOrderXsd,
+  TestUtil,
+} from '../stubs/datamapper/data-mapper';
+import { XmlSchemaCollection } from '../xml-schema-ts';
+import { QName } from '../xml-schema-ts/QName';
 import { FieldTypeOverrideService } from './field-type-override.service';
 import { JsonSchemaDocument } from './json-schema-document.model';
 import { JsonSchemaDocumentService } from './json-schema-document.service';
@@ -17,6 +26,19 @@ import { XmlSchemaDocument, XmlSchemaField } from './xml-schema-document.model';
 import { XmlSchemaDocumentService } from './xml-schema-document.service';
 
 describe('FieldTypeOverrideService', () => {
+  const NS_SUBSTITUTION = 'http://www.example.com/SUBSTITUTION';
+
+  function createSubstitutionDoc() {
+    const definition = new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.XML_SCHEMA, 'test-doc', {
+      'FieldSubstitution.xsd': getFieldSubstitutionXsd(),
+    });
+    const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+    if (result.validationStatus !== 'success' || !result.document) {
+      throw new Error(result.errors?.map((e) => e.message).join('; ') || 'Failed to create substitution test document');
+    }
+    return result.document;
+  }
+
   function makeChoiceField(parent: XmlSchemaField, memberNames: string[]) {
     const choiceField = new XmlSchemaField(parent, 'choice', false);
     choiceField.isChoice = true;
@@ -28,7 +50,7 @@ describe('FieldTypeOverrideService', () => {
     it('should return all types for xs:anyType fields', () => {
       const doc = TestUtil.createSourceOrderDoc();
       const anyTypeField = doc.fields[0].fields[0];
-      anyTypeField.originalType = Types.AnyType;
+      anyTypeField.type = Types.AnyType;
 
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
       const candidates = FieldTypeOverrideService.getSafeOverrideCandidates(anyTypeField, namespaceMap);
@@ -41,7 +63,7 @@ describe('FieldTypeOverrideService', () => {
     it('should return extensions and restrictions for Container types', () => {
       const doc = TestUtil.createSourceOrderDoc();
       const containerField = doc.fields[0];
-      containerField.originalType = Types.Container;
+      containerField.type = Types.Container;
 
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
       const candidates = FieldTypeOverrideService.getSafeOverrideCandidates(containerField, namespaceMap);
@@ -54,12 +76,63 @@ describe('FieldTypeOverrideService', () => {
       const stringField = doc.fields[0].fields.find((f) => f.name === 'OrderPerson');
       if (!stringField) throw new Error('Field not found');
 
-      stringField.originalType = Types.String;
+      stringField.type = Types.String;
 
       const namespaceMap = { xs: NS_XML_SCHEMA };
       const candidates = FieldTypeOverrideService.getSafeOverrideCandidates(stringField, namespaceMap);
 
       expect(typeof candidates).toBe('object');
+    });
+
+    it('should return all types when originalField.type is AnyType even if current type differs', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const field = doc.fields[0].fields.find((f) => f.name === 'OrderPerson');
+      if (!field) throw new Error('Field not found');
+
+      field.originalField = {
+        name: field.name,
+        displayName: field.displayName,
+        namespaceURI: '',
+        namespacePrefix: '',
+        type: Types.AnyType,
+        typeQName: null,
+        namedTypeFragmentRefs: [],
+      };
+      field.type = Types.Integer;
+
+      const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      const candidates = FieldTypeOverrideService.getSafeOverrideCandidates(field, namespaceMap);
+
+      expect(Object.keys(candidates).length).toBeGreaterThan(0);
+      expect(Object.values(candidates).some((c) => c.displayName === 'xs:string')).toBe(true);
+    });
+
+    it('should return empty Record for JSON Schema fields without AnyType original', () => {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.JSON_SCHEMA,
+        'test-doc',
+        {
+          'test.json': JSON.stringify({
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+            },
+          }),
+        },
+      );
+
+      const result = JsonSchemaDocumentService.createJsonSchemaDocument(definition);
+      expect(result.validationStatus).toBe('success');
+      const doc = result.document!;
+      const root = doc.fields[0];
+      const nameField = root.fields.find((f) => f.key === 'name');
+      if (!nameField) throw new Error('Field not found');
+
+      const candidates = FieldTypeOverrideService.getSafeOverrideCandidates(nameField, {});
+
+      expect(typeof candidates).toBe('object');
+      expect(Object.keys(candidates).length).toBe(0);
     });
   });
 
@@ -138,61 +211,46 @@ describe('FieldTypeOverrideService', () => {
 
   describe('addSchemaFilesForTypeOverride', () => {
     describe('XML Schema documents', () => {
-      it('should add schema files and return updated definition with namespace map', () => {
+      it('should add schema files and mutate document.definition.definitionFiles', () => {
         const definition = new DocumentDefinition(
           DocumentType.SOURCE_BODY,
           DocumentDefinitionType.XML_SCHEMA,
           'test-doc',
           { 'ShipOrder.xsd': getShipOrderXsd() },
-          undefined,
-          undefined,
-          undefined,
-          { ns0: 'io.kaoto.datamapper.poc.test' },
         );
 
         const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
         const document = result.document as XmlSchemaDocument;
 
-        const updatedDef = FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
+        FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
           'ImportedTypes.xsd': getImportedTypesXsd(),
         });
 
-        expect(Object.keys(updatedDef.definitionFiles || {})).toContain('ShipOrder.xsd');
-        expect(Object.keys(updatedDef.definitionFiles || {})).toContain('ImportedTypes.xsd');
-
-        const namespaceMap = updatedDef.namespaceMap || {};
-        expect(namespaceMap['ns0']).toBe('io.kaoto.datamapper.poc.test');
-        expect(namespaceMap['ns1']).toBe('http://example.com/types');
+        expect(Object.keys(document.definition.definitionFiles || {})).toContain('ShipOrder.xsd');
+        expect(Object.keys(document.definition.definitionFiles || {})).toContain('ImportedTypes.xsd');
       });
 
-      it('should preserve existing namespaces when adding new ones', () => {
+      it('should make added schema types available in the collection', () => {
         const definition = new DocumentDefinition(
           DocumentType.SOURCE_BODY,
           DocumentDefinitionType.XML_SCHEMA,
           'test-doc',
           { 'ShipOrder.xsd': getShipOrderXsd() },
-          undefined,
-          undefined,
-          undefined,
-          { ns0: 'io.kaoto.datamapper.poc.test', custom: 'http://example.com/custom' },
         );
 
         const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
         const document = result.document as XmlSchemaDocument;
 
-        const updatedDef = FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
+        FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
           'ImportedTypes.xsd': getImportedTypesXsd(),
         });
 
-        const namespaceMap = updatedDef.namespaceMap || {};
-        expect(namespaceMap['ns0']).toBe('io.kaoto.datamapper.poc.test');
-        expect(namespaceMap['custom']).toBe('http://example.com/custom');
-        expect(namespaceMap['ns1']).toBe('http://example.com/types');
+        expect(Object.keys(document.namedTypeFragments).some((k) => k.includes('ImportedType'))).toBe(true);
       });
     });
 
     describe('JSON Schema documents', () => {
-      it('should add schema files and return updated definition', () => {
+      it('should add schema files and mutate document.definition', () => {
         const mainSchema = { type: 'object', properties: { name: { type: 'string' } } };
         const definition = new DocumentDefinition(
           DocumentType.SOURCE_BODY,
@@ -210,13 +268,12 @@ describe('FieldTypeOverrideService', () => {
           },
         };
 
-        const updatedDef = FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
+        FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {
           'types.json': JSON.stringify(additionalSchema),
         });
 
-        expect(Object.keys(updatedDef.definitionFiles || {})).toContain('main.json');
-        expect(Object.keys(updatedDef.definitionFiles || {})).toContain('types.json');
-        expect(updatedDef.namespaceMap).toEqual({});
+        expect(Object.keys(document.definition.definitionFiles || {})).toContain('main.json');
+        expect(Object.keys(document.definition.definitionFiles || {})).toContain('types.json');
       });
     });
 
@@ -234,25 +291,20 @@ describe('FieldTypeOverrideService', () => {
         }).toThrow('Cannot add schema files to primitive document');
       });
 
-      it('should handle empty additionalFiles', () => {
+      it('should handle empty additionalFiles and keep existing definition files', () => {
         const definition = new DocumentDefinition(
           DocumentType.SOURCE_BODY,
           DocumentDefinitionType.XML_SCHEMA,
           'test-doc',
           { 'ShipOrder.xsd': getShipOrderXsd() },
-          undefined,
-          undefined,
-          undefined,
-          { ns0: 'io.kaoto.datamapper.poc.test' },
         );
 
         const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
         const document = result.document as XmlSchemaDocument;
 
-        const updatedDef = FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {});
+        FieldTypeOverrideService.addSchemaFilesForTypeOverride(document, {});
 
-        expect(updatedDef.definitionFiles).toEqual(definition.definitionFiles);
-        expect(updatedDef.namespaceMap).toEqual(definition.namespaceMap);
+        expect(document.definition.definitionFiles).toEqual(definition.definitionFiles);
       });
     });
   });
@@ -265,9 +317,8 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
@@ -276,12 +327,13 @@ describe('FieldTypeOverrideService', () => {
         stringField,
         candidate,
         namespaceMap,
-        TypeOverrideVariant.FORCE,
+        FieldOverrideVariant.FORCE,
       );
 
       expect(override.schemaPath).toBe('/ns0:ShipOrder/ns0:OrderPerson');
       expect(override.type).toBe('xs:int');
-      expect(override.variant).toBe(TypeOverrideVariant.FORCE);
+      expect(override.originalType).toBe('xs:string');
+      expect(override.variant).toBe(FieldOverrideVariant.FORCE);
     });
 
     it('should create override with schema path through choice compositor', () => {
@@ -294,9 +346,8 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
@@ -305,10 +356,49 @@ describe('FieldTypeOverrideService', () => {
         emailField,
         candidate,
         namespaceMap,
-        TypeOverrideVariant.FORCE,
+        FieldOverrideVariant.FORCE,
       );
 
       expect(override.schemaPath).toBe('/ns0:ShipOrder/{choice:0}/email');
+    });
+
+    it('should use originalField.type as originalType when field was already overridden', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const stringField = doc.fields[0].fields.find((f) => f.name === 'OrderPerson');
+      if (!stringField) throw new Error('Field not found');
+
+      const intCandidate = {
+        displayName: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
+        type: Types.Integer,
+        isBuiltIn: true,
+      };
+      const boolCandidate = {
+        displayName: 'xs:boolean',
+        typeQName: new QName(NS_XML_SCHEMA, 'boolean'),
+        type: Types.Boolean,
+        isBuiltIn: true,
+      };
+
+      const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      FieldTypeOverrideService.applyFieldTypeOverride(
+        stringField,
+        intCandidate,
+        namespaceMap,
+        FieldOverrideVariant.FORCE,
+      );
+
+      const firstOverrideOriginalType = doc.definition.fieldTypeOverrides![0].originalType;
+
+      const secondOverride = FieldTypeOverrideService.createFieldTypeOverride(
+        stringField,
+        boolCandidate,
+        namespaceMap,
+        FieldOverrideVariant.FORCE,
+      );
+
+      expect(secondOverride.originalType).toBe(firstOverrideOriginalType);
+      expect(secondOverride.originalType).not.toBe(intCandidate.displayName);
     });
   });
 
@@ -319,27 +409,20 @@ describe('FieldTypeOverrideService', () => {
       if (!stringField) throw new Error('Field not found');
 
       expect(stringField.type).toBe(Types.String);
-      expect(stringField.typeOverride).toBe(TypeOverrideVariant.NONE);
+      expect(stringField.typeOverride).toBe(FieldOverrideVariant.NONE);
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
-      FieldTypeOverrideService.applyFieldTypeOverride(
-        doc,
-        stringField,
-        candidate,
-        namespaceMap,
-        TypeOverrideVariant.FORCE,
-      );
+      FieldTypeOverrideService.applyFieldTypeOverride(stringField, candidate, namespaceMap, FieldOverrideVariant.FORCE);
 
       expect(stringField.type).toBe(Types.Integer);
-      expect(stringField.typeOverride).toBe(TypeOverrideVariant.FORCE);
+      expect(stringField.typeOverride).toBe(FieldOverrideVariant.FORCE);
       expect(doc.definition.fieldTypeOverrides).toBeDefined();
       expect(doc.definition.fieldTypeOverrides![0].schemaPath).toBe('/ns0:ShipOrder/ns0:OrderPerson');
     });
@@ -352,7 +435,7 @@ describe('FieldTypeOverrideService', () => {
           schemaPath: '/ns0:ShipOrder/ShipTo/City',
           type: 'xs:int',
           originalType: 'xs:string',
-          variant: TypeOverrideVariant.FORCE,
+          variant: FieldOverrideVariant.FORCE,
         },
       ];
       doc.definition.choiceSelections = [{ schemaPath: '/ns0:ShipOrder/ShipTo/{choice:0}', selectedMemberIndex: 0 }];
@@ -362,20 +445,13 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
-      FieldTypeOverrideService.applyFieldTypeOverride(
-        doc,
-        shipToField,
-        candidate,
-        namespaceMap,
-        TypeOverrideVariant.FORCE,
-      );
+      FieldTypeOverrideService.applyFieldTypeOverride(shipToField, candidate, namespaceMap, FieldOverrideVariant.FORCE);
 
       expect(doc.definition.fieldTypeOverrides?.some((o) => o.schemaPath === '/ns0:ShipOrder/ShipTo/City')).toBe(false);
       expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/ShipTo/{choice:0}')).toBe(
@@ -408,16 +484,37 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'number',
-        typeString: 'number',
+        typeQName: new QName(null, 'number'),
         type: Types.Numeric,
-        namespaceURI: '',
         isBuiltIn: true,
       };
 
-      FieldTypeOverrideService.applyFieldTypeOverride(doc, nameField, candidate, {}, TypeOverrideVariant.FORCE);
+      FieldTypeOverrideService.applyFieldTypeOverride(nameField, candidate, {}, FieldOverrideVariant.FORCE);
 
       expect(nameField.type).toBe(Types.Numeric);
-      expect(nameField.typeOverride).toBe(TypeOverrideVariant.FORCE);
+      expect(nameField.typeOverride).toBe(FieldOverrideVariant.FORCE);
+    });
+
+    it('should register unknown namespaceURI in namespaceMap and store prefixed typeString', () => {
+      const doc = TestUtil.createSourceOrderDoc();
+      const stringField = doc.fields[0].fields.find((f) => f.name === 'OrderPerson');
+      if (!stringField) throw new Error('Field not found');
+
+      const newNamespace = 'http://example.com/types';
+      const candidate = {
+        displayName: 'EmployeeType',
+        typeQName: new QName(newNamespace, 'EmployeeType'),
+        type: Types.Container,
+        isBuiltIn: false,
+      };
+
+      const namespaceMap: Record<string, string> = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
+      FieldTypeOverrideService.applyFieldTypeOverride(stringField, candidate, namespaceMap, FieldOverrideVariant.FORCE);
+
+      expect(Object.values(namespaceMap)).toContain(newNamespace);
+      const registeredPrefix = Object.keys(namespaceMap).find((k) => namespaceMap[k] === newNamespace);
+      expect(registeredPrefix).toBeDefined();
+      expect(doc.definition.fieldTypeOverrides![0].type).toBe(`${registeredPrefix}:EmployeeType`);
     });
 
     it('should throw TypeError for PrimitiveDocument', () => {
@@ -426,17 +523,26 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
       expect(() => {
-        FieldTypeOverrideService.applyFieldTypeOverride(document, document, candidate, {}, TypeOverrideVariant.FORCE);
+        FieldTypeOverrideService.applyFieldTypeOverride(
+          { ownerDocument: document } as unknown as IField,
+          candidate,
+          {},
+          FieldOverrideVariant.FORCE,
+        );
       }).toThrow(TypeError);
       expect(() => {
-        FieldTypeOverrideService.applyFieldTypeOverride(document, document, candidate, {}, TypeOverrideVariant.FORCE);
+        FieldTypeOverrideService.applyFieldTypeOverride(
+          { ownerDocument: document } as unknown as IField,
+          candidate,
+          {},
+          FieldOverrideVariant.FORCE,
+        );
       }).toThrow('Field type override is not supported for primitive documents');
     });
 
@@ -451,28 +557,25 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
       expect(() => {
         FieldTypeOverrideService.applyFieldTypeOverride(
-          mockDoc,
-          mockDoc as unknown as IField,
+          { ownerDocument: mockDoc } as unknown as IField,
           candidate,
           {},
-          TypeOverrideVariant.FORCE,
+          FieldOverrideVariant.FORCE,
         );
       }).toThrow(TypeError);
       expect(() => {
         FieldTypeOverrideService.applyFieldTypeOverride(
-          mockDoc,
-          mockDoc as unknown as IField,
+          { ownerDocument: mockDoc } as unknown as IField,
           candidate,
           {},
-          TypeOverrideVariant.FORCE,
+          FieldOverrideVariant.FORCE,
         );
       }).toThrow('Unsupported document type');
     });
@@ -488,28 +591,21 @@ describe('FieldTypeOverrideService', () => {
 
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
 
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
-      FieldTypeOverrideService.applyFieldTypeOverride(
-        doc,
-        stringField,
-        candidate,
-        namespaceMap,
-        TypeOverrideVariant.FORCE,
-      );
+      FieldTypeOverrideService.applyFieldTypeOverride(stringField, candidate, namespaceMap, FieldOverrideVariant.FORCE);
 
       expect(stringField.type).toBe(Types.Integer);
-      expect(stringField.typeOverride).toBe(TypeOverrideVariant.FORCE);
+      expect(stringField.typeOverride).toBe(FieldOverrideVariant.FORCE);
 
-      FieldTypeOverrideService.revertFieldTypeOverride(doc, stringField, namespaceMap);
+      FieldTypeOverrideService.revertFieldTypeOverride(stringField, namespaceMap);
 
       expect(stringField.type).toBe(originalType);
-      expect(stringField.typeOverride).toBe(TypeOverrideVariant.NONE);
+      expect(stringField.typeOverride).toBe(FieldOverrideVariant.NONE);
       expect(doc.definition.fieldTypeOverrides?.length).toBe(0);
     });
 
@@ -519,13 +615,13 @@ describe('FieldTypeOverrideService', () => {
       if (!stringField) throw new Error('Field not found');
 
       const originalType = stringField.type;
-      expect(stringField.typeOverride).toBe(TypeOverrideVariant.NONE);
+      expect(stringField.typeOverride).toBe(FieldOverrideVariant.NONE);
 
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
-      FieldTypeOverrideService.revertFieldTypeOverride(doc, stringField, namespaceMap);
+      FieldTypeOverrideService.revertFieldTypeOverride(stringField, namespaceMap);
 
       expect(stringField.type).toBe(originalType);
-      expect(stringField.typeOverride).toBe(TypeOverrideVariant.NONE);
+      expect(stringField.typeOverride).toBe(FieldOverrideVariant.NONE);
     });
 
     it('should invalidate descendant overrides and selections after reverting type override', () => {
@@ -537,18 +633,11 @@ describe('FieldTypeOverrideService', () => {
       const namespaceMap = { xs: NS_XML_SCHEMA, ns0: 'io.kaoto.datamapper.poc.test' };
       const candidate = {
         displayName: 'xs:int',
-        typeString: 'xs:int',
+        typeQName: new QName(NS_XML_SCHEMA, 'int'),
         type: Types.Integer,
-        namespaceURI: NS_XML_SCHEMA,
         isBuiltIn: true,
       };
-      FieldTypeOverrideService.applyFieldTypeOverride(
-        doc,
-        shipToField,
-        candidate,
-        namespaceMap,
-        TypeOverrideVariant.FORCE,
-      );
+      FieldTypeOverrideService.applyFieldTypeOverride(shipToField, candidate, namespaceMap, FieldOverrideVariant.FORCE);
 
       doc.definition.fieldTypeOverrides = [
         ...(doc.definition.fieldTypeOverrides ?? []),
@@ -556,7 +645,7 @@ describe('FieldTypeOverrideService', () => {
           schemaPath: '/ns0:ShipOrder/ShipTo/City',
           type: 'xs:int',
           originalType: 'xs:string',
-          variant: TypeOverrideVariant.FORCE,
+          variant: FieldOverrideVariant.FORCE,
         },
       ];
       doc.definition.choiceSelections = [
@@ -564,7 +653,7 @@ describe('FieldTypeOverrideService', () => {
         { schemaPath: '/ns0:ShipOrder/ShipTo/{choice:0}', selectedMemberIndex: 0 },
       ];
 
-      FieldTypeOverrideService.revertFieldTypeOverride(doc, shipToField, namespaceMap);
+      FieldTypeOverrideService.revertFieldTypeOverride(shipToField, namespaceMap);
 
       expect(doc.definition.fieldTypeOverrides?.some((o) => o.schemaPath === '/ns0:ShipOrder/ShipTo/City')).toBe(false);
       expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/ShipTo/{choice:0}')).toBe(
@@ -641,7 +730,7 @@ describe('FieldTypeOverrideService', () => {
           schemaPath: '/ns0:ShipOrder/{choice:0}/email/emailAddress',
           type: 'xs:int',
           originalType: 'xs:string',
-          variant: TypeOverrideVariant.FORCE,
+          variant: FieldOverrideVariant.FORCE,
         },
       ];
       doc.definition.choiceSelections = [
@@ -742,7 +831,7 @@ describe('FieldTypeOverrideService', () => {
           schemaPath: '/ns0:ShipOrder/{choice:0}/email/emailAddress',
           type: 'xs:int',
           originalType: 'xs:string',
-          variant: TypeOverrideVariant.FORCE,
+          variant: FieldOverrideVariant.FORCE,
         },
       ];
       doc.definition.choiceSelections!.push({
@@ -759,6 +848,284 @@ describe('FieldTypeOverrideService', () => {
         doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/{choice:0}/email/{choice:0}'),
       ).toBe(false);
       expect(doc.definition.choiceSelections?.some((s) => s.schemaPath === '/ns0:ShipOrder/{choice:0}')).toBe(false);
+    });
+  });
+
+  describe('getFieldSubstitutionCandidates()', () => {
+    it('should return substitution candidates for an element that is a substitution group head', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+
+      const candidates = FieldTypeOverrideService.getFieldSubstitutionCandidates(abstractAnimalField, namespaceMap);
+
+      expect(Object.keys(candidates).length).toBeGreaterThan(0);
+      expect(Object.keys(candidates).some((k) => k.includes('Cat'))).toBe(true);
+      expect(Object.keys(candidates).some((k) => k.includes('Dog'))).toBe(true);
+    });
+
+    it('should return empty Record for non-XmlSchemaDocument', () => {
+      const jsonDoc = new JsonSchemaDocument(
+        new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.JSON_SCHEMA, 'test', {}),
+      );
+      const jsonField = { ownerDocument: jsonDoc } as unknown as IField;
+
+      const candidates = FieldTypeOverrideService.getFieldSubstitutionCandidates(jsonField, {});
+
+      expect(candidates).toEqual({});
+    });
+
+    it('should return empty Record for XmlSchemaDocument with undefined xmlSchemaCollection', () => {
+      const malformedDoc = Object.create(XmlSchemaDocument.prototype) as XmlSchemaDocument;
+      malformedDoc.xmlSchemaCollection = undefined as unknown as XmlSchemaCollection;
+      const field = { ownerDocument: malformedDoc } as unknown as IField;
+
+      expect(() => FieldTypeOverrideService.getFieldSubstitutionCandidates(field, {})).not.toThrow();
+      expect(FieldTypeOverrideService.getFieldSubstitutionCandidates(field, {})).toEqual({});
+    });
+  });
+
+  describe('applyFieldSubstitution() and revertFieldSubstitution()', () => {
+    it('should apply substitution and store entry in definition', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Cat', namespaceMap);
+
+      expect(doc.definition.fieldSubstitutions).toHaveLength(1);
+      expect(doc.definition.fieldSubstitutions![0].name).toBe('sub:Cat');
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
+      expect(abstractAnimalField.name).toBe('Cat');
+    });
+
+    it('should revert substitution and restore original field state', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+      const originalName = abstractAnimalField.name;
+      const originalDisplayName = abstractAnimalField.displayName;
+      const originalType = abstractAnimalField.type;
+      const originalFieldCount = abstractAnimalField.fields.length;
+      const originalFragmentRefs = [...abstractAnimalField.namedTypeFragmentRefs];
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Cat', namespaceMap);
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
+
+      FieldTypeOverrideService.revertFieldSubstitution(abstractAnimalField, namespaceMap);
+
+      expect(abstractAnimalField.name).toBe(originalName);
+      expect(abstractAnimalField.displayName).toBe(originalDisplayName);
+      expect(abstractAnimalField.type).toBe(originalType);
+      expect(abstractAnimalField.namedTypeFragmentRefs).toEqual(originalFragmentRefs);
+      expect(abstractAnimalField.fields).toHaveLength(originalFieldCount);
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.NONE);
+      expect(abstractAnimalField.originalField).toBeUndefined();
+      expect(doc.definition.fieldSubstitutions).toHaveLength(0);
+    });
+
+    it('should do nothing on revert when field is not substituted', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+      const originalName = abstractAnimalField.name;
+      const originalTypeOverride = abstractAnimalField.typeOverride;
+      const originalSubstitutionCount = doc.definition.fieldSubstitutions?.length ?? 0;
+
+      FieldTypeOverrideService.revertFieldSubstitution(abstractAnimalField, namespaceMap);
+
+      expect(abstractAnimalField.name).toBe(originalName);
+      expect(abstractAnimalField.typeOverride).toBe(originalTypeOverride);
+      expect(doc.definition.fieldSubstitutions?.length ?? 0).toBe(originalSubstitutionCount);
+    });
+
+    it('should remove persisted substitution entry even when field.typeOverride is already NONE', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Cat', namespaceMap);
+      expect(doc.definition.fieldSubstitutions).toHaveLength(1);
+
+      abstractAnimalField.typeOverride = FieldOverrideVariant.NONE;
+
+      FieldTypeOverrideService.revertFieldSubstitution(abstractAnimalField, namespaceMap);
+
+      expect(doc.definition.fieldSubstitutions).toHaveLength(0);
+    });
+
+    it('should do nothing on apply when document is not XmlSchemaDocument', () => {
+      const jsonDocument = new JsonSchemaDocument(
+        new DocumentDefinition(DocumentType.SOURCE_BODY, DocumentDefinitionType.JSON_SCHEMA, 'test', {}),
+      );
+      const field = { name: 'test', ownerDocument: jsonDocument } as unknown as IField;
+
+      FieldTypeOverrideService.applyFieldSubstitution(field, 'sub:Cat', {});
+
+      expect(field.name).toBe('test');
+    });
+
+    it('should do nothing on apply when XmlSchemaDocument has undefined xmlSchemaCollection', () => {
+      const malformedDoc = Object.create(XmlSchemaDocument.prototype) as XmlSchemaDocument;
+      malformedDoc.xmlSchemaCollection = undefined as unknown as XmlSchemaCollection;
+      malformedDoc.definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        'test',
+        {},
+      );
+      const field = { ownerDocument: malformedDoc } as unknown as IField;
+
+      expect(() => {
+        FieldTypeOverrideService.applyFieldSubstitution(field, 'sub:Cat', {});
+      }).not.toThrow();
+      expect(malformedDoc.definition.fieldSubstitutions ?? []).toHaveLength(0);
+    });
+
+    it('should not modify field when applying a non-member substitution', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+      const originalName = abstractAnimalField.name;
+      const originalType = abstractAnimalField.type;
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Nickname', namespaceMap);
+
+      expect(abstractAnimalField.name).toBe(originalName);
+      expect(abstractAnimalField.type).toBe(originalType);
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.NONE);
+      expect(doc.definition.fieldSubstitutions ?? []).toHaveLength(0);
+    });
+
+    it('should replace existing substitution entry when reapplied to same field', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Cat', namespaceMap);
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Dog', namespaceMap);
+
+      expect(doc.definition.fieldSubstitutions).toHaveLength(1);
+      expect(doc.definition.fieldSubstitutions![0].name).toBe('sub:Dog');
+      expect(abstractAnimalField.name).toBe('Dog');
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
+    });
+
+    it('should populate children when substituting with an element that has an anonymous complex type', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap = { sub: NS_SUBSTITUTION };
+      const abstractAnimalField = doc.fields[0];
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'sub:Fish', namespaceMap);
+
+      expect(abstractAnimalField.name).toBe('Fish');
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
+      expect(abstractAnimalField.fields.length).toBeGreaterThan(0);
+      expect(abstractAnimalField.fields.some((f) => f.name === 'freshwater')).toBe(true);
+    });
+
+    it('should register namespace and store prefixed name when namespace is not pre-registered', () => {
+      const doc = createSubstitutionDoc();
+      const namespaceMap: Record<string, string> = {};
+      const abstractAnimalField = doc.fields[0];
+      const originalName = abstractAnimalField.name;
+      const originalType = abstractAnimalField.type;
+      const originalFieldCount = abstractAnimalField.fields.length;
+
+      const candidates = FieldTypeOverrideService.getFieldSubstitutionCandidates(abstractAnimalField, namespaceMap);
+      const catKey = Object.keys(candidates).find((k) => k.endsWith(':Cat'))!;
+      expect(catKey).toBeDefined();
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, catKey, namespaceMap);
+
+      expect(Object.keys(namespaceMap).length).toBeGreaterThan(0);
+      expect(doc.definition.fieldSubstitutions).toHaveLength(1);
+      expect(doc.definition.fieldSubstitutions![0].name).toContain(':Cat');
+      expect(abstractAnimalField.name).toBe('Cat');
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
+
+      FieldTypeOverrideService.revertFieldSubstitution(abstractAnimalField, namespaceMap);
+
+      expect(abstractAnimalField.name).toBe(originalName);
+      expect(abstractAnimalField.type).toBe(originalType);
+      expect(abstractAnimalField.fields.length).toBe(originalFieldCount);
+      expect(doc.definition.fieldSubstitutions ?? []).toHaveLength(0);
+    });
+  });
+
+  describe('applyFieldSubstitution() and revertFieldSubstitution() - blank namespace', () => {
+    function createNoNsSubstitutionDoc() {
+      const definition = new DocumentDefinition(
+        DocumentType.SOURCE_BODY,
+        DocumentDefinitionType.XML_SCHEMA,
+        'test-doc',
+        { 'FieldSubstitutionNoNs.xsd': getFieldSubstitutionNoNsXsd() },
+      );
+      const result = XmlSchemaDocumentService.createXmlSchemaDocument(definition);
+      if (result.validationStatus !== 'success' || !result.document) {
+        throw new Error(
+          result.errors?.map((e) => e.message).join('; ') || 'Failed to create no-namespace substitution test document',
+        );
+      }
+      return result.document;
+    }
+
+    it('should apply Cat substitution to blank-namespace field', () => {
+      const doc = createNoNsSubstitutionDoc();
+      const abstractAnimalField = doc.fields[0];
+      const originalName = abstractAnimalField.name;
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'Cat', {});
+
+      expect(doc.definition.fieldSubstitutions).toHaveLength(1);
+      expect(doc.definition.fieldSubstitutions![0].name).toBe('Cat');
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
+      expect(abstractAnimalField.name).toBe('Cat');
+      expect(abstractAnimalField.namespaceURI).toBeFalsy();
+      expect(abstractAnimalField.originalField?.name).toBe(originalName);
+    });
+
+    it('should revert Cat substitution and restore blank-namespace field', () => {
+      const doc = createNoNsSubstitutionDoc();
+      const abstractAnimalField = doc.fields[0];
+      const originalName = abstractAnimalField.name;
+      const originalDisplayName = abstractAnimalField.displayName;
+      const originalType = abstractAnimalField.type;
+      const originalFieldCount = abstractAnimalField.fields.length;
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'Cat', {});
+      FieldTypeOverrideService.revertFieldSubstitution(abstractAnimalField, {});
+
+      expect(abstractAnimalField.name).toBe(originalName);
+      expect(abstractAnimalField.displayName).toBe(originalDisplayName);
+      expect(abstractAnimalField.type).toBe(originalType);
+      expect(abstractAnimalField.fields).toHaveLength(originalFieldCount);
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.NONE);
+      expect(abstractAnimalField.originalField).toBeUndefined();
+      expect(doc.definition.fieldSubstitutions).toHaveLength(0);
+    });
+
+    it('should get substitution candidates for blank-namespace field via FieldTypeOverrideService', () => {
+      const doc = createNoNsSubstitutionDoc();
+      const abstractAnimalField = doc.fields[0];
+
+      const candidates = FieldTypeOverrideService.getFieldSubstitutionCandidates(abstractAnimalField, {});
+
+      expect(Object.keys(candidates).includes('Cat')).toBe(true);
+      expect(Object.keys(candidates).includes('Dog')).toBe(true);
+    });
+
+    it('should replace blank-namespace substitution entry when reapplied', () => {
+      const doc = createNoNsSubstitutionDoc();
+      const abstractAnimalField = doc.fields[0];
+
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'Cat', {});
+      FieldTypeOverrideService.applyFieldSubstitution(abstractAnimalField, 'Dog', {});
+
+      expect(doc.definition.fieldSubstitutions).toHaveLength(1);
+      expect(doc.definition.fieldSubstitutions![0].name).toBe('Dog');
+      expect(abstractAnimalField.name).toBe('Dog');
+      expect(abstractAnimalField.typeOverride).toBe(FieldOverrideVariant.SUBSTITUTION);
     });
   });
 });

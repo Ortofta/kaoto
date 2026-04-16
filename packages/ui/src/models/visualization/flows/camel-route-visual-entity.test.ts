@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash';
 import { mockRandomValues } from '../../../stubs';
 import { camelFromJson } from '../../../stubs/camel-from';
 import { camelRouteJson } from '../../../stubs/camel-route';
-import { EntityType } from '../../camel/entities/base-entity';
+import { EntityType } from '../../entities/base-entity';
 import { NodeLabelType } from '../../settings/settings.model';
 import { IVisualizationNode } from '../base-visual-entity';
 import { CamelRouteVisualEntity, isCamelFrom, isCamelRoute } from './camel-route-visual-entity';
@@ -476,34 +476,6 @@ describe('Camel Route', () => {
       expect(logOtherwiseNode!.getNextNode()?.data.isPlaceholder).toBe(true);
       expect(logOtherwiseNode!.getParentNode()).toBe(otherwiseNode);
       expect(logOtherwiseNode!.getChildren()).toBeUndefined();
-    });
-  });
-
-  describe('getGroupIcons', () => {
-    it('should show play icon when autoStartup is enabled or undefined', () => {
-      const entity = new CamelRouteVisualEntity({
-        route: { from: { uri: 'direct:test', steps: [] } },
-      });
-
-      expect(entity.getGroupIcons()).toEqual([
-        {
-          icon: 'play',
-          title: 'Auto Startup Enabled',
-        },
-      ]);
-    });
-
-    it('should show pause icon when autoStartup is false', () => {
-      const entity = new CamelRouteVisualEntity({
-        route: { from: { uri: 'direct:test', steps: [] }, autoStartup: false },
-      });
-
-      expect(entity.getGroupIcons()).toEqual([
-        {
-          icon: 'pause',
-          title: 'Auto Startup Disabled',
-        },
-      ]);
     });
   });
 });

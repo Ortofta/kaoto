@@ -1,17 +1,16 @@
-import { toBlob } from 'html-to-image';
 import JSZip from 'jszip';
 import { MarkdownEntry, TableRow, tsMarkdown } from 'ts-markdown';
 
 import {
-  BaseVisualCamelEntity,
+  BaseVisualEntity,
   CamelRouteVisualEntity,
   KameletBindingVisualEntity,
   KameletVisualEntity,
   PipeVisualEntity,
 } from '../models';
-import { CamelResource } from '../models/camel';
-import { BaseCamelEntity } from '../models/camel/entities';
 import { DocumentationEntity, ParsedTable } from '../models/documentation';
+import { BaseEntity } from '../models/entities';
+import { KaotoResource } from '../models/kaoto-resource';
 import { CamelErrorHandlerVisualEntity } from '../models/visualization/flows/camel-error-handler-visual-entity';
 import { CamelInterceptFromVisualEntity } from '../models/visualization/flows/camel-intercept-from-visual-entity';
 import { CamelInterceptSendToEndpointVisualEntity } from '../models/visualization/flows/camel-intercept-send-to-endpoint-visual-entity';
@@ -40,22 +39,6 @@ export class DocumentationService {
     jszip.file(imageFileName, flowImage);
     jszip.file(markdownFileName, markdownText);
     return jszip.generateAsync({ type: 'blob' });
-  }
-
-  static generateFlowImage(isDark?: boolean): Promise<Blob | null> {
-    const element = document.querySelector<HTMLElement>('.pf-topology-container') ?? undefined;
-    if (!element) {
-      return Promise.reject(new Error('generateFlowImage called but the flow diagram is not found'));
-    }
-
-    return toBlob(element, {
-      cacheBust: true,
-      backgroundColor: isDark ? '#0f1214' : '#f0f0f0',
-      filter: (element) => {
-        /**  Filter @patternfly/react-topology controls */
-        return !element?.classList?.contains('pf-v6-c-toolbar__group');
-      },
-    });
   }
 
   static generateMarkdown(documentationEntities: DocumentationEntity[], flowImageFileName: string) {
@@ -143,7 +126,7 @@ export class DocumentationService {
     return ParsedTable.unsupported(entity);
   }
 
-  static getDocumentationEntities(camelResource: CamelResource, visibleFlows: IVisibleFlows): DocumentationEntity[] {
+  static getDocumentationEntities(camelResource: KaotoResource, visibleFlows: IVisibleFlows): DocumentationEntity[] {
     const visualEntities = camelResource.getVisualEntities();
     const visualDocEntities = visualEntities.map((entity) => {
       const entityLabel = DocumentationService.getEntityLabel(entity);
@@ -156,7 +139,7 @@ export class DocumentationService {
     });
     const nonVisualDocEntities = camelResource
       .getEntities()
-      .filter((e) => !visualEntities.includes(e as BaseVisualCamelEntity))
+      .filter((e) => !visualEntities.includes(e as BaseVisualEntity))
       .map((entity) => {
         const entityLabel = DocumentationService.getEntityLabel(entity);
         return new DocumentationEntity({
@@ -169,7 +152,7 @@ export class DocumentationService {
     return [...visualDocEntities, ...nonVisualDocEntities];
   }
 
-  private static getEntityLabel(entity: BaseCamelEntity) {
+  private static getEntityLabel(entity: BaseEntity) {
     if (entity instanceof BeansEntity || entity instanceof RouteTemplateBeansEntity) return 'Beans';
     if (
       entity instanceof KameletVisualEntity ||

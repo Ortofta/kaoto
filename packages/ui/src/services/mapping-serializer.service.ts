@@ -12,14 +12,15 @@ import {
 } from '../models/datamapper/document';
 import {
   ChooseItem,
-  ConditionItem,
   FieldItem,
   ForEachItem,
   IfItem,
+  InstructionItem,
   MappingItem,
   MappingParentType,
   MappingTree,
   OtherwiseItem,
+  UnknownMappingItem,
   ValueSelector,
   ValueType,
   WhenItem,
@@ -47,12 +48,13 @@ export class MappingSerializerService {
   }
 
   private static sortMappingItem(left: MappingItem, right: MappingItem) {
+    if (left instanceof UnknownMappingItem || right instanceof UnknownMappingItem) return 0;
     const leftFields =
-      left instanceof FieldItem ? [left.field] : MappingService.getConditionalFields(left as ConditionItem);
+      left instanceof FieldItem ? [left.field] : MappingService.getInstructionFields(left as InstructionItem);
     if (leftFields.length === 0) return 1;
     if (leftFields.find((f) => f.isAttribute)) return -1;
     const rightFields =
-      right instanceof FieldItem ? [right.field] : MappingService.getConditionalFields(right as ConditionItem);
+      right instanceof FieldItem ? [right.field] : MappingService.getInstructionFields(right as InstructionItem);
     if (rightFields.length === 0) return -1;
     if (rightFields.find((f) => f.isAttribute)) return 1;
     const leftFirst = leftFields.sort(MappingSerializerService.sortFields)[0];
@@ -127,6 +129,15 @@ export class MappingSerializerService {
   }
 
   private static populateMapping(parent: Element, mapping: MappingItem) {
+    // Add comment before the element if it exists
+    if (mapping.comment) {
+      const xsltDocument = parent.ownerDocument;
+      const comment = xsltDocument.createComment(` ${mapping.comment} `);
+      const sanitized = comment.data.replace(/--/g, '- -');
+      comment.data = sanitized;
+      parent.appendChild(comment);
+    }
+
     let child: Element | null = null;
     if (mapping instanceof ValueSelector) {
       child = MappingSerializerService.populateValueSelector(parent, mapping);
@@ -142,6 +153,8 @@ export class MappingSerializerService {
       child = MappingSerializerService.populateWhenItem(parent, mapping);
     } else if (mapping instanceof OtherwiseItem) {
       child = MappingSerializerService.populateOtherwiseItem(parent, mapping);
+    } else if (mapping instanceof UnknownMappingItem) {
+      child = MappingSerializerService.populateUnknownMappingItem(parent, mapping);
     }
     if (child)
       mapping.children
@@ -225,6 +238,12 @@ export class MappingSerializerService {
     return xslOtherwise;
   }
 
+  private static populateUnknownMappingItem(parent: Element, mapping: UnknownMappingItem): Element {
+    const imported = parent.ownerDocument.importNode(mapping.element, true);
+    parent.appendChild(imported);
+    return imported;
+  }
+
   /**
    * Deserialize the XSLT mappings document into a {@link MappingTree} model object.
    * @param xslt XSLT mappings document in string format
@@ -245,7 +264,7 @@ export class MappingSerializerService {
     MappingSerializerService.restoreNamespaces(xsltDoc, mappingTree);
     MappingSerializerService.restoreParam(xsltDoc, sourceParameterMap);
     const root = MappingSerializerJsonAddon.getJsonTargetBase(xsltDoc, mappingTree) ?? template;
-    Array.from(root.children).forEach((item) =>
+    Array.from(root.childNodes).forEach((item) =>
       MappingSerializerService.restoreMapping(item, targetDocument, mappingTree),
     );
     return mappingTree;
@@ -282,73 +301,136 @@ export class MappingSerializerService {
     }
   }
 
-  private static restoreMapping(item: Element, parentField: IParentType, parentMapping: MappingParentType) {
-    let mappingItem: MappingItem | null = null;
-    let fieldItem: IParentType | null = null;
-    if (item.namespaceURI === NS_XSL) {
-      switch (item.localName) {
-        case 'copy-of': {
-          const selector = new ValueSelector(parentMapping, ValueType.CONTAINER);
-          selector.expression = item.getAttribute('select') || '';
-          mappingItem = selector;
-          break;
-        }
-        case 'value-of': {
-          const valueType =
-            'isAttribute' in parentField && parentField.isAttribute ? ValueType.ATTRIBUTE : ValueType.VALUE;
-          const selector = new ValueSelector(parentMapping, valueType);
-          selector.expression = item.getAttribute('select') || '';
-          mappingItem = selector;
-          break;
-        }
-        case 'if': {
-          const ifItem = new IfItem(parentMapping);
-          ifItem.expression = item.getAttribute('test') || '';
-          mappingItem = ifItem;
-          break;
-        }
-        case 'choose': {
-          mappingItem = new ChooseItem(parentMapping);
-          break;
-        }
-        case 'when': {
-          const whenItem = new WhenItem(parentMapping);
-          whenItem.expression = item.getAttribute('test') || '';
-          mappingItem = whenItem;
-          break;
-        }
-        case 'otherwise': {
-          mappingItem = new OtherwiseItem(parentMapping);
-          break;
-        }
-        case 'for-each': {
-          const forEachItem = new ForEachItem(parentMapping);
-          forEachItem.expression = item.getAttribute('select') || '';
-          mappingItem = forEachItem;
-          break;
-        }
-        case 'attribute': {
-          if (parentField instanceof PrimitiveDocument) return;
-          const field = MappingSerializerService.getOrCreateAttributeField(item, parentField);
-          if (!field) return;
-          fieldItem = field;
-          mappingItem = new FieldItem(parentMapping, field);
-          break;
-        }
-      }
-    } else {
-      if (parentField instanceof PrimitiveDocument) return;
-      const field = MappingSerializerService.getOrCreateElementField(item, parentField);
-      if (!field) return;
-      fieldItem = field;
-      mappingItem = new FieldItem(parentMapping, field);
+  private static restoreMapping(item: Node, parentField: IParentType, parentMapping: MappingParentType) {
+    if (item.nodeType === Node.TEXT_NODE) {
+      MappingSerializerService.restoreTextNode(item, parentMapping);
+    } else if (item.nodeType === Node.ELEMENT_NODE) {
+      MappingSerializerService.restoreElementNode(item as Element, parentField, parentMapping);
     }
-    if (mappingItem) {
-      parentMapping.children.push(mappingItem);
-      Array.from(item.children).forEach((childItem) =>
-        MappingSerializerService.restoreMapping(childItem, fieldItem ? fieldItem : parentField, mappingItem!),
+  }
+
+  private static restoreTextNode(item: Node, parentMapping: MappingParentType) {
+    const literal = (item.textContent || '').trim();
+    if (!literal) return;
+    const selector = new ValueSelector(parentMapping, ValueType.VALUE);
+    selector.expression = literal;
+    selector.isLiteral = true;
+    parentMapping.children.push(selector);
+  }
+
+  private static restoreCommentFromPreviousSibling(element: Element, mappingItem: MappingItem) {
+    // Look for preceding comment node
+    let previousSibling = element.previousSibling;
+    while (previousSibling?.nodeType === Node.TEXT_NODE) {
+      previousSibling = previousSibling.previousSibling;
+    }
+    if (previousSibling?.nodeType === Node.COMMENT_NODE) {
+      mappingItem.comment = (previousSibling as Comment).data.trim();
+    }
+  }
+
+  private static restoreElementNode(element: Element, parentField: IParentType, parentMapping: MappingParentType) {
+    const result =
+      element.namespaceURI === NS_XSL
+        ? MappingSerializerService.restoreXslElement(element, parentField, parentMapping)
+        : MappingSerializerService.restoreNonXslElement(element, parentField, parentMapping);
+
+    if (!result) return;
+
+    parentMapping.children.push(result.mappingItem);
+
+    if (!(result.mappingItem instanceof UnknownMappingItem) && element.localName !== 'text') {
+      Array.from(element.childNodes).forEach((childItem) =>
+        MappingSerializerService.restoreMapping(childItem, result.fieldItem ?? parentField, result.mappingItem),
       );
     }
+  }
+
+  private static restoreNonXslElement(
+    element: Element,
+    parentField: IParentType,
+    parentMapping: MappingParentType,
+  ): { mappingItem: MappingItem; fieldItem: IParentType | null } | null {
+    if (parentField instanceof PrimitiveDocument) return null;
+    const field = MappingSerializerService.getOrCreateElementField(element, parentField);
+    if (!field) return null;
+    const mappingItem = new FieldItem(parentMapping, field);
+    MappingSerializerService.restoreCommentFromPreviousSibling(element, mappingItem);
+    return { fieldItem: field, mappingItem };
+  }
+
+  private static restoreXslElement(
+    element: Element,
+    parentField: IParentType,
+    parentMapping: MappingParentType,
+  ): { mappingItem: MappingItem; fieldItem: IParentType | null } | null {
+    let mappingItem: MappingItem;
+    let fieldItem: IParentType | null = null;
+
+    switch (element.localName) {
+      case 'copy-of': {
+        const selector = new ValueSelector(parentMapping, ValueType.CONTAINER);
+        selector.expression = element.getAttribute('select') || '';
+        mappingItem = selector;
+        break;
+      }
+      case 'value-of': {
+        const valueType =
+          'isAttribute' in parentField && parentField.isAttribute ? ValueType.ATTRIBUTE : ValueType.VALUE;
+        const selector = new ValueSelector(parentMapping, valueType);
+        selector.expression = element.getAttribute('select') || '';
+        mappingItem = selector;
+        break;
+      }
+      case 'if': {
+        const ifItem = new IfItem(parentMapping);
+        ifItem.expression = element.getAttribute('test') || '';
+        mappingItem = ifItem;
+        break;
+      }
+      case 'choose': {
+        mappingItem = new ChooseItem(parentMapping);
+        break;
+      }
+      case 'when': {
+        const whenItem = new WhenItem(parentMapping);
+        whenItem.expression = element.getAttribute('test') || '';
+        mappingItem = whenItem;
+        break;
+      }
+      case 'otherwise': {
+        mappingItem = new OtherwiseItem(parentMapping);
+        break;
+      }
+      case 'text': {
+        const selector = new ValueSelector(parentMapping, ValueType.VALUE);
+        selector.expression = element.textContent || '';
+        selector.isLiteral = true;
+        mappingItem = selector;
+        break;
+      }
+      case 'for-each': {
+        const forEachItem = new ForEachItem(parentMapping);
+        forEachItem.expression = element.getAttribute('select') || '';
+        mappingItem = forEachItem;
+        break;
+      }
+      case 'attribute': {
+        if (parentField instanceof PrimitiveDocument) return null;
+        const field = MappingSerializerService.getOrCreateAttributeField(element, parentField);
+        if (!field) return null;
+        fieldItem = field;
+        mappingItem = new FieldItem(parentMapping, field);
+        break;
+      }
+      default: {
+        mappingItem = new UnknownMappingItem(parentMapping, element);
+        break;
+      }
+    }
+
+    MappingSerializerService.restoreCommentFromPreviousSibling(element, mappingItem);
+    return { mappingItem, fieldItem };
   }
 
   private static getOrCreateAttributeField(item: Element, parentField: IParentType): IField | null {

@@ -9,13 +9,13 @@ import { AddMappingNodeData } from '../../models/datamapper/visualization';
 import { VisualizationService } from '../../services/visualization.service';
 import { ConditionMenuAction } from './actions/ConditionMenuAction';
 import { BaseNode } from './Nodes/BaseNode';
-import { NodeTitle } from './NodeTitle';
+import { NodeTitle } from './NodeTitle/NodeTitle';
 
 export const AddMappingNode: FunctionComponent<{ nodeData: AddMappingNodeData; rank: number }> = ({
   nodeData,
   rank,
 }) => {
-  const { refreshMappingTree } = useDataMapper();
+  const { mappingTree, refreshMappingTree } = useDataMapper();
 
   const handleAddMapping = useCallback(() => {
     VisualizationService.addMapping(nodeData);
@@ -25,9 +25,9 @@ export const AddMappingNode: FunctionComponent<{ nodeData: AddMappingNodeData; r
   return (
     <div data-testid={`node-target-${nodeData.id}`} className="node__container">
       <BaseNode
+        nodeData={nodeData}
         data-testid={nodeData.title}
         isExpandable={false}
-        isDraggable={false}
         title={
           <>
             <Icon className="node__spacer">
@@ -38,6 +38,7 @@ export const AddMappingNode: FunctionComponent<{ nodeData: AddMappingNodeData; r
               nodeData={nodeData}
               isDocument={false}
               rank={rank}
+              namespaceMap={mappingTree.namespaceMap}
             />
             <Icon className="node__spacer">
               <LayerGroupIcon className="node__add__mapping__icon" />

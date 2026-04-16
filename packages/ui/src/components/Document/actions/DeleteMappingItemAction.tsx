@@ -10,10 +10,9 @@ import {
 import { TrashIcon } from '@patternfly/react-icons';
 import { FunctionComponent, useCallback } from 'react';
 
-import { useCanvas } from '../../../hooks/useCanvas';
 import { useToggle } from '../../../hooks/useToggle';
-import { ConditionItem } from '../../../models/datamapper/mapping';
-import { TargetNodeData } from '../../../models/datamapper/visualization';
+import { InstructionItem } from '../../../models/datamapper/mapping';
+import { TargetNodeData, VariableNodeData } from '../../../models/datamapper/visualization';
 import { VisualizationService } from '../../../services/visualization.service';
 
 type DeleteItemProps = {
@@ -23,26 +22,22 @@ type DeleteItemProps = {
 
 export const DeleteMappingItemAction: FunctionComponent<DeleteItemProps> = ({ nodeData, onDelete }) => {
   const { state: isModalOpen, toggleOn: openModal, toggleOff: closeModal } = useToggle(false);
-  const { clearNodeReferencesForPath, reloadNodeReferences } = useCanvas();
 
   const onConfirmDelete = useCallback(() => {
-    if (nodeData.mapping && nodeData.mapping instanceof ConditionItem) {
-      clearNodeReferencesForPath(nodeData.mapping.nodePath.toString());
-      reloadNodeReferences();
-    }
     VisualizationService.deleteMappingItem(nodeData);
     onDelete();
     closeModal();
-  }, [clearNodeReferencesForPath, closeModal, nodeData, onDelete, reloadNodeReferences]);
-  const title = `Delete ${nodeData.title} mapping`;
+  }, [closeModal, nodeData, onDelete]);
+  const displayName = nodeData instanceof VariableNodeData ? nodeData.displayTitle : nodeData.title;
+  const title = `Delete ${displayName} mapping`;
   let warningMessage = undefined;
   if (
     nodeData.mapping &&
-    nodeData.mapping instanceof ConditionItem &&
+    nodeData.mapping instanceof InstructionItem &&
     nodeData.mapping.children.length > 0 &&
     nodeData.mapping.children[0].children.length > 0
   ) {
-    warningMessage = `Deleting a ${nodeData.title} mapping will also remove all its child mappings.`;
+    warningMessage = `Deleting a ${displayName} mapping will also remove all its child mappings.`;
   }
 
   return (

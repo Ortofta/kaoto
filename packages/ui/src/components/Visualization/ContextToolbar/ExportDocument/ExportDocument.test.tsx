@@ -1,12 +1,15 @@
-import { act, fireEvent, render } from '@testing-library/react';
+import { VisualizationProvider } from '@patternfly/react-topology';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 
-import { CamelResource, CamelRouteResource } from '../../../../models/camel';
-import { EntityType } from '../../../../models/camel/entities';
+import { CamelRouteResource } from '../../../../models/camel';
+import { EntityType } from '../../../../models/entities';
+import { KaotoResource } from '../../../../models/kaoto-resource';
 import { TestProvidersWrapper } from '../../../../stubs';
+import { ControllerService } from '../../Canvas/controller.service';
 import { ExportDocument } from './ExportDocument';
 
 describe('FlowExportDocument.tsx', () => {
-  let camelResource: CamelResource;
+  let camelResource: KaotoResource;
   beforeEach(async () => {
     camelResource = new CamelRouteResource();
     camelResource.addNewEntity(EntityType.Route);
@@ -19,9 +22,11 @@ describe('FlowExportDocument.tsx', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     const { Provider } = TestProvidersWrapper({ camelResource });
     const wrapper = render(
-      <Provider>
-        <ExportDocument />
-      </Provider>,
+      <VisualizationProvider controller={ControllerService.createController()}>
+        <Provider>
+          <ExportDocument />
+        </Provider>
+      </VisualizationProvider>,
     );
 
     const exportButton = wrapper.getByTestId('documentationPreviewButton');
@@ -42,9 +47,14 @@ describe('FlowExportDocument.tsx', () => {
       fireEvent.click(showAllBtn);
     });
 
-    const headers = await wrapper.findAllByTestId('export-document-preview-h1');
-    expect(headers.length).toEqual(3);
-    const tables = await wrapper.findAllByTestId('export-document-preview-table');
-    expect(tables.length).toEqual(1);
+    await waitFor(async () => {
+      const header = await wrapper.findByTestId('documentationPreviewModal');
+      expect(header).toBeInTheDocument();
+    });
+
+    await waitFor(async () => {
+      const tables = await wrapper.findAllByTestId('export-document-preview-body');
+      expect(tables.length).toEqual(1);
+    });
   });
 });
