@@ -1,48 +1,57 @@
 import { Button, Tooltip, TooltipProps } from '@patternfly/react-core';
-import { RouteIcon } from '@patternfly/react-icons';
+import { SaveIcon } from '@patternfly/react-icons';
 
-export const defaultTooltipText = 'Deploy route';
+export const defaultTooltipText = 'Save route';
 
 export function DeployRoute() {
+  const onClick = () => {
+    handleSave();
+  };
 
-    const onClick = () => {
-        handlePostData()
-    };
-  
-    const handlePostData = async () => {
-        const dataFromLocalStorage = localStorage.getItem('sourceCode');
-        console.log(dataFromLocalStorage)
-        
-        if (!dataFromLocalStorage) {
-            throw new Error('No route found in localStorage');
-        }
+  const handleSave = async () => {
+    const yaml = localStorage.getItem('sourceCode');
 
-        // Send a POST request to the API
-        const res = await fetch('/api/route', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/yaml',
-            },
-            body: dataFromLocalStorage,
-        });
+    if (!yaml) {
+      throw new Error('No route found in localStorage');
+    }
 
-        if (!res.ok) {
-            throw new Error(`API Error: ${res.statusText}`);
-        }
+    const routeId = new URLSearchParams(window.location.search).get('routeId');
 
-        await res.json();
-    };
+    if (routeId) {
+      // Update existing route
+      const res = await fetch(`/api/route/${routeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/yaml' },
+        body: yaml,
+      });
+      if (!res.ok) {
+        throw new Error(`Save failed: ${res.statusText}`);
+      }
+    } else {
+      // Create new route and navigate to its edit URL
+      const res = await fetch('/api/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/yaml' },
+        body: yaml,
+      });
+      if (!res.ok) {
+        throw new Error(`Save failed: ${res.statusText}`);
+      }
+      const newId = await res.text();
+      window.location.href = `/?routeId=${encodeURIComponent(newId.trim())}`;
+    }
+  };
 
-    const tooltipProps: TooltipProps = {
-        position: 'bottom',
-        content: <div>{defaultTooltipText}</div>,
-    };
+  const tooltipProps: TooltipProps = {
+    position: 'bottom',
+    content: <div>{defaultTooltipText}</div>,
+  };
 
-    return (
-        <Tooltip {...tooltipProps}>
-        <Button onClick={onClick} variant="control" data-testid="exportImageButton">
-            <RouteIcon />
-        </Button>
-        </Tooltip>
-    );
+  return (
+    <Tooltip {...tooltipProps}>
+      <Button onClick={onClick} variant="control" data-testid="saveRouteButton">
+        <SaveIcon />
+      </Button>
+    </Tooltip>
+  );
 }
